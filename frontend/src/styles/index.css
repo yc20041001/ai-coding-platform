@@ -1,0 +1,103 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* ---- Global Theme Variables ---- */
+:root {
+  --app-bg: #070b18;
+  --app-bg-soft: #0b1120;
+  --app-panel: rgba(15, 23, 42, 0.72);
+  --app-panel-strong: rgba(15, 23, 42, 0.92);
+  --app-panel-hover: rgba(30, 41, 64, 0.80);
+  --app-border: rgba(148, 163, 184, 0.12);
+  --app-border-strong: rgba(148, 163, 184, 0.22);
+  --app-text: #e5edf8;
+  --app-text-soft: #bcc8da;
+  --app-text-muted: #7c8ca5;
+  --app-primary: #38bdf8;
+  --app-primary-soft: rgba(56, 189, 248, 0.15);
+  --app-accent: #8b5cf6;
+  --app-accent-soft: rgba(139, 92, 246, 0.15);
+  --app-success: #22c55e;
+  --app-success-soft: rgba(34, 197, 94, 0.12);
+  --app-warning: #f59e0b;
+  --app-warning-soft: rgba(245, 158, 11, 0.12);
+  --app-danger: #ef4444;
+  --app-danger-soft: rgba(239, 68, 68, 0.12);
+  --app-radius: 10px;
+  --app-radius-sm: 6px;
+  --app-radius-lg: 14px;
+  --app-glow: 0 0 20px rgba(56, 189, 248, 0.08);
+  --app-glow-strong: 0 0 30px rgba(56, 189, 248, 0.18);
+  --app-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Background Effects ---- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(56, 189, 248, 0.045) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 75% 60%, rgba(139, 92, 246, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 50% 85%, rgba(34, 197, 94, 0.025) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Subtle Grid Texture ---- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+a {
+  color: var(--app-primary);
+  text-decoration: none;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}

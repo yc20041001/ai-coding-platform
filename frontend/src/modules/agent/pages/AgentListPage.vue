@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { listAgents, type AgentItem } from '@/modules/agent/api'
+import TechPanel from '@/shared/components/TechPanel.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
+import StatusTag from '@/shared/components/StatusTag.vue'
+import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
+import { formatDateTime } from '@/shared/utils/format'
+
+const agents = ref<AgentItem[]>([])
+const loading = ref(false)
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const res = await listAgents()
+    agents.value = res.data.data
+  } catch { /* handled */ } finally {
+    loading.value = false
+  }
+})
+
+function typeIcon(type: string) {
+  switch (type) {
+    case 'CODING': return '◇'
+    case 'REVIEW': return '◎'
+    case 'DOCS': return '◈'
+    case 'GENERAL': return '◆'
+    default: return '◇'
+  }
+}
+</script>
+
+<template>
+  <div class="page-container">
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-title">Agents</h1>
+        <p class="dash-sub">AI Agent 管理</p>
+      </div>
+      <RuntimeBadge :status="agents.length > 0 ? 'online' : 'idle'" :label="`${agents.length} agents`" />
+    </div>
+
+    <div v-loading="loading">
+      <el-table v-if="agents.length > 0" :data="agents" style="width:100%">
+        <el-table-column label="Agent" min-width="200">
+          <template #default="{ row }">
+            <div class="agent-row">
+              <span class="agent-icon">{{ typeIcon(row.type) }}</span>
+              <div>
+                <div class="agent-name">{{ row.name }}</div>
+                <div class="agent-code">{{ row.code }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="type" label="类型" width="100" />
+        <el-table-column label="状态" width="110">
+          <template #default="{ row }"><StatusTag :status="row.status" /></template>
+        </el-table-column>
+        <el-table-column prop="description" label="描述" min-width="240">
+          <template #default="{ row }">
+            <span v-if="row.description" style="color:var(--app-text-muted);font-size:13px">{{ row.description }}</span>
+            <span v-else style="color:var(--app-text-muted)">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" width="160">
+          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        </el-table-column>
+      </el-table>
+      <EmptyState v-if="!loading && agents.length === 0" description="暂无 Agent" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.dash-title { font-size: 24px; font-weight: 700; color: var(--app-text); margin: 0; }
+.dash-sub { font-size: 13px; color: var(--app-text-muted); margin-top: 4px; }
+
+.agent-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.agent-icon {
+  font-size: 22px;
+  color: var(--app-primary);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--app-primary-soft);
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+.agent-name { font-size: 14px; font-weight: 600; color: var(--app-text); }
+.agent-code { font-size: 11px; color: var(--app-text-muted); font-family: monospace; margin-top: 2px; }
+</style>

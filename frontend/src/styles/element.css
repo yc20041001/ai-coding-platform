@@ -1,0 +1,293 @@
+/* ---- Element Plus Global Overrides ---- */
+
+/* Card */
+.el-card {
+  border-radius: var(--app-radius) !important;
+  background: var(--app-panel) !important;
+  border: 1px solid var(--app-border) !important;
+  color: var(--app-text) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--app-shadow);
+}
+.el-card__header {
+  color: var(--app-text) !important;
+  border-bottom: 1px solid var(--app-border) !important;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Table */
+.el-table {
+  --el-table-bg-color: transparent !important;
+  --el-table-tr-bg-color: transparent !important;
+  --el-table-header-bg-color: rgba(15, 23, 42, 0.6) !important;
+  --el-table-row-hover-bg-color: var(--app-panel-hover) !important;
+  --el-table-border-color: var(--app-border) !important;
+  --el-table-text-color: var(--app-text) !important;
+  --el-table-header-text-color: var(--app-text-muted) !important;
+  background: var(--app-panel) !important;
+  border-radius: var(--app-radius);
+  border: 1px solid var(--app-border);
+}
+.el-table th.el-table__cell {
+  background: rgba(15, 23, 42, 0.6) !important;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--app-border-strong) !important;
+}
+.el-table td.el-table__cell {
+  border-bottom: 1px solid var(--app-border) !important;
+}
+.el-table--border::after,
+.el-table--group::after,
+.el-table::before {
+  background-color: var(--app-border) !important;
+}
+
+/* Dialog */
+.el-dialog {
+  background: var(--app-panel-strong) !important;
+  border: 1px solid var(--app-border-strong) !important;
+  border-radius: var(--app-radius-lg) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: var(--app-glow-strong), var(--app-shadow);
+}
+.el-dialog__header {
+  border-bottom: 1px solid var(--app-border) !important;
+  padding: 20px 24px !important;
+}
+.el-dialog__title {
+  color: var(--app-text) !important;
+  font-weight: 600;
+}
+.el-dialog__body {
+  color: var(--app-text-soft) !important;
+  padding: 24px !important;
+}
+.el-dialog__footer {
+  border-top: 1px solid var(--app-border) !important;
+  padding: 16px 24px !important;
+}
+
+/* Drawer */
+.el-drawer {
+  background: var(--app-panel-strong) !important;
+  border-left: 1px solid var(--app-border) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.el-drawer__header {
+  margin-bottom: 0 !important;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--app-border);
+  color: var(--app-text) !important;
+}
+.el-drawer__body {
+  color: var(--app-text-soft);
+  padding: 20px 24px;
+}
+
+/* Input */
+.el-input__wrapper {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: var(--app-radius-sm) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.el-input__wrapper:hover {
+  border-color: var(--app-border-strong) !important;
+}
+.el-input__wrapper.is-focus {
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 1px var(--app-primary) !important;
+}
+.el-input__inner {
+  color: var(--app-text) !important;
+}
+.el-input__inner::placeholder {
+  color: var(--app-text-muted) !important;
+}
+.el-textarea__inner {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid var(--app-border) !important;
+  color: var(--app-text) !important;
+  border-radius: var(--app-radius-sm) !important;
+}
+.el-textarea__inner:focus {
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 1px var(--app-primary) !important;
+}
+.el-textarea__inner::placeholder {
+  color: var(--app-text-muted) !important;
+}
+
+/* Select */
+.el-select .el-input__wrapper {
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+.el-select-dropdown {
+  background: var(--app-panel-strong) !important;
+  border: 1px solid var(--app-border-strong) !important;
+  backdrop-filter: blur(20px);
+}
+.el-select-dropdown__item {
+  color: var(--app-text-soft) !important;
+}
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover {
+  background: var(--app-panel-hover) !important;
+}
+.el-select-dropdown__item.selected {
+  color: var(--app-primary) !important;
+}
+
+/* Button overrides - keep primary color but style outline */
+.el-button--default {
+  --el-button-bg-color: rgba(15, 23, 42, 0.5);
+  --el-button-border-color: var(--app-border-strong);
+  --el-button-text-color: var(--app-text-soft);
+}
+.el-button--default:hover {
+  --el-button-bg-color: var(--app-panel-hover);
+  --el-button-border-color: var(--app-primary);
+  --el-button-text-color: var(--app-primary);
+}
+
+/* Tag overrides */
+.el-tag {
+  border-radius: var(--app-radius-sm) !important;
+}
+
+/* Pagination */
+.el-pagination {
+  --el-pagination-bg-color: transparent;
+}
+.el-pagination .el-pager li {
+  background: transparent !important;
+  color: var(--app-text-muted) !important;
+}
+.el-pagination .el-pager li.is-active {
+  background: var(--app-primary-soft) !important;
+  color: var(--app-primary) !important;
+}
+
+/* Skeleton / Loading */
+.el-loading-mask {
+  background: rgba(7, 11, 24, 0.6) !important;
+  backdrop-filter: blur(4px);
+  border-radius: var(--app-radius);
+}
+
+/* Form */
+.el-form-item__label {
+  color: var(--app-text-soft) !important;
+  font-size: 13px;
+}
+
+/* Alert */
+.el-alert--error {
+  background: var(--app-danger-soft) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+.el-alert__title {
+  color: #fca5a5 !important;
+}
+
+/* Switch */
+.el-switch.is-checked .el-switch__core {
+  background: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+}
+
+/* Tabs */
+.el-tabs__header {
+  border-bottom: 1px solid var(--app-border) !important;
+}
+.el-tabs__item {
+  color: var(--app-text-muted) !important;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.el-tabs__item.is-active {
+  color: var(--app-primary) !important;
+}
+.el-tabs__item:hover {
+  color: var(--app-text-soft) !important;
+}
+.el-tabs__active-bar {
+  background: var(--app-primary) !important;
+}
+
+/* ---- Layout Utilities ---- */
+.page-container {
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  animation: pageFadeIn 0.25s ease;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 20px 16px;
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover {
+  border-color: var(--app-border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--app-glow);
+}
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--app-primary);
+  font-variant-numeric: tabular-nums;
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--app-text-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Pulse Glow Effect ---- */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(56, 189, 248, 0.15); }
+  50% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.3); }
+}
+
+/* ---- Shimmer Loading ---- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ---- Stream Cursor ---- */
+@keyframes blink {
+  50% { opacity: 0; }
+}

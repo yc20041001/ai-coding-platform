@@ -1,0 +1,60 @@
+CREATE TABLE knowledge_base (
+    id BIGINT NOT NULL PRIMARY KEY COMMENT '主键 ID',
+    project_id BIGINT NOT NULL COMMENT '项目 ID',
+    name VARCHAR(128) NOT NULL COMMENT '知识库名称',
+    description VARCHAR(512) NULL COMMENT '描述',
+    status VARCHAR(32) NOT NULL COMMENT '状态',
+    embedding_provider VARCHAR(64) NULL COMMENT 'Embedding Provider',
+    embedding_model VARCHAR(128) NULL COMMENT 'Embedding Model',
+    chunk_size INT NOT NULL DEFAULT 1000 COMMENT '切片大小',
+    chunk_overlap INT NOT NULL DEFAULT 100 COMMENT '切片重叠',
+    document_count BIGINT NOT NULL DEFAULT 0 COMMENT '文档数',
+    chunk_count BIGINT NOT NULL DEFAULT 0 COMMENT '切片数',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    update_time DATETIME NOT NULL COMMENT '更新时间',
+    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    UNIQUE KEY uk_kb_project_name (project_id, name, deleted),
+    KEY idx_kb_project_status (project_id, status),
+    KEY idx_kb_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='项目知识库表';
+
+CREATE TABLE knowledge_document (
+    id BIGINT NOT NULL PRIMARY KEY COMMENT '主键 ID',
+    project_id BIGINT NOT NULL COMMENT '项目 ID',
+    knowledge_base_id BIGINT NOT NULL COMMENT '知识库 ID',
+    title VARCHAR(256) NOT NULL COMMENT '文档标题',
+    source_type VARCHAR(32) NOT NULL COMMENT '来源类型',
+    document_type VARCHAR(32) NOT NULL COMMENT '文档类型',
+    file_name VARCHAR(256) NULL COMMENT '文件名',
+    file_path VARCHAR(1024) NULL COMMENT '文件路径',
+    content_hash VARCHAR(128) NULL COMMENT '内容哈希',
+    content MEDIUMTEXT NULL COMMENT '原始内容',
+    status VARCHAR(32) NOT NULL COMMENT '状态',
+    error_message TEXT NULL COMMENT '错误信息',
+    chunk_count BIGINT NOT NULL DEFAULT 0 COMMENT '切片数',
+    token_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Token 数',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    update_time DATETIME NOT NULL COMMENT '更新时间',
+    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+    KEY idx_doc_project_kb (project_id, knowledge_base_id),
+    KEY idx_doc_status (status),
+    KEY idx_doc_type (document_type),
+    KEY idx_doc_hash (content_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识库文档表';
+
+CREATE TABLE document_chunk (
+    id BIGINT NOT NULL PRIMARY KEY COMMENT '主键 ID',
+    project_id BIGINT NOT NULL COMMENT '项目 ID',
+    knowledge_base_id BIGINT NOT NULL COMMENT '知识库 ID',
+    document_id BIGINT NOT NULL COMMENT '文档 ID',
+    chunk_index INT NOT NULL COMMENT '切片序号',
+    content TEXT NOT NULL COMMENT '切片内容',
+    content_hash VARCHAR(128) NULL COMMENT '内容哈希',
+    token_count BIGINT NOT NULL DEFAULT 0 COMMENT 'Token 数',
+    embedding_mock TEXT NULL COMMENT 'Mock Embedding',
+    metadata JSON NULL COMMENT '元数据',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    KEY idx_chunk_project_kb (project_id, knowledge_base_id),
+    KEY idx_chunk_document (document_id, chunk_index),
+    KEY idx_chunk_content_hash (content_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文档切片表';

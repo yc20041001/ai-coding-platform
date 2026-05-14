@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://127.0.0.1:3306/ai_coding_platform?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${TEST_DB_USERNAME:aicoding}
+    password: ${TEST_DB_PASSWORD:aicoding123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:verification-test-secret-min-32bytes}
+    access-token-expire-seconds: 7200
+    refresh-token-expire-seconds: 604800
+  model-gateway:
+    default-provider: MOCK
+    fallback-provider: MOCK
+    fallback-enabled: true
+    timeout-ms: 30000
+    retry-times: 1
+    prompt-safety-enabled: false
+  workspace:
+    root-path: ./workspace-test
+  rag:
+    enabled: true
+    chat-enabled: true
+    agent-enabled: true
+    default-limit: 5
+    max-context-chars: 4000
+    max-chunk-chars: 800
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    root: WARN
+    com.aicoding.platform: INFO
+    org.springframework.security: WARN

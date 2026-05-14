@@ -1,0 +1,43 @@
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Build output
+target/
+bin/
+build/
+out/
+dist/
+node_modules/
+test-results/
+playwright-report/
+
+# Runtime workspace
+workspace/
+backend/workspace/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.swp
+*.swo
+*~

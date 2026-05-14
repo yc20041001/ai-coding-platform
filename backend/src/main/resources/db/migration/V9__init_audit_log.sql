@@ -1,0 +1,23 @@
+CREATE TABLE audit_log (
+    id BIGINT NOT NULL PRIMARY KEY COMMENT '主键 ID',
+    project_id BIGINT NULL COMMENT '项目 ID',
+    user_id BIGINT NULL COMMENT '用户 ID',
+    username VARCHAR(128) NULL COMMENT '用户名',
+    action_type VARCHAR(64) NOT NULL COMMENT '操作类型',
+    resource_type VARCHAR(64) NULL COMMENT '资源类型',
+    resource_id BIGINT NULL COMMENT '资源 ID',
+    description VARCHAR(512) NULL COMMENT '描述',
+    request_method VARCHAR(16) NULL COMMENT 'HTTP 方法',
+    request_path VARCHAR(512) NULL COMMENT '请求路径',
+    ip_address VARCHAR(64) NULL COMMENT 'IP 地址',
+    user_agent VARCHAR(512) NULL COMMENT 'User-Agent',
+    trace_id VARCHAR(64) NULL COMMENT 'Trace ID',
+    success TINYINT NOT NULL DEFAULT 1 COMMENT '是否成功',
+    error_message TEXT NULL COMMENT '错误信息',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    KEY idx_audit_project_time (project_id, create_time),
+    KEY idx_audit_user_time (user_id, create_time),
+    KEY idx_audit_action (action_type),
+    KEY idx_audit_resource (resource_type, resource_id),
+    KEY idx_audit_trace (trace_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审计日志表';
