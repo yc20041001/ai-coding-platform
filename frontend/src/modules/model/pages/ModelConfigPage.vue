@@ -5,10 +5,12 @@ import {
   getProviderOptions, getModelConfigs, createModelConfig, updateModelConfig, deleteModelConfig,
   type ModelProviderOption, type ModelConfigItem, type ModelConfigRequest,
 } from '@/modules/model/api'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
 import TechPanel from '@/shared/components/TechPanel.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
-import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
+import GlowButton from '@/shared/components/GlowButton.vue'
 import ModelConnectionTestDialog from '@/modules/model/components/ModelConnectionTestDialog.vue'
 import ModelUsageCostPanel from '@/modules/model/components/ModelUsageCostPanel.vue'
 import { formatDateTime } from '@/shared/utils/format'
@@ -78,10 +80,10 @@ async function handleSave() {
   try {
     if (editForm.value.id) {
       await updateModelConfig(editForm.value.id, editForm.value)
-      ElMessage.success('配置已更新')
+      ElMessage.success('Config updated')
     } else {
       await createModelConfig(editForm.value)
-      ElMessage.success('配置已创建')
+      ElMessage.success('Config created')
     }
     editVisible.value = false
     loadConfigs()
@@ -91,7 +93,7 @@ async function handleSave() {
 async function handleDelete(item: ModelConfigItem) {
   try {
     await deleteModelConfig(item.id)
-    ElMessage.success('配置已删除')
+    ElMessage.success('Config deleted')
     loadConfigs()
   } catch { /* handled */ }
 }
@@ -108,12 +110,18 @@ function providerDisplayName(provider: string) {
 
 <template>
   <div class="page-container">
-    <PageHeader title="Model Gateway" description="模型网关配置与连接测试">
+    <DynamicWorkspace
+      title="Model Gateway"
+      subtitle="Model Configuration & Connection Testing"
+      eyebrow="AI Infrastructure"
+      :status="`${configs.length} configs`"
+    >
       <template #actions>
-        <RuntimeBadge status="online" :label="`${configs.length} configs`" style="margin-right:8px" />
-        <el-button type="primary" size="small" @click="openCreate">新建配置</el-button>
+        <StatusPulse status="Online" tone="success" />
+        <GlowButton accent="primary" size="small" @click="openCreate">+ New Config</GlowButton>
       </template>
-    </PageHeader>
+
+    <NeonDivider tone="primary" style="margin-bottom:16px" />
 
     <!-- Provider Cards -->
     <TechPanel title="Available Providers" glow style="margin-bottom:20px">
@@ -140,7 +148,7 @@ function providerDisplayName(provider: string) {
             <el-tag v-for="m in p.knownModels.slice(0, 3)" :key="m" size="small" type="info">{{ m }}</el-tag>
             <el-tag v-if="p.knownModels.length > 3" size="small" type="info">+{{ p.knownModels.length - 3 }}</el-tag>
           </div>
-          <el-button size="small" style="margin-top:10px;width:100%" @click="openTest(p.provider)">测试连接</el-button>
+          <GlowButton size="small" accent="primary" class="provider-test-btn" @click="openTest(p.provider)">Test Connection</GlowButton>
         </div>
       </div>
     </TechPanel>
@@ -176,25 +184,27 @@ function providerDisplayName(provider: string) {
             <el-tag size="small" :type="row.fallbackEnabled !== false ? 'success' : 'info'">{{ row.fallbackEnabled !== false ? 'On' : 'Off' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="更新" width="150">
+        <el-table-column label="Updated" width="150">
           <template #default="{ row }">{{ formatDateTime(row.updateTime || row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="Actions" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button size="small" text type="primary" @click="openTest(row.provider)">测试</el-button>
-            <el-button size="small" text type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" text type="primary" @click="openEdit(row)">Edit</el-button>
+            <el-button size="small" text type="primary" @click="openTest(row.provider)">Test</el-button>
+            <el-button size="small" text type="danger" @click="handleDelete(row)">Delete</el-button>
           </template>
         </el-table-column>
       </el-table>
-      <EmptyState v-if="!loadingConfigs && configs.length === 0" description="暂无模型配置，点击上方按钮创建" />
+      <EmptyState v-if="!loadingConfigs && configs.length === 0" description="No model configs yet. Click + New Config to create" />
     </TechPanel>
 
     <!-- Usage Cost Panel -->
     <ModelUsageCostPanel style="margin-top:20px" />
 
+    </DynamicWorkspace>
+
     <!-- Edit Dialog -->
-    <el-dialog v-model="editVisible" :title="editForm.id ? '编辑模型配置' : '新建模型配置'" width="550px">
+    <el-dialog v-model="editVisible" :title="editForm.id ? 'Edit Model Config' : 'New Model Config'" width="550px">
       <el-form label-position="top">
         <el-form-item label="Provider" required>
           <el-select v-model="editForm.provider" style="width:100%" @change="onProviderChange" :disabled="!!editForm.id">
@@ -244,8 +254,8 @@ function providerDisplayName(provider: string) {
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="editing" @click="handleSave">保存</el-button>
+        <el-button @click="editVisible = false">Cancel</el-button>
+        <el-button type="primary" :loading="editing" @click="handleSave">Save</el-button>
       </template>
     </el-dialog>
 
@@ -307,4 +317,13 @@ function providerDisplayName(provider: string) {
 .cap-warn { font-size: 11px; }
 .cap-ok { color: var(--app-text-muted); }
 .provider-models { display: flex; gap: 4px; flex-wrap: wrap; }
+.provider-models :deep(.el-tag) {
+  color: var(--app-primary);
+  background: rgba(56, 189, 248, 0.09);
+  border-color: rgba(56, 189, 248, 0.22);
+}
+.provider-test-btn {
+  width: 100%;
+  margin-top: 10px;
+}
 </style>

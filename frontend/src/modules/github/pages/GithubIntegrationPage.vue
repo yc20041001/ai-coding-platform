@@ -10,7 +10,11 @@ import {
   type GithubOAuthStatusResponse,
   type GithubRepository
 } from '@/modules/github/api'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import TechPanel from '@/shared/components/TechPanel.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
+import GlowButton from '@/shared/components/GlowButton.vue'
 
 const oauthStatus = ref<GithubOAuthStatusResponse | null>(null)
 const repositories = ref<GithubRepository[]>([])
@@ -49,14 +53,14 @@ async function handleAuthorize() {
   try {
     const { data } = await getOAuthAuthorize()
     if (!data.configured) {
-      ElMessage.warning('GitHub OAuth 未配置，请联系管理员')
+      ElMessage.warning('GitHub OAuth not configured, contact admin')
       return
     }
     if (data.authorizeUrl) {
       window.open(data.authorizeUrl, '_blank', 'width=800,height=700')
     }
   } catch {
-    ElMessage.error('获取授权链接失败')
+    ElMessage.error('Failed to get authorization URL')
   } finally {
     loadingOAuth.value = false
   }
@@ -67,9 +71,9 @@ async function handleSync() {
   try {
     const { data } = await syncRepositories()
     repositories.value = data ?? []
-    ElMessage.success(`同步完成，共 ${repositories.value.length} 个仓库`)
+    ElMessage.success(`Sync complete: ${repositories.value.length} repos`)
   } catch {
-    ElMessage.error('同步仓库失败，请确认已绑定 GitHub 账号')
+    ElMessage.error('Sync failed. Confirm GitHub account is bound')
   } finally {
     loadingRepo.value = false
   }
@@ -77,13 +81,12 @@ async function handleSync() {
 
 async function handleUnbind() {
   try {
-    await ElMessageBox.confirm('确定要解绑 GitHub 账号吗？', '确认解绑', {
-      confirmButtonText: '解绑',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('Unbind GitHub account?', 'Confirm', {
+      confirmButtonText: 'Unbind',
+      cancelButtonText: 'Cancel',
       type: 'warning'
     })
-    // unbind needs bindingId; we don't store it, so just reload status
-    ElMessage.info('解绑功能请通过 API 直接调用 DELETE /api/github/oauth/bindings/{bindingId}')
+    ElMessage.info('Please use API: DELETE /api/github/oauth/bindings/{bindingId}')
   } catch {
     // cancelled
   }
@@ -91,125 +94,104 @@ async function handleUnbind() {
 </script>
 
 <template>
-  <div class="github-page">
-    <h2 class="page-title">GitHub 集成</h2>
-
-    <TechPanel title="GitHub OAuth 授权" glow>
-      <div v-if="!oauthStatus" class="status-row">
-        <span class="status-dot status-dot--loading" />
-        <span>加载中...</span>
-      </div>
-
-      <template v-else-if="!oauthStatus.configured">
-        <div class="notice">
-          <span class="notice-icon">&#9888;</span>
-          <div>
-            <p class="notice-title">GitHub OAuth 未配置</p>
-            <p class="notice-desc">
-              请在 <code>.env</code> 中配置 <code>GITHUB_CLIENT_ID</code> 和 <code>GITHUB_CLIENT_SECRET</code>，
-              然后重启后端服务。
-            </p>
-          </div>
-        </div>
+  <div class="page-container">
+    <DynamicWorkspace
+      title="GitHub Integration"
+      subtitle="Repository Sync & OAuth Binding"
+      eyebrow="DevOps"
+    >
+      <template #actions>
+        <StatusPulse
+          :status="oauthStatus?.bound ? 'Bound' : 'Not Bound'"
+          :tone="oauthStatus?.bound ? 'success' : 'muted'"
+        />
       </template>
 
-      <template v-else-if="oauthStatus.bound">
-        <div class="status-row">
-          <span class="status-dot status-dot--active" />
-          <span>已绑定 GitHub 账号：<strong>{{ oauthStatus.githubLogin }}</strong></span>
+      <NeonDivider tone="primary" style="margin-bottom:20px" />
+
+      <TechPanel title="GitHub OAuth" glow style="margin-bottom:20px">
+        <div v-if="!oauthStatus" class="status-row">
+          <StatusPulse status="Checking..." tone="warning" />
         </div>
-        <div class="action-row">
-          <el-button type="primary" :loading="loadingRepo" @click="handleSync">
-            同步仓库
-          </el-button>
-          <el-button type="default" @click="handleUnbind">
-            解绑
-          </el-button>
-        </div>
-      </template>
 
-      <template v-else>
-        <div class="status-row">
-          <span class="status-dot status-dot--inactive" />
-          <span>未绑定 GitHub 账号</span>
-        </div>
-        <el-button
-          type="primary"
-          :loading="loadingOAuth"
-          @click="handleAuthorize"
-        >
-          授权 GitHub
-        </el-button>
-      </template>
-    </TechPanel>
-
-    <TechPanel v-if="oauthStatus?.bound" title="仓库列表" class="repo-panel">
-      <div v-if="loadingRepo" class="status-row">
-        <span class="status-dot status-dot--loading" />
-        <span>加载中...</span>
-      </div>
-
-      <div v-else-if="repositories.length === 0" class="empty-hint">
-        暂无仓库，请点击「同步仓库」从 GitHub 拉取
-      </div>
-
-      <div v-else class="repo-grid">
-        <div
-          v-for="repo in repositories"
-          :key="repo.id"
-          class="repo-card"
-        >
-          <div class="repo-name">
-            <a :href="repo.htmlUrl ?? '#'" target="_blank" rel="noopener">{{ repo.fullName }}</a>
-            <span v-if="repo.privateRepo" class="badge">私有</span>
+        <template v-else-if="!oauthStatus.configured">
+          <div class="notice">
+            <span class="notice-icon">&#9888;</span>
+            <div>
+              <p class="notice-title">GitHub OAuth Not Configured</p>
+              <p class="notice-desc">
+                Set <code>GITHUB_CLIENT_ID</code> and <code>GITHUB_CLIENT_SECRET</code>
+                in <code>.env</code>, then restart the backend.
+              </p>
+            </div>
           </div>
-          <p v-if="repo.description" class="repo-desc">{{ repo.description }}</p>
-          <div class="repo-meta">
-            <span v-if="repo.language">{{ repo.language }}</span>
-            <span v-if="repo.defaultBranch">分支: {{ repo.defaultBranch }}</span>
+        </template>
+
+        <template v-else-if="oauthStatus.bound">
+          <div class="status-row">
+            <StatusPulse :status="`Bound: ${oauthStatus.githubLogin}`" tone="success" />
+          </div>
+          <div class="action-row">
+            <GlowButton accent="primary" size="small" :loading="loadingRepo" @click="handleSync">
+              Sync Repos
+            </GlowButton>
+            <el-button size="small" @click="handleUnbind">Unbind</el-button>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="status-row">
+            <StatusPulse status="Not Bound" tone="muted" />
+          </div>
+          <GlowButton
+            accent="primary"
+            size="small"
+            :loading="loadingOAuth"
+            @click="handleAuthorize"
+          >
+            Authorize GitHub
+          </GlowButton>
+        </template>
+      </TechPanel>
+
+      <TechPanel v-if="oauthStatus?.bound" title="Repositories">
+        <div v-if="loadingRepo" style="padding:8px 0">
+          <StatusPulse status="Loading..." tone="warning" />
+        </div>
+
+        <div v-else-if="repositories.length === 0" class="empty-hint">
+          No repositories. Click "Sync Repos" to pull from GitHub.
+        </div>
+
+        <div v-else class="repo-grid">
+          <div
+            v-for="repo in repositories"
+            :key="repo.id"
+            class="repo-card"
+          >
+            <div class="repo-name">
+              <span class="repo-icon">◈</span>
+              <a :href="repo.htmlUrl ?? '#'" target="_blank" rel="noopener">{{ repo.fullName }}</a>
+              <span v-if="repo.privateRepo" class="badge">Private</span>
+            </div>
+            <p v-if="repo.description" class="repo-desc">{{ repo.description }}</p>
+            <div class="repo-meta">
+              <span v-if="repo.language">{{ repo.language }}</span>
+              <span v-if="repo.defaultBranch">branch: {{ repo.defaultBranch }}</span>
+            </div>
           </div>
         </div>
-      </div>
-    </TechPanel>
+      </TechPanel>
+    </DynamicWorkspace>
   </div>
 </template>
 
 <style scoped>
-.github-page {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: var(--app-text-primary, #e5e7eb);
-}
-
 .status-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
-  color: var(--app-text-secondary, #9ca3af);
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.status-dot--active { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-.status-dot--inactive { background: #6b7280; }
-.status-dot--loading { background: #f59e0b; animation: pulse 1.5s infinite; }
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
 }
 
 .action-row {
@@ -222,9 +204,9 @@ async function handleUnbind() {
   display: flex;
   gap: 12px;
   padding: 16px;
-  background: var(--app-warning-bg, rgba(245, 158, 11, 0.08));
-  border: 1px solid var(--app-warning-border, rgba(245, 158, 11, 0.3));
-  border-radius: 8px;
+  background: var(--app-warning-soft, rgba(245, 158, 11, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--app-radius);
 }
 
 .notice-icon {
@@ -235,28 +217,24 @@ async function handleUnbind() {
 .notice-title {
   font-weight: 600;
   margin: 0 0 4px;
-  color: var(--app-text-primary, #e5e7eb);
+  color: var(--app-text);
 }
 
 .notice-desc {
   margin: 0;
   font-size: 13px;
-  color: var(--app-text-secondary, #9ca3af);
+  color: var(--app-text-muted);
 }
 
 .notice-desc code {
-  background: var(--app-code-bg, rgba(255,255,255,0.06));
+  background: var(--app-panel);
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 12px;
 }
 
-.repo-panel {
-  margin-top: 20px;
-}
-
 .empty-hint {
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
   font-size: 14px;
   padding: 8px 0;
 }
@@ -268,15 +246,15 @@ async function handleUnbind() {
 }
 
 .repo-card {
-  padding: 12px 16px;
-  background: var(--app-card-bg, rgba(255,255,255,0.03));
-  border: 1px solid var(--app-border, rgba(255,255,255,0.08));
-  border-radius: 8px;
+  padding: 14px 16px;
+  background: var(--app-bg-soft);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   transition: border-color 0.2s;
 }
 
 .repo-card:hover {
-  border-color: var(--app-border-strong, rgba(255,255,255,0.15));
+  border-color: var(--app-border-strong);
 }
 
 .repo-name {
@@ -287,8 +265,14 @@ async function handleUnbind() {
   gap: 8px;
 }
 
+.repo-icon {
+  font-size: 14px;
+  color: var(--app-primary);
+  opacity: 0.7;
+}
+
 .repo-name a {
-  color: var(--app-primary, #60a5fa);
+  color: var(--app-primary);
   text-decoration: none;
 }
 
@@ -300,13 +284,13 @@ async function handleUnbind() {
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: var(--app-badge-bg, rgba(107, 114, 128, 0.2));
-  color: var(--app-text-tertiary, #9ca3af);
+  background: var(--app-panel);
+  color: var(--app-text-muted);
 }
 
 .repo-desc {
   font-size: 13px;
-  color: var(--app-text-secondary, #9ca3af);
+  color: var(--app-text-muted);
   margin: 4px 0 0;
 }
 
@@ -314,7 +298,7 @@ async function handleUnbind() {
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
   margin-top: 6px;
 }
 </style>

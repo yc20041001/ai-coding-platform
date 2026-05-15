@@ -32,7 +32,7 @@ test.describe('Project, Task & Chat', () => {
     await input.fill(PROJECT_NAME)
 
     // Submit
-    await dialog.locator('.el-button--primary').filter({ hasText: /创|确|保/ }).click()
+    await dialog.locator('.el-button--primary').filter({ hasText: /Create|Save|Confirm|创|确|保/ }).click()
 
     // Wait for dialog to close and table to update
     await expect(page.locator('.el-dialog')).not.toBeVisible({ timeout: 8000 })

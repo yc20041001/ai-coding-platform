@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { listAgents, type AgentItem } from '@/modules/agent/api'
-import TechPanel from '@/shared/components/TechPanel.vue'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
-import StatusTag from '@/shared/components/StatusTag.vue'
-import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
 const agents = ref<AgentItem[]>([])
@@ -29,60 +29,68 @@ function typeIcon(type: string) {
     default: return '◇'
   }
 }
+
+function statusTone(status: string) {
+  const map: Record<string, 'success' | 'warning' | 'danger' | 'primary' | 'muted'> = {
+    ACTIVE: 'success', ENABLED: 'success', DISABLED: 'muted', ERROR: 'danger',
+  }
+  return map[status] || 'muted'
+}
 </script>
 
 <template>
   <div class="page-container">
-    <div class="dash-header">
-      <div>
-        <h1 class="dash-title">Agents</h1>
-        <p class="dash-sub">AI Agent 管理</p>
-      </div>
-      <RuntimeBadge :status="agents.length > 0 ? 'online' : 'idle'" :label="`${agents.length} agents`" />
-    </div>
+    <DynamicWorkspace
+      title="Agents"
+      subtitle="AI Agent Management"
+      eyebrow="AI Workforce"
+      :status="`${agents.length} agents`"
+    >
+      <template #actions>
+        <StatusPulse
+          :status="agents.length > 0 ? 'Online' : 'Idle'"
+          :tone="agents.length > 0 ? 'success' : 'muted'"
+        />
+      </template>
 
-    <div v-loading="loading">
-      <el-table v-if="agents.length > 0" :data="agents" style="width:100%">
-        <el-table-column label="Agent" min-width="200">
-          <template #default="{ row }">
-            <div class="agent-row">
-              <span class="agent-icon">{{ typeIcon(row.type) }}</span>
-              <div>
-                <div class="agent-name">{{ row.name }}</div>
-                <div class="agent-code">{{ row.code }}</div>
+      <NeonDivider tone="primary" style="margin-bottom:20px" />
+
+      <div v-loading="loading">
+        <el-table v-if="agents.length > 0" :data="agents" style="width:100%">
+          <el-table-column label="Agent" min-width="200">
+            <template #default="{ row }">
+              <div class="agent-row">
+                <span class="agent-icon">{{ typeIcon(row.type) }}</span>
+                <div>
+                  <div class="agent-name">{{ row.name }}</div>
+                  <div class="agent-code">{{ row.code }}</div>
+                </div>
               </div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="type" label="类型" width="100" />
-        <el-table-column label="状态" width="110">
-          <template #default="{ row }"><StatusTag :status="row.status" /></template>
-        </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="240">
-          <template #default="{ row }">
-            <span v-if="row.description" style="color:var(--app-text-muted);font-size:13px">{{ row.description }}</span>
-            <span v-else style="color:var(--app-text-muted)">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="160">
-          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
-        </el-table-column>
-      </el-table>
-      <EmptyState v-if="!loading && agents.length === 0" description="暂无 Agent" />
-    </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="type" label="Type" width="100" />
+          <el-table-column label="Status" width="110">
+            <template #default="{ row }">
+              <StatusPulse :status="row.status" :tone="statusTone(row.status)" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="Description" min-width="240">
+            <template #default="{ row }">
+              <span v-if="row.description" style="color:var(--app-text-muted);font-size:13px">{{ row.description }}</span>
+              <span v-else style="color:var(--app-text-muted)">-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Created" width="160">
+            <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+          </el-table-column>
+        </el-table>
+        <EmptyState v-if="!loading && agents.length === 0" description="No agents" />
+      </div>
+    </DynamicWorkspace>
   </div>
 </template>
 
 <style scoped>
-.dash-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-}
-.dash-title { font-size: 24px; font-weight: 700; color: var(--app-text); margin: 0; }
-.dash-sub { font-size: 13px; color: var(--app-text-muted); margin-top: 4px; }
-
 .agent-row {
   display: flex;
   align-items: center;

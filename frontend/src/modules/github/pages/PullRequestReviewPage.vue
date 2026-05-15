@@ -9,7 +9,6 @@ import {
   getPullRequestPatch,
   createPrReview,
   listPrReviews,
-  getPrReviewDetail,
   getPrReviewFindings,
   type GithubRepository,
   type GithubPullRequest,
@@ -17,7 +16,13 @@ import {
   type PrReviewJob,
   type PrReviewFinding
 } from '@/modules/github/api'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import TechPanel from '@/shared/components/TechPanel.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import SectionRail from '@/shared/components/SectionRail.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
+import GlowButton from '@/shared/components/GlowButton.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
 
 const route = useRoute()
 const projectId = computed(() => route.params.projectId as string)
@@ -60,7 +65,7 @@ async function loadRepos() {
     repos.value = data ?? []
   } catch {
     repos.value = []
-    ElMessage.warning('请先在 GitHub 集成页面同步仓库')
+    ElMessage.warning('Please sync repos on GitHub Integration page first')
   } finally {
     loadingRepos.value = false
   }
@@ -80,7 +85,7 @@ async function onRepoSelect(repo: GithubRepository) {
     pullRequests.value = data ?? []
   } catch {
     pullRequests.value = []
-    ElMessage.error('获取 PR 列表失败')
+    ElMessage.error('Failed to get PR list')
   } finally {
     loadingPRs.value = false
   }
@@ -102,7 +107,7 @@ async function onPrSelect(pr: GithubPullRequest) {
     prFiles.value = filesRes.data ?? []
     patch.value = patchRes.data ?? ''
   } catch {
-    ElMessage.error('获取 PR 详情失败')
+    ElMessage.error('Failed to get PR details')
   }
 }
 
@@ -119,9 +124,9 @@ async function handleRunReview() {
     currentReview.value = data
     await loadFindings(data.id)
     await loadReviewHistory()
-    ElMessage.success('Review 完成')
+    ElMessage.success('Review completed')
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || 'Review 失败')
+    ElMessage.error(e?.response?.data?.message || 'Review failed')
   } finally {
     reviewLoading.value = false
   }
@@ -155,169 +160,168 @@ loadReviewHistory()
 </script>
 
 <template>
-  <div class="pr-review-page">
-    <h2 class="page-title">Pull Request Review</h2>
+  <div class="page-container">
+    <DynamicWorkspace
+      title="Pull Request Review"
+      subtitle="AI-Powered Code Review"
+      eyebrow="Code Quality"
+    >
+      <template #actions>
+        <StatusPulse
+          :status="selectedPr ? `PR #${selectedPr.number}` : 'Select PR'"
+          :tone="selectedPr ? 'primary' : 'muted'"
+        />
+      </template>
 
-    <div class="layout">
-      <!-- Left: Repo + PR Selection -->
-      <aside class="sidebar">
-        <TechPanel title="选择仓库" glow>
-          <div v-if="loadingRepos" class="loading-hint">加载仓库...</div>
-          <div v-else-if="repos.length === 0" class="empty-hint">
-            暂无仓库，请先在
-            <router-link to="/github">GitHub 集成</router-link>
-            页面同步
-          </div>
-          <div v-else class="repo-list">
-            <div
-              v-for="repo in repos"
-              :key="repo.id"
-              class="select-item"
-              :class="{ 'select-item--active': selectedRepo?.id === repo.id }"
-              @click="onRepoSelect(repo)"
-            >
-              {{ repo.fullName }}
+      <NeonDivider tone="primary" style="margin-bottom:20px" />
+
+      <div class="layout">
+        <!-- Left: Repo + PR Selection -->
+        <aside class="sidebar">
+          <TechPanel title="Repositories" glow>
+            <div v-if="loadingRepos" class="loading-hint">Loading repos...</div>
+            <div v-else-if="repos.length === 0" class="empty-hint">
+              No repos. <router-link to="/github">Sync on GitHub Integration</router-link>
             </div>
-          </div>
-        </TechPanel>
-
-        <TechPanel v-if="selectedRepo" title="选择 PR" class="mt-16">
-          <div v-if="loadingPRs" class="loading-hint">加载 PR...</div>
-          <div v-else-if="pullRequests.length === 0" class="empty-hint">暂无 PR</div>
-          <div v-else class="repo-list">
-            <div
-              v-for="pr in pullRequests"
-              :key="pr.id"
-              class="select-item"
-              :class="{ 'select-item--active': selectedPr?.id === pr.id }"
-              @click="onPrSelect(pr)"
-            >
-              <div class="pr-item-title">#{{ pr.number }} {{ pr.title }}</div>
-              <div class="pr-item-meta">{{ pr.authorLogin }} · {{ pr.state }}</div>
-            </div>
-          </div>
-        </TechPanel>
-
-        <TechPanel v-if="currentReview" title="Review 历史" class="mt-16">
-          <div v-if="reviewHistory.length === 0" class="empty-hint">暂无历史</div>
-          <div v-else class="repo-list">
-            <div
-              v-for="review in reviewHistory"
-              :key="review.id"
-              class="select-item"
-              :class="{ 'select-item--active': currentReview?.id === review.id }"
-              @click="selectHistoryReview(review)"
-            >
-              <div class="pr-item-title">
-                <span class="risk-dot" :style="{ background: riskColors[review.riskLevel ?? 'MEDIUM'] }" />
-                {{ review.reviewMode }} Review
+            <div v-else class="repo-list">
+              <div
+                v-for="repo in repos"
+                :key="repo.id"
+                class="select-item"
+                :class="{ 'select-item--active': selectedRepo?.id === repo.id }"
+                @click="onRepoSelect(repo)"
+              >
+                <span class="select-item-icon">◈</span>
+                {{ repo.fullName }}
               </div>
-              <div class="pr-item-meta">{{ review.status }} · {{ review.createTime }}</div>
             </div>
-          </div>
-        </TechPanel>
-      </aside>
+          </TechPanel>
 
-      <!-- Right: Diff + Review -->
-      <section class="main">
-        <!-- PR Info -->
-        <TechPanel v-if="selectedPr" title="PR 信息" glow>
-          <div class="pr-info">
-            <h3>{{ selectedPr.title }}</h3>
-            <div class="pr-meta-row">
-              <span>作者: {{ selectedPr.authorLogin || 'unknown' }}</span>
-              <span>{{ selectedPr.baseBranch }} ← {{ selectedPr.headBranch }}</span>
-              <span class="diff-stat">+{{ selectedPr.additions }} -{{ selectedPr.deletions }}</span>
-              <span>{{ selectedPr.changedFiles }} files</span>
+          <TechPanel v-if="selectedRepo" title="Pull Requests" class="mt-16">
+            <div v-if="loadingPRs" class="loading-hint">Loading PRs...</div>
+            <div v-else-if="pullRequests.length === 0" class="empty-hint">No PRs</div>
+            <div v-else class="repo-list">
+              <div
+                v-for="pr in pullRequests"
+                :key="pr.id"
+                class="select-item"
+                :class="{ 'select-item--active': selectedPr?.id === pr.id }"
+                @click="onPrSelect(pr)"
+              >
+                <div class="pr-item-title">#{{ pr.number }} {{ pr.title }}</div>
+                <div class="pr-item-meta">{{ pr.authorLogin }} · {{ pr.state }}</div>
+              </div>
             </div>
-          </div>
+          </TechPanel>
 
-          <div class="review-actions">
-            <el-select v-model="reviewMode" size="small" style="width: 120px">
-              <el-option
-                v-for="mode in reviewModes"
-                :key="mode"
-                :label="mode"
-                :value="mode"
-              />
-            </el-select>
-            <el-button
-              type="primary"
-              size="small"
-              :loading="reviewLoading"
-              @click="handleRunReview"
-            >
-              Run AI Review
-            </el-button>
-          </div>
-        </TechPanel>
-
-        <!-- Review Result -->
-        <TechPanel v-if="currentReview && currentReview.status !== 'PENDING' && currentReview.status !== 'RUNNING'" title="Review 结果" glow class="mt-16">
-          <div v-if="currentReview.status === 'FAILED'" class="review-error">
-            错误: {{ currentReview.errorMessage }}
-          </div>
-          <template v-else>
-            <div class="review-summary-row">
-              <span class="risk-badge" :style="{ background: riskColors[currentReview.riskLevel ?? 'MEDIUM'] }">
-                {{ currentReview.riskLevel || 'MEDIUM' }}
-              </span>
-              <span class="review-meta">
-                {{ currentReview.modelProvider }} / {{ currentReview.modelName }} ·
-                {{ currentReview.tokenUsage ?? 0 }} tokens
-              </span>
+          <TechPanel v-if="currentReview" title="Review History" class="mt-16">
+            <div v-if="reviewHistory.length === 0" class="empty-hint">No history</div>
+            <div v-else class="repo-list">
+              <div
+                v-for="review in reviewHistory"
+                :key="review.id"
+                class="select-item"
+                :class="{ 'select-item--active': currentReview?.id === review.id }"
+                @click="selectHistoryReview(review)"
+              >
+                <div class="pr-item-title">
+                  <span class="risk-dot" :style="{ background: riskColors[review.riskLevel ?? 'MEDIUM'] }" />
+                  {{ review.reviewMode }} Review
+                </div>
+                <div class="pr-item-meta">{{ review.status }} · {{ review.createTime }}</div>
+              </div>
             </div>
-            <p class="review-summary">{{ currentReview.summary }}</p>
-          </template>
-        </TechPanel>
+          </TechPanel>
+        </aside>
 
-        <!-- Findings -->
-        <TechPanel v-if="findings.length > 0" title="Review Findings" class="mt-16">
-          <div v-for="f in findings" :key="f.id" class="finding-card">
-            <div class="finding-header">
-              <span class="finding-severity" :style="{ background: severityColors[f.severity] ?? '#6b7280' }">
-                {{ f.severity }}
-              </span>
-              <span class="finding-category">{{ f.category }}</span>
-              <span v-if="f.filePath" class="finding-file">{{ f.filePath }}<template v-if="f.lineNumber">:{{ f.lineNumber }}</template></span>
+        <!-- Right: Diff + Review -->
+        <section class="main">
+          <!-- PR Info -->
+          <TechPanel v-if="selectedPr" title="PR Info" glow>
+            <div class="pr-info">
+              <h3>{{ selectedPr.title }}</h3>
+              <div class="pr-meta-row">
+                <span>Author: {{ selectedPr.authorLogin || 'unknown' }}</span>
+                <span>{{ selectedPr.baseBranch }} ← {{ selectedPr.headBranch }}</span>
+                <span class="diff-stat">+{{ selectedPr.additions }} -{{ selectedPr.deletions }}</span>
+                <span>{{ selectedPr.changedFiles }} files</span>
+              </div>
             </div>
-            <h4 class="finding-title">{{ f.title }}</h4>
-            <p v-if="f.description" class="finding-desc">{{ f.description }}</p>
-            <div v-if="f.suggestion" class="finding-suggestion">
-              <strong>建议:</strong> {{ f.suggestion }}
+
+            <div class="review-actions">
+              <el-select v-model="reviewMode" size="small" style="width: 120px">
+                <el-option
+                  v-for="mode in reviewModes"
+                  :key="mode"
+                  :label="mode"
+                  :value="mode"
+                />
+              </el-select>
+              <GlowButton
+                accent="primary"
+                size="small"
+                :loading="reviewLoading"
+                @click="handleRunReview"
+              >
+                Run AI Review
+              </GlowButton>
             </div>
-            <pre v-if="f.codeSnippet" class="finding-snippet"><code>{{ f.codeSnippet }}</code></pre>
+          </TechPanel>
+
+          <!-- Review Result -->
+          <TechPanel v-if="currentReview && currentReview.status !== 'PENDING' && currentReview.status !== 'RUNNING'" title="Review Result" glow class="mt-16">
+            <div v-if="currentReview.status === 'FAILED'" class="review-error">
+              Error: {{ currentReview.errorMessage }}
+            </div>
+            <template v-else>
+              <div class="review-summary-row">
+                <span class="risk-badge" :style="{ background: riskColors[currentReview.riskLevel ?? 'MEDIUM'] }">
+                  {{ currentReview.riskLevel || 'MEDIUM' }}
+                </span>
+                <span class="review-meta">
+                  {{ currentReview.modelProvider }} / {{ currentReview.modelName }} ·
+                  {{ currentReview.tokenUsage ?? 0 }} tokens
+                </span>
+              </div>
+              <p class="review-summary">{{ currentReview.summary }}</p>
+            </template>
+          </TechPanel>
+
+          <!-- Findings -->
+          <TechPanel v-if="findings.length > 0" title="Review Findings" class="mt-16">
+            <div v-for="f in findings" :key="f.id" class="finding-card">
+              <div class="finding-header">
+                <span class="finding-severity" :style="{ background: severityColors[f.severity] ?? '#6b7280' }">
+                  {{ f.severity }}
+                </span>
+                <span class="finding-category">{{ f.category }}</span>
+                <span v-if="f.filePath" class="finding-file">{{ f.filePath }}<template v-if="f.lineNumber">:{{ f.lineNumber }}</template></span>
+              </div>
+              <h4 class="finding-title">{{ f.title }}</h4>
+              <p v-if="f.description" class="finding-desc">{{ f.description }}</p>
+              <div v-if="f.suggestion" class="finding-suggestion">
+                <strong>Suggestion:</strong> {{ f.suggestion }}
+              </div>
+              <pre v-if="f.codeSnippet" class="finding-snippet"><code>{{ f.codeSnippet }}</code></pre>
+            </div>
+          </TechPanel>
+
+          <!-- Diff Viewer -->
+          <TechPanel v-if="patch" title="Diff / Patch" class="mt-16">
+            <pre class="diff-view"><code>{{ patch }}</code></pre>
+          </TechPanel>
+
+          <!-- Empty state -->
+          <div v-if="!selectedPr" class="empty-state">
+            <EmptyState description="Select a Pull Request to view diff and run AI Review" />
           </div>
-        </TechPanel>
-
-        <!-- Diff Viewer -->
-        <TechPanel v-if="patch" title="Diff / Patch" class="mt-16">
-          <pre class="diff-view"><code>{{ patch }}</code></pre>
-        </TechPanel>
-
-        <!-- Empty state -->
-        <div v-if="!selectedPr" class="empty-state">
-          <p>选择一个 Pull Request 查看 Diff 并运行 AI Review</p>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </DynamicWorkspace>
   </div>
 </template>
 
 <style scoped>
-.pr-review-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: var(--app-text-primary, #e5e7eb);
-}
-
 .layout {
   display: flex;
   gap: 20px;
@@ -341,12 +345,12 @@ loadReviewHistory()
 .loading-hint,
 .empty-hint {
   font-size: 13px;
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
   padding: 8px 0;
 }
 
 .empty-hint a {
-  color: var(--app-primary, #60a5fa);
+  color: var(--app-primary);
 }
 
 .repo-list {
@@ -360,17 +364,26 @@ loadReviewHistory()
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--app-text-secondary, #9ca3af);
-  transition: background 0.15s;
+  color: var(--app-text-muted);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.select-item-icon {
+  font-size: 12px;
+  color: var(--app-primary);
+  opacity: 0.6;
 }
 
 .select-item:hover {
-  background: var(--app-hover-bg, rgba(255,255,255,0.04));
+  background: var(--app-panel-hover);
 }
 
 .select-item--active {
-  background: var(--app-active-bg, rgba(96, 165, 250, 0.12));
-  color: var(--app-text-primary, #e5e7eb);
+  background: var(--app-primary-soft);
+  color: var(--app-text);
 }
 
 .pr-item-title {
@@ -382,7 +395,7 @@ loadReviewHistory()
 
 .pr-item-meta {
   font-size: 12px;
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
   margin-top: 2px;
 }
 
@@ -398,7 +411,7 @@ loadReviewHistory()
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 8px;
-  color: var(--app-text-primary, #e5e7eb);
+  color: var(--app-text);
 }
 
 .pr-meta-row {
@@ -406,11 +419,11 @@ loadReviewHistory()
   flex-wrap: wrap;
   gap: 16px;
   font-size: 13px;
-  color: var(--app-text-secondary, #9ca3af);
+  color: var(--app-text-muted);
 }
 
 .diff-stat {
-  color: var(--app-primary, #60a5fa);
+  color: var(--app-primary);
 }
 
 .review-actions {
@@ -421,7 +434,7 @@ loadReviewHistory()
 
 /* Review Result */
 .review-error {
-  color: #ef4444;
+  color: var(--app-danger);
   font-size: 14px;
 }
 
@@ -442,12 +455,12 @@ loadReviewHistory()
 
 .review-meta {
   font-size: 12px;
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
 }
 
 .review-summary {
   font-size: 14px;
-  color: var(--app-text-secondary, #9ca3af);
+  color: var(--app-text-muted);
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -456,9 +469,9 @@ loadReviewHistory()
 .finding-card {
   padding: 14px;
   margin-bottom: 10px;
-  background: var(--app-card-bg, rgba(255,255,255,0.02));
-  border: 1px solid var(--app-border, rgba(255,255,255,0.07));
-  border-radius: 8px;
+  background: var(--app-bg-soft);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
 }
 
 .finding-card:last-child { margin-bottom: 0; }
@@ -480,15 +493,15 @@ loadReviewHistory()
 
 .finding-category {
   font-size: 12px;
-  color: var(--app-text-tertiary, #6b7280);
+  color: var(--app-text-muted);
   padding: 1px 6px;
-  background: var(--app-badge-bg, rgba(255,255,255,0.05));
+  background: var(--app-panel);
   border-radius: 3px;
 }
 
 .finding-file {
   font-size: 12px;
-  color: var(--app-primary, #60a5fa);
+  color: var(--app-primary);
   font-family: monospace;
   margin-left: auto;
 }
@@ -497,28 +510,28 @@ loadReviewHistory()
   font-size: 14px;
   font-weight: 600;
   margin: 0 0 4px;
-  color: var(--app-text-primary, #e5e7eb);
+  color: var(--app-text);
 }
 
 .finding-desc {
   font-size: 13px;
-  color: var(--app-text-secondary, #9ca3af);
+  color: var(--app-text-muted);
   margin: 0 0 8px;
   line-height: 1.5;
 }
 
 .finding-suggestion {
   font-size: 13px;
-  color: #22c55e;
+  color: var(--app-success);
   padding: 8px;
-  background: rgba(34, 197, 94, 0.06);
+  background: var(--app-success-soft, rgba(34, 197, 94, 0.06));
   border-radius: 6px;
   margin-bottom: 8px;
 }
 
 .finding-snippet {
   font-size: 12px;
-  background: var(--app-code-bg, rgba(0,0,0,0.3));
+  background: rgba(0,0,0,0.3);
   padding: 10px;
   border-radius: 6px;
   overflow-x: auto;
@@ -532,9 +545,9 @@ loadReviewHistory()
 /* Diff */
 .diff-view {
   font-size: 12px;
-  background: var(--app-code-bg, rgba(0,0,0,0.3));
+  background: rgba(0,0,0,0.3);
   padding: 14px;
-  border-radius: 8px;
+  border-radius: var(--app-radius);
   overflow-x: auto;
   max-height: 600px;
   margin: 0;
@@ -552,7 +565,5 @@ loadReviewHistory()
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  color: var(--app-text-tertiary, #6b7280);
-  font-size: 15px;
 }
 </style>

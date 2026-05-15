@@ -36,7 +36,7 @@ jobs:
           push: false
           load: true
           tags: ai-coding-platform-frontend:ci
-          build-args: VITE_API_BASE_URL=/api
+          build-args: VITE_API_BASE_URL=""
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,scope=frontend,mode=max
 

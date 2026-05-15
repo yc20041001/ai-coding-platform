@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import TopCommandBar from '@/shared/components/TopCommandBar.vue'
@@ -16,6 +15,7 @@ function handleLogout() {
 
 <template>
   <div class="app-shell">
+    <div class="app-bg-mesh" />
     <TopCommandBar
       :username="authStore.username"
       provider="Mock Gateway"
@@ -38,11 +38,22 @@ function handleLogout() {
   position: relative;
 }
 
+.app-bg-mesh {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 20% 10%, rgba(56, 189, 248, 0.015) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 80% at 80% 80%, rgba(139, 92, 246, 0.015) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(34, 197, 94, 0.01) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .app-workspace {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 76px;
+  padding-bottom: 128px;
   position: relative;
   z-index: 1;
 }

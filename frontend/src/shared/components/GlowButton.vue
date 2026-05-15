@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  accent?: 'primary' | 'success' | 'danger' | 'accent'
+  accent?: 'primary' | 'success' | 'warning' | 'danger' | 'accent'
   loading?: boolean
   disabled?: boolean
   size?: 'small' | 'default' | 'large'
@@ -66,6 +66,16 @@ defineEmits<{
   background: rgba(34, 197, 94, 0.2);
   border-color: var(--app-success);
   box-shadow: 0 0 16px rgba(34, 197, 94, 0.2);
+}
+.gbtn--warning {
+  background: var(--app-warning-soft, rgba(245, 158, 11, 0.15));
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--app-warning, #f59e0b);
+}
+.gbtn--warning:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--app-warning, #f59e0b);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
 }
 .gbtn--danger {
   background: var(--app-danger-soft);

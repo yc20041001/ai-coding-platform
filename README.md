@@ -281,7 +281,7 @@ docker compose -f deploy/docker-compose.app.yml down
 docker build -t ai-coding-platform-backend:local ./backend
 
 # 前端
-docker build --build-arg VITE_API_BASE_URL=/api -t ai-coding-platform-frontend:local ./frontend
+docker build --build-arg VITE_API_BASE_URL="" -t ai-coding-platform-frontend:local ./frontend
 
 # 或使用脚本
 bash scripts/docker-build-local.sh

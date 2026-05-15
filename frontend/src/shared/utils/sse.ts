@@ -68,6 +68,7 @@ async function doReadSSE(
   const decoder = new TextDecoder()
   let buffer = ''
   let currentEvent = 'token'
+  let receivedDone = false
 
   try {
     while (true) {
@@ -98,6 +99,7 @@ async function doReadSSE(
             const parsed = JSON.parse(dataStr)
 
             if (currentEvent === 'done') {
+              receivedDone = true
               callbacks.onDone(parsed)
             } else if (currentEvent === 'error') {
               callbacks.onError(parsed.code || 'INTERNAL_ERROR', parsed.message || 'Unknown error')
@@ -112,6 +114,7 @@ async function doReadSSE(
     }
   } catch (err) {
     if ((err as Error).name === 'AbortError') return
+    if (receivedDone) return
     callbacks.onError('STREAM_ERROR', err instanceof Error ? err.message : 'Stream read error')
   } finally {
     reader.releaseLock()

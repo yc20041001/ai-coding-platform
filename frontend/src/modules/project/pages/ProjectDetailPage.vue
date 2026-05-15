@@ -2,10 +2,11 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProject, getProjectOverview, type ProjectDetail, type ProjectOverview } from '@/modules/project/api'
-import PageHeader from '@/shared/components/PageHeader.vue'
-import StatusTag from '@/shared/components/StatusTag.vue'
-import TechPanel from '@/shared/components/TechPanel.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
+import SectionRail from '@/shared/components/SectionRail.vue'
 import MetricTile from '@/shared/components/MetricTile.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
 const route = useRoute()
@@ -17,6 +18,15 @@ const overview = ref<ProjectOverview | null>(null)
 const loading = ref(false)
 
 const activeTab = ref('overview')
+
+const railItems = [
+  { key: 'overview', label: 'Overview', icon: '◆' },
+  { key: 'tasks', label: 'Tasks', icon: '◈' },
+  { key: 'chat', label: 'Chat', icon: '◇' },
+  { key: 'knowledge', label: 'Knowledge', icon: '◉' },
+  { key: 'repository', label: 'Repository', icon: '⬡' },
+  { key: 'members', label: 'Members', icon: '◎' },
+]
 
 onMounted(async () => {
   loading.value = true
@@ -30,15 +40,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-const tabs = [
-  { name: 'overview', label: 'Overview' },
-  { name: 'tasks', label: 'Tasks' },
-  { name: 'chat', label: 'Chat' },
-  { name: 'knowledge', label: 'Knowledge' },
-  { name: 'repository', label: 'Repository' },
-  { name: 'members', label: 'Members' },
-]
 
 watch(
   () => route.name,
@@ -58,8 +59,7 @@ watch(
   { immediate: true },
 )
 
-function onTabClick(pane: any) {
-  const tabName = typeof pane === 'string' ? pane : pane?.props?.name || pane?.paneName || pane?.name
+function onRailSelect(key: string) {
   const tabRoutes: Record<string, string> = {
     overview: `/projects/${projectId}`,
     tasks: `/projects/${projectId}/tasks`,
@@ -68,24 +68,36 @@ function onTabClick(pane: any) {
     repository: `/projects/${projectId}/repository`,
     members: `/projects/${projectId}/members`,
   }
-  router.push(tabRoutes[tabName] || `/projects/${projectId}`)
+  router.push(tabRoutes[key] || `/projects/${projectId}`)
 }
 </script>
 
 <template>
   <div class="page-container" v-loading="loading">
-    <PageHeader v-if="project" :title="project.name" :description="project.description">
+    <DynamicWorkspace
+      v-if="project"
+      :title="project.name"
+      :subtitle="project.description || 'Project Command Center'"
+      eyebrow="Project"
+    >
       <template #actions>
-        <StatusTag :status="project.status" />
+        <StatusPulse
+          :status="project.status"
+          :tone="project.status === 'ACTIVE' ? 'success' : 'muted'"
+        />
       </template>
-    </PageHeader>
 
-    <el-tabs v-model="activeTab" @tab-click="onTabClick">
-      <el-tab-pane v-for="t in tabs" :key="t.name" :label="t.label" :name="t.name" />
-    </el-tabs>
+      <SectionRail
+        :items="railItems"
+        :active-key="activeTab"
+        style="margin-bottom:20px"
+        @select="onRailSelect"
+      />
 
-    <div v-if="activeTab === 'overview' && overview" style="margin-top:16px">
-      <TechPanel title="Project Overview" glow>
+      <NeonDivider tone="primary" />
+
+      <div v-if="activeTab === 'overview' && overview" style="margin-top:20px">
+        <h2 class="pd-section-title">Project Telemetry</h2>
         <div class="card-grid">
           <MetricTile :value="overview.taskCount" label="Tasks" />
           <MetricTile :value="overview.runningTaskCount" label="Running" accent="warning" />
@@ -94,9 +106,20 @@ function onTabClick(pane: any) {
           <MetricTile :value="overview.agentCount" label="Agents" accent="accent" />
           <MetricTile :value="overview.memberCount" label="Members" accent="warning" />
         </div>
-      </TechPanel>
-    </div>
+      </div>
 
-    <router-view v-else />
+      <router-view v-else />
+    </DynamicWorkspace>
   </div>
 </template>
+
+<style scoped>
+.pd-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+</style>

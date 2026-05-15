@@ -7,9 +7,12 @@ import {
   listTasks, createTask, executeTask, getTaskLogs, getTaskArtifacts,
   type TaskItem, type TaskLog, type TaskArtifact,
 } from '@/modules/task/api'
-import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import SignalStrip from '@/shared/components/SignalStrip.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
+import GlowButton from '@/shared/components/GlowButton.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
-import StatusTag from '@/shared/components/StatusTag.vue'
 import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
@@ -40,6 +43,26 @@ const artifactVisible = ref(false)
 const artifacts = ref<TaskArtifact[]>([])
 const artifactLoading = ref(false)
 const selectedArtifact = ref<TaskArtifact | null>(null)
+
+const statusTone = (status: string) => {
+  const map: Record<string, 'success' | 'warning' | 'danger' | 'primary' | 'muted'> = {
+    PENDING: 'muted',
+    RUNNING: 'warning',
+    COMPLETED: 'success',
+    FAILED: 'danger',
+    CANCELLED: 'muted',
+  }
+  return map[status] || 'muted'
+}
+
+const pipelineStats = computed(() => {
+  const total = records.value.length
+  const running = records.value.filter(r => r.status === 'RUNNING').length
+  const pending = records.value.filter(r => r.status === 'PENDING').length
+  const completed = records.value.filter(r => r.status === 'COMPLETED').length
+  const failed = records.value.filter(r => r.status === 'FAILED').length
+  return { total, running, pending, completed, failed }
+})
 
 async function handleCreate() {
   creating.value = true
@@ -101,138 +124,201 @@ load(1)
 
 <template>
   <div class="page-container">
-    <div class="dash-header">
-      <div>
-        <h1 class="dash-title">Tasks</h1>
-        <p class="dash-sub">任务管理与执行</p>
-      </div>
-      <el-button type="primary" @click="createVisible = true">新建任务</el-button>
-    </div>
-
-    <el-table :data="records" v-loading="loading" style="width:100%">
-      <el-table-column prop="title" label="标题" min-width="160">
-        <template #default="{ row }">
-          <span style="font-weight:600;color:var(--app-text)">{{ row.title }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="类型" width="100">
-        <template #default="{ row }">{{ row.taskType }}</template>
-      </el-table-column>
-      <el-table-column label="优先级" width="90">
-        <template #default="{ row }">
-          <el-tag
-            size="small"
-            :type="row.priority === 'HIGH' ? 'danger' : row.priority === 'MEDIUM' ? 'warning' : 'info'"
-          >{{ row.priority }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" width="110">
-        <template #default="{ row }"><StatusTag :status="row.status" /></template>
-      </el-table-column>
-      <el-table-column label="创建时间" width="160">
-        <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
-      </el-table-column>
-      <el-table-column label="操作" width="300" fixed="right">
-        <template #default="{ row }">
-          <el-button size="small" text type="primary" @click="viewDetail(row.id)">详情</el-button>
-          <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'">执行</el-button>
-          <el-button size="small" @click="handleViewLogs(row.id)">日志</el-button>
-          <el-button size="small" @click="handleViewArtifacts(row.id)">产物</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <EmptyState v-if="!loading && records.length === 0" description="暂无任务" />
-
-    <el-pagination
-      v-if="pagination.total > 0" v-model:current-page="pagination.page"
-      v-model:page-size="pagination.pageSize" :total="pagination.total"
-      layout="total, prev, pager, next" style="margin-top:16px;justify-content:flex-end"
-      @change="load()"
-    />
-
-    <!-- Create Task Dialog -->
-    <el-dialog v-model="createVisible" title="新建任务" width="500px">
-      <el-form label-position="top">
-        <el-form-item label="标题" required>
-          <el-input v-model="createForm.title" placeholder="任务标题" />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="createForm.description" type="textarea" :rows="3" />
-        </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="createForm.taskType" style="width:100%">
-            <el-option label="Feature" value="FEATURE" />
-            <el-option label="Bug" value="BUG" />
-            <el-option label="Refactor" value="REFACTOR" />
-            <el-option label="Docs" value="DOCS" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="优先级">
-          <el-select v-model="createForm.priority" style="width:100%">
-            <el-option label="High" value="HIGH" />
-            <el-option label="Medium" value="MEDIUM" />
-            <el-option label="Low" value="LOW" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="creating" @click="handleCreate">创建</el-button>
+    <DynamicWorkspace
+      title="Tasks"
+      subtitle="Agent Task Pipeline"
+      eyebrow="Execution"
+      :status="`${pipelineStats.total} total`"
+    >
+      <template #actions>
+        <GlowButton accent="primary" @click="createVisible = true">+ New Task</GlowButton>
       </template>
-    </el-dialog>
 
-    <!-- Execute Task Dialog -->
-    <el-dialog v-model="executeVisible" title="执行任务" width="500px">
-      <el-form label-position="top">
-        <el-form-item label="指令">
-          <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="请输入执行指令" />
-        </el-form-item>
-        <el-form-item label="使用 RAG">
-          <el-switch v-model="executeForm.useRag" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="executeVisible = false">取消</el-button>
-        <el-button type="primary" :loading="executing" @click="handleExecute">执行</el-button>
+      <template #metrics>
+        <div class="task-pipeline">
+          <div class="task-pipe-item">
+            <SignalStrip tone="muted" :active="pipelineStats.pending > 0" />
+            <span class="task-pipe-label">Pending</span>
+            <span class="task-pipe-val">{{ pipelineStats.pending }}</span>
+          </div>
+          <div class="task-pipe-arrow">→</div>
+          <div class="task-pipe-item">
+            <SignalStrip tone="warning" :active="pipelineStats.running > 0" />
+            <span class="task-pipe-label">Running</span>
+            <span class="task-pipe-val">{{ pipelineStats.running }}</span>
+          </div>
+          <div class="task-pipe-arrow">→</div>
+          <div class="task-pipe-item">
+            <SignalStrip tone="success" :active="pipelineStats.completed > 0" />
+            <span class="task-pipe-label">Completed</span>
+            <span class="task-pipe-val">{{ pipelineStats.completed }}</span>
+          </div>
+          <div class="task-pipe-arrow">→</div>
+          <div class="task-pipe-item">
+            <SignalStrip tone="danger" :active="pipelineStats.failed > 0" />
+            <span class="task-pipe-label">Failed</span>
+            <span class="task-pipe-val">{{ pipelineStats.failed }}</span>
+          </div>
+        </div>
       </template>
-    </el-dialog>
 
-    <!-- Logs Drawer -->
-    <el-drawer v-model="logsVisible" title="任务日志" size="500px">
-      <div v-loading="logsLoading">
-        <div v-for="log in logs" :key="log.id" class="log-line">
-          <span class="log-stage">{{ log.stage }}</span>
-          <span class="log-level" :class="log.level?.toLowerCase()">{{ log.level }}</span>
-          <span class="log-msg">{{ log.message }}</span>
-          <span class="log-time">{{ formatDateTime(log.createTime) }}</span>
-        </div>
-        <EmptyState v-if="!logsLoading && logs.length === 0" description="暂无日志" />
-      </div>
-    </el-drawer>
+      <NeonDivider tone="primary" />
 
-    <!-- Artifacts Drawer -->
-    <el-drawer v-model="artifactVisible" title="产物" size="600px">
-      <div v-loading="artifactLoading">
-        <div v-if="selectedArtifact">
-          <el-tag size="small" style="margin-bottom:12px">{{ selectedArtifact.artifactType }}</el-tag>
-          <MarkdownRenderer :content="selectedArtifact.content || ''" />
+      <el-table :data="records" v-loading="loading" style="width:100%;margin-top:8px">
+        <el-table-column prop="title" label="Title" min-width="180">
+          <template #default="{ row }">
+            <span style="font-weight:600;color:var(--app-text)">{{ row.title }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Type" width="100">
+          <template #default="{ row }">{{ row.taskType }}</template>
+        </el-table-column>
+        <el-table-column label="Priority" width="100">
+          <template #default="{ row }">
+            <el-tag
+              size="small"
+              :type="row.priority === 'HIGH' ? 'danger' : row.priority === 'MEDIUM' ? 'warning' : 'info'"
+            >{{ row.priority }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="Status" width="130">
+          <template #default="{ row }">
+            <StatusPulse :status="row.status" :tone="statusTone(row.status)" />
+          </template>
+        </el-table-column>
+        <el-table-column label="Created" width="170">
+          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column label="Actions" width="300" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" text type="primary" @click="viewDetail(row.id)">Detail</el-button>
+            <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'">Execute</el-button>
+            <el-button size="small" @click="handleViewLogs(row.id)">Logs</el-button>
+            <el-button size="small" @click="handleViewArtifacts(row.id)">Artifacts</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <EmptyState v-if="!loading && records.length === 0" description="No tasks yet" />
+
+      <el-pagination
+        v-if="pagination.total > 0" v-model:current-page="pagination.page"
+        v-model:page-size="pagination.pageSize" :total="pagination.total"
+        layout="total, prev, pager, next" style="margin-top:16px;justify-content:flex-end"
+        @change="load()"
+      />
+
+      <!-- Create Task Dialog -->
+      <el-dialog v-model="createVisible" title="Create Task" width="500px">
+        <el-form label-position="top">
+          <el-form-item label="Title" required>
+            <el-input v-model="createForm.title" placeholder="Task title" />
+          </el-form-item>
+          <el-form-item label="Description">
+            <el-input v-model="createForm.description" type="textarea" :rows="3" />
+          </el-form-item>
+          <el-form-item label="Type">
+            <el-select v-model="createForm.taskType" style="width:100%">
+              <el-option label="Feature" value="FEATURE" />
+              <el-option label="Bug" value="BUG" />
+              <el-option label="Refactor" value="REFACTOR" />
+              <el-option label="Docs" value="DOCS" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Priority">
+            <el-select v-model="createForm.priority" style="width:100%">
+              <el-option label="High" value="HIGH" />
+              <el-option label="Medium" value="MEDIUM" />
+              <el-option label="Low" value="LOW" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="createVisible = false">Cancel</el-button>
+          <el-button type="primary" :loading="creating" @click="handleCreate">Create</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- Execute Task Dialog -->
+      <el-dialog v-model="executeVisible" title="Execute Task" width="500px">
+        <el-form label-position="top">
+          <el-form-item label="Instruction">
+            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" />
+          </el-form-item>
+          <el-form-item label="Use RAG">
+            <el-switch v-model="executeForm.useRag" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="executeVisible = false">Cancel</el-button>
+          <el-button type="primary" :loading="executing" @click="handleExecute">Execute</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- Logs Drawer -->
+      <el-drawer v-model="logsVisible" title="Task Logs" size="500px">
+        <div v-loading="logsLoading">
+          <div v-for="log in logs" :key="log.id" class="log-line">
+            <span class="log-stage">{{ log.stage }}</span>
+            <span class="log-level" :class="log.level?.toLowerCase()">{{ log.level }}</span>
+            <span class="log-msg">{{ log.message }}</span>
+            <span class="log-time">{{ formatDateTime(log.createTime) }}</span>
+          </div>
+          <EmptyState v-if="!logsLoading && logs.length === 0" description="No logs" />
         </div>
-        <EmptyState v-else-if="!artifactLoading" description="暂无产物" />
-      </div>
-    </el-drawer>
+      </el-drawer>
+
+      <!-- Artifacts Drawer -->
+      <el-drawer v-model="artifactVisible" title="Artifacts" size="600px">
+        <div v-loading="artifactLoading">
+          <div v-if="selectedArtifact">
+            <el-tag size="small" style="margin-bottom:12px">{{ selectedArtifact.artifactType }}</el-tag>
+            <MarkdownRenderer :content="selectedArtifact.content || ''" />
+          </div>
+          <EmptyState v-else-if="!artifactLoading" description="No artifacts" />
+        </div>
+      </el-drawer>
+    </DynamicWorkspace>
   </div>
 </template>
 
 <style scoped>
-.dash-header {
+.task-pipeline {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.dash-title { font-size: 24px; font-weight: 700; color: var(--app-text); margin: 0; }
-.dash-sub { font-size: 13px; color: var(--app-text-muted); margin-top: 4px; }
+
+.task-pipe-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.task-pipe-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--app-text-muted);
+  font-weight: 600;
+}
+
+.task-pipe-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.task-pipe-arrow {
+  color: var(--app-text-muted);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
 
 .log-line {
   display: flex;

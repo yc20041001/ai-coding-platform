@@ -10,8 +10,10 @@ import type { ApiError } from '@/shared/api/client'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
+import GlowButton from '@/shared/components/GlowButton.vue'
 import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import { usePagination } from '@/shared/composables/usePagination'
+import { formatDateTime } from '@/shared/utils/format'
 
 const route = useRoute()
 const projectId = route.params.projectId as string
@@ -132,18 +134,18 @@ onMounted(() => loadBranches())
   <div class="page-container">
     <PageHeader title="Repository" description="代码仓库管理">
       <template #actions>
-        <el-button size="small" @click="loadBranches" :loading="loadingBranches">刷新</el-button>
-        <el-button size="small" @click="githubVisible = true">浏览仓库</el-button>
-        <el-button size="small" type="primary" @click="bindVisible = true">绑定仓库</el-button>
-        <el-button size="small" @click="cloneVisible = true">Clone</el-button>
-        <el-button size="small" @click="pullVisible = true">Pull</el-button>
+        <GlowButton size="small" accent="primary" :loading="loadingBranches" @click="loadBranches">Refresh</GlowButton>
+        <GlowButton size="small" accent="accent" @click="githubVisible = true">Browse</GlowButton>
+        <GlowButton size="small" accent="primary" @click="bindVisible = true">Bind</GlowButton>
+        <GlowButton size="small" accent="success" @click="cloneVisible = true">Clone</GlowButton>
+        <GlowButton size="small" accent="warning" @click="pullVisible = true">Pull</GlowButton>
       </template>
     </PageHeader>
 
     <div class="repo-section">
       <h4>Branches</h4>
       <el-table :data="branches" v-loading="loadingBranches" size="small" style="width:100%">
-        <el-table-column prop="name" label="分支名" min-width="160" />
+        <el-table-column prop="name" label="Branch" min-width="160" />
         <el-table-column prop="commitHash" label="Commit Hash" width="280">
           <template #default="{ row }">
             <code>{{ row.commitHash?.substring(0, 12) || '-' }}</code>
@@ -154,11 +156,11 @@ onMounted(() => loadBranches())
             <el-tag :type="row.protectedBranch ? 'warning' : 'info'" size="small">{{ row.protectedBranch ? 'Yes' : 'No' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Last Sync" width="170">
-          <template #default="{ row }">{{ row.lastSyncTime || '-' }}</template>
+        <el-table-column label="Last Sync" width="150" class-name="nowrap-column">
+          <template #default="{ row }">{{ formatDateTime(row.lastSyncTime) }}</template>
         </el-table-column>
       </el-table>
-      <EmptyState v-if="!loadingBranches && branches.length === 0" description="暂无分支，请先绑定并 Clone 仓库" />
+      <EmptyState v-if="!loadingBranches && branches.length === 0" title="No Branches" description="Bind and clone a repository to inspect branches." />
     </div>
 
     <div class="repo-section" style="margin-top:20px">
@@ -167,7 +169,7 @@ onMounted(() => loadBranches())
         <el-input v-model="diffForm.base" placeholder="Base" size="small" style="width:140px" />
         <span>..</span>
         <el-input v-model="diffForm.head" placeholder="Head" size="small" style="width:140px" />
-        <el-button size="small" type="primary" @click="handleViewDiff">查看 Diff</el-button>
+        <GlowButton size="small" accent="primary" @click="handleViewDiff">View Diff</GlowButton>
       </div>
     </div>
 
@@ -280,6 +282,12 @@ onMounted(() => loadBranches())
   font-weight: 600;
   margin-bottom: 12px;
   color: var(--app-text);
+}
+:deep(.nowrap-column .cell) {
+  white-space: nowrap;
+}
+:deep(.page-header__actions) {
+  gap: 8px;
 }
 .diff-summary {
   display: flex;

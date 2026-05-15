@@ -41,7 +41,7 @@ docker compose -f deploy/docker-compose.app.yml down -v
 docker build -t ai-coding-platform-backend:local ./backend
 
 # 前端
-docker build --build-arg VITE_API_BASE_URL=/api -t ai-coding-platform-frontend:local ./frontend
+docker build --build-arg VITE_API_BASE_URL="" -t ai-coding-platform-frontend:local ./frontend
 
 # 或使用脚本
 bash scripts/docker-build-local.sh
@@ -51,7 +51,7 @@ bash scripts/docker-build-local.sh
 
 前端镜像支持 `VITE_API_BASE_URL` 构建参数：
 
-- Compose 部署：默认 `/api`（由 nginx 反向代理到后端）
+- Compose 部署：默认 `""`（API 路径已含 `/api` 前缀，由 nginx 反向代理）
 - 独立部署：可设为后端完整 URL（如 `http://localhost:8080`）
 
 ## 4. CI 工作流

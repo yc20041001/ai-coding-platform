@@ -13,7 +13,7 @@ docker build -t "$BACKEND_TAG" "$PROJECT_DIR/backend"
 echo ""
 echo "=== Building frontend image: $FRONTEND_TAG ==="
 docker build \
-  --build-arg VITE_API_BASE_URL=/api \
+  --build-arg VITE_API_BASE_URL="" \
   -t "$FRONTEND_TAG" \
   "$PROJECT_DIR/frontend"
 

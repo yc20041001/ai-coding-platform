@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue'
 import client from '@/shared/api/client'
 import type { ApiResponse } from '@/shared/api/types'
 import MetricTile from '@/shared/components/MetricTile.vue'
-import TechPanel from '@/shared/components/TechPanel.vue'
-import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
+import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
+import SignalStrip from '@/shared/components/SignalStrip.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
+import NeonDivider from '@/shared/components/NeonDivider.vue'
 
 interface Overview {
   projectCount: number
@@ -39,64 +41,144 @@ onMounted(async () => {
 
 <template>
   <div class="page-container">
-    <div class="dash-header">
-      <div>
-        <h1 class="dash-title">Dashboard</h1>
-        <p class="dash-sub">AI Coding Platform · 系统概览</p>
-      </div>
-      <RuntimeBadge status="online" label="System Online" />
-    </div>
-
-    <div v-if="loading" v-loading="loading" style="min-height:200px;border-radius:10px" />
-
-    <template v-else-if="overview">
-      <TechPanel title="Platform Overview" glow style="margin-bottom:20px">
-        <div class="card-grid">
-          <MetricTile :value="overview.projectCount" label="Projects" />
-          <MetricTile :value="overview.userCount" label="Users" accent="accent" />
-          <MetricTile :value="overview.taskCount" label="Tasks" accent="success" />
-          <MetricTile :value="overview.agentCount" label="Agents" accent="accent" />
-          <MetricTile :value="overview.knowledgeBaseCount" label="Knowledge Bases" accent="warning" />
-          <MetricTile :value="overview.documentCount" label="Documents" />
+    <DynamicWorkspace
+      title="System Dashboard"
+      subtitle="AI Coding Platform · Real-time Telemetry"
+      eyebrow="Command Center"
+      status="Online"
+    >
+      <template #metrics>
+        <div class="dash-flow">
+          <div class="dash-flow-item">
+            <SignalStrip tone="primary" active />
+            <span class="dash-flow-label">Projects</span>
+            <span class="dash-flow-value">{{ overview?.projectCount ?? '--' }}</span>
+          </div>
+          <div class="dash-flow-connector" />
+          <div class="dash-flow-item">
+            <SignalStrip tone="accent" active />
+            <span class="dash-flow-label">Tasks</span>
+            <span class="dash-flow-value">{{ overview?.taskCount ?? '--' }}</span>
+          </div>
+          <div class="dash-flow-connector" />
+          <div class="dash-flow-item">
+            <SignalStrip tone="success" active />
+            <span class="dash-flow-label">Chat</span>
+            <span class="dash-flow-value">{{ overview?.chatMessageCount ?? '--' }}</span>
+          </div>
+          <div class="dash-flow-connector" />
+          <div class="dash-flow-item">
+            <SignalStrip tone="warning" active />
+            <span class="dash-flow-label">RAG</span>
+            <span class="dash-flow-value">{{ overview?.documentCount ?? '--' }}</span>
+          </div>
+          <div class="dash-flow-connector" />
+          <div class="dash-flow-item">
+            <SignalStrip tone="primary" active />
+            <span class="dash-flow-label">Model Calls</span>
+            <span class="dash-flow-value">{{ overview?.modelRequestCount ?? '--' }}</span>
+          </div>
         </div>
-      </TechPanel>
+      </template>
 
-      <TechPanel title="Task Pipeline" glow style="margin-bottom:20px">
-        <div class="card-grid">
-          <MetricTile :value="overview.runningTaskCount" label="Running" accent="warning" />
-          <MetricTile :value="overview.completedTaskCount" label="Completed" accent="success" />
-          <MetricTile :value="overview.taskCount - overview.runningTaskCount - overview.completedTaskCount" label="Pending" />
-        </div>
-      </TechPanel>
+      <div v-if="loading" v-loading="loading" style="min-height:200px;border-radius:10px" />
 
-      <TechPanel title="Model Usage" glow style="margin-bottom:20px">
-        <div class="card-grid">
-          <MetricTile :value="overview.modelRequestCount" label="Total Calls" />
-          <MetricTile :value="overview.todayModelRequestCount" label="Today Calls" accent="success" />
-          <MetricTile :value="overview.todayTokenUsage?.toLocaleString() ?? '0'" label="Today Tokens" accent="accent" />
-          <MetricTile :value="overview.chatMessageCount" label="Chat Messages" accent="warning" />
-        </div>
-      </TechPanel>
-    </template>
+      <template v-else-if="overview">
+        <NeonDivider tone="primary" />
+
+        <section class="dash-section">
+          <h2 class="dash-section-title">Platform Overview</h2>
+          <div class="card-grid">
+            <MetricTile :value="overview.projectCount" label="Projects" />
+            <MetricTile :value="overview.userCount" label="Users" accent="accent" />
+            <MetricTile :value="overview.agentCount" label="Agents" accent="accent" />
+            <MetricTile :value="overview.knowledgeBaseCount" label="Knowledge Bases" accent="warning" />
+            <MetricTile :value="overview.documentCount" label="Documents" />
+            <MetricTile :value="overview.chatMessageCount" label="Chat Messages" accent="warning" />
+          </div>
+        </section>
+
+        <NeonDivider tone="accent" />
+
+        <section class="dash-section">
+          <h2 class="dash-section-title">Task Pipeline</h2>
+          <div class="card-grid">
+            <MetricTile :value="overview.taskCount" label="Total Tasks" />
+            <MetricTile :value="overview.runningTaskCount" label="Running" accent="warning" />
+            <MetricTile :value="overview.completedTaskCount" label="Completed" accent="success" />
+            <MetricTile :value="overview.taskCount - overview.runningTaskCount - overview.completedTaskCount" label="Pending" accent="primary" />
+          </div>
+        </section>
+
+        <NeonDivider tone="primary" />
+
+        <section class="dash-section">
+          <h2 class="dash-section-title">Model Usage</h2>
+          <div class="card-grid">
+            <MetricTile :value="overview.modelRequestCount" label="Total Calls" />
+            <MetricTile :value="overview.todayModelRequestCount" label="Today Calls" accent="success" />
+            <MetricTile :value="overview.todayTokenUsage?.toLocaleString() ?? '0'" label="Today Tokens" accent="accent" />
+            <MetricTile :value="overview.chatMessageCount" label="Messages" accent="warning" />
+          </div>
+        </section>
+      </template>
+    </DynamicWorkspace>
   </div>
 </template>
 
 <style scoped>
-.dash-header {
+.dash-flow {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  padding: 8px 0;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-.dash-title {
-  font-size: 24px;
+
+.dash-flow-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.dash-flow-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--app-text-muted);
+  font-weight: 600;
+}
+
+.dash-flow-value {
+  font-size: 16px;
   font-weight: 700;
   color: var(--app-text);
-  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
-.dash-sub {
-  font-size: 13px;
+
+.dash-flow-connector {
+  width: 24px;
+  height: 1px;
+  background: var(--app-border-strong);
+  margin: 0 4px;
+  align-self: center;
+  margin-bottom: 16px;
+}
+
+.dash-section {
+  margin: 16px 0;
+}
+
+.dash-section-title {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--app-text-muted);
-  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
 }
 </style>

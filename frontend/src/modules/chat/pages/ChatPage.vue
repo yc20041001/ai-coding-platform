@@ -7,9 +7,8 @@ import {
   type ChatSession, type ChatMessage, type ChatReference,
 } from '@/modules/chat/api'
 import { readSSEStream, type SSEStream } from '@/shared/utils/sse'
-import TechPanel from '@/shared/components/TechPanel.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
-import RuntimeBadge from '@/shared/components/RuntimeBadge.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
 import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import ReferenceList from '@/modules/chat/components/ReferenceList.vue'
 import { formatDateTime } from '@/shared/utils/format'
@@ -122,14 +121,14 @@ async function handleSendMessage() {
         nextTick(() => scrollToBottom())
       },
       onError(code: string, message: string) {
-        ElMessage.error(`SSE 错误 [${code}]: ${message}`)
+        ElMessage.error(`SSE Error [${code}]: ${message}`)
         streamingMessageId.value = null
         activeStream.value = null
       },
     })
   } catch (e: unknown) {
     const err = e as { message?: string }
-    ElMessage.error(err.message || '发送失败')
+    ElMessage.error(err.message || 'Send failed')
   } finally {
     sending.value = false
   }
@@ -157,10 +156,10 @@ onBeforeUnmount(() => {
     <aside class="chat-rail">
       <div class="chat-rail-header">
         <span class="chat-rail-title">Sessions</span>
-        <RuntimeBadge status="streaming" label="AI Ready" />
+        <StatusPulse status="AI Ready" tone="primary" />
       </div>
       <div class="session-create">
-        <el-input v-model="newSessionTitle" placeholder="新会话..." size="small" @keyup.enter="handleCreateSession" />
+        <el-input v-model="newSessionTitle" placeholder="New session..." size="small" @keyup.enter="handleCreateSession" />
         <el-button type="primary" size="small" :loading="creatingSession" @click="handleCreateSession">+</el-button>
       </div>
       <div class="session-list" v-loading="loadingSessions">
@@ -170,18 +169,19 @@ onBeforeUnmount(() => {
           :class="{ active: s.id === selectedSessionId }"
           @click="selectSession(s.id)"
         >
+          <div class="session-item-bar" />
           <div class="session-title">{{ s.title }}</div>
           <div class="session-time">{{ formatDateTime(s.lastMessageTime || s.createTime) }}</div>
         </div>
-        <EmptyState v-if="!loadingSessions && sessions.length === 0" description="暂无会话" />
+        <EmptyState v-if="!loadingSessions && sessions.length === 0" description="No sessions" />
       </div>
     </aside>
 
-    <!-- Chat Stream -->
+    <!-- Chat Main -->
     <section class="chat-main">
       <div v-if="!selectedSessionId" class="chat-empty">
         <div class="chat-empty-icon">◈</div>
-        <div class="chat-empty-text">选择一个会话开始 AI 对话</div>
+        <div class="chat-empty-text">Select a session to start AI conversation</div>
       </div>
       <template v-else>
         <div class="chat-messages" ref="chatContainer" v-loading="loadingMessages">
@@ -203,9 +203,9 @@ onBeforeUnmount(() => {
 
           <div v-if="streamingMessageId" class="chat-msg chat-msg--agent chat-msg--streaming">
             <div class="chat-msg__sender">
-              <span class="chat-msg__dot dot-agent pulse" />
+              <span class="chat-msg__dot dot-agent streaming-pulse" />
               Assistant
-              <span class="streaming-badge">streaming</span>
+              <StatusPulse status="Streaming" tone="primary" />
             </div>
             <div class="chat-msg__content">
               <MarkdownRenderer :content="streamingContent" />
@@ -219,12 +219,12 @@ onBeforeUnmount(() => {
             v-model="inputMessage"
             type="textarea"
             :rows="2"
-            placeholder="向 AI 发送指令..."
+            placeholder="Send instruction to AI..."
             @keyup.enter.exact.prevent="handleSendMessage"
             class="chat-composer-input"
           />
           <button class="chat-send-btn" :disabled="!inputMessage.trim() || sending" @click="handleSendMessage">
-            <span v-if="sending">··</span>
+            <span v-if="sending" class="sending-dots">··</span>
             <span v-else>↑</span>
           </button>
         </div>
@@ -236,7 +236,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .chat-workspace {
   display: flex;
-  height: calc(100vh - 48px - 76px);
+  height: calc(100vh - 48px - 128px);
+  min-height: 520px;
   overflow: hidden;
 }
 
@@ -245,8 +246,9 @@ onBeforeUnmount(() => {
   width: 260px;
   flex-shrink: 0;
   border-right: 1px solid var(--app-border);
-  background: var(--app-panel);
+  background: var(--app-surface);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
 }
@@ -258,11 +260,11 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--app-border);
 }
 .chat-rail-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--app-text);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 .session-create {
   display: flex;
@@ -278,12 +280,28 @@ onBeforeUnmount(() => {
   cursor: pointer;
   margin-bottom: 2px;
   border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: all 0.2s var(--app-ease-out);
+  position: relative;
+  overflow: hidden;
+}
+.session-item-bar {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--app-primary);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s var(--app-ease-out);
 }
 .session-item:hover { background: var(--app-panel-hover); }
 .session-item.active {
   background: var(--app-primary-soft);
   border-color: rgba(56, 189, 248, 0.2);
+}
+.session-item.active .session-item-bar {
+  height: 60%;
 }
 .session-title { font-size: 13px; font-weight: 500; color: var(--app-text-soft); }
 .session-time { font-size: 11px; color: var(--app-text-muted); margin-top: 2px; }
@@ -306,7 +324,7 @@ onBeforeUnmount(() => {
 .chat-empty-icon {
   font-size: 48px;
   color: var(--app-text-muted);
-  opacity: 0.3;
+  opacity: 0.2;
 }
 .chat-empty-text {
   color: var(--app-text-muted);
@@ -324,8 +342,13 @@ onBeforeUnmount(() => {
 .chat-msg--user { margin-left: auto; }
 .chat-msg--agent { margin-right: auto; }
 .chat-msg--streaming .chat-msg__content {
-  border-color: rgba(56, 189, 248, 0.2);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.06);
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.08);
+  animation: streamGlow 2s ease-in-out infinite;
+}
+@keyframes streamGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(56, 189, 248, 0.06); }
+  50% { box-shadow: 0 0 28px rgba(56, 189, 248, 0.14); }
 }
 .chat-msg__sender {
   display: flex;
@@ -341,23 +364,12 @@ onBeforeUnmount(() => {
   height: 7px;
   border-radius: 50%;
 }
-.dot-user { background: var(--app-accent); }
-.dot-agent { background: var(--app-primary); }
-.dot-agent.pulse {
-  animation: glowPulse 1.5s ease-in-out infinite;
-}
-.streaming-badge {
-  font-size: 10px;
-  color: var(--app-primary);
-  background: var(--app-primary-soft);
-  padding: 1px 8px;
-  border-radius: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(56, 189, 248, 0.4); }
-  50% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.8); }
+.dot-user { background: var(--app-accent); box-shadow: 0 0 6px var(--app-accent-glow); }
+.dot-agent { background: var(--app-primary); box-shadow: 0 0 6px var(--app-primary-glow); }
+.streaming-pulse { animation: statusPulse 1.5s ease-in-out infinite; }
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 6px var(--app-primary-glow); }
+  50% { box-shadow: 0 0 14px var(--app-primary-glow); }
 }
 .chat-msg__content {
   padding: 14px 18px;
@@ -392,6 +404,7 @@ onBeforeUnmount(() => {
   background: var(--app-panel);
   border-top: 1px solid var(--app-border);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   align-items: flex-end;
 }
 .chat-composer-input { flex: 1; }
@@ -400,24 +413,28 @@ onBeforeUnmount(() => {
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--app-border-strong);
-  background: var(--app-panel);
+  background: var(--app-surface);
   color: var(--app-text-soft);
   font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: all 0.2s var(--app-ease-out);
   flex-shrink: 0;
 }
 .chat-send-btn:hover:not(:disabled) {
   background: var(--app-primary-soft);
   border-color: var(--app-primary);
   color: var(--app-primary);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 16px var(--app-primary-glow);
+  transform: translateY(-1px);
 }
 .chat-send-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+.sending-dots {
+  animation: blink 0.6s step-end infinite;
 }
 </style>
