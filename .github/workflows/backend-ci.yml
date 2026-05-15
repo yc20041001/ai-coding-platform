@@ -43,6 +43,7 @@ jobs:
           TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/ai_coding_platform_test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
           TEST_DB_USERNAME: root
           TEST_DB_PASSWORD: platform123
+          SPRING_FLYWAY_ENABLED: true
           JWT_SECRET: ci-test-secret-must-be-at-least-32-bytes
           MODEL_GATEWAY_PROVIDER: MOCK
         run: mvn test
