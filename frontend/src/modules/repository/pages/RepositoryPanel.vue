@@ -6,6 +6,7 @@ import {
   type RepositoryBranch, type RepositoryDiff, type GithubRepository,
   bindRepository, cloneRepository, pullRepository, getBranches, getDiff, listGithubRepos,
 } from '@/modules/repository/api'
+import type { ApiError } from '@/shared/api/client'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
@@ -45,7 +46,12 @@ async function loadBranches() {
   try {
     const res = await getBranches(projectId)
     branches.value = res.data.data
-  } catch {
+  } catch (e) {
+    const err = e as ApiError
+    if (err.code === 'NOT_FOUND') {
+      branches.value = []
+      return
+    }
     ElMessage.error('获取分支列表失败')
   } finally {
     loadingBranches.value = false

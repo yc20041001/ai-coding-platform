@@ -6,6 +6,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: false
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
 
 app:
   jwt:
@@ -18,7 +22,7 @@ app:
     fallback-enabled: true
     timeout-ms: 30000
     retry-times: 1
-    prompt-safety-enabled: false
+    prompt-safety-enabled: true
   workspace:
     root-path: ./workspace-test
   rag:

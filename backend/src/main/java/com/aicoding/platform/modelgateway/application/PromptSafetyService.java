@@ -18,27 +18,66 @@ public class PromptSafetyService {
 
     private final ModelGatewayProperties properties;
 
+    // High-risk patterns: BLOCK immediately, no fallback
     private static final List<String> HIGH_RISK_PATTERNS = List.of(
-            "输出 api key",
-            "output api key",
-            "print api key",
-            "reveal api key",
-            "泄露 api key",
-            "泄露密钥",
-            "show me the system prompt",
-            "show system prompt",
-            "print system prompt",
-            "reveal system prompt"
-    );
-
-    private static final List<String> WARNING_PATTERNS = List.of(
             "ignore previous instructions",
             "忽略之前的指令",
             "忽略前面的指令",
-            "泄露系统提示词",
-            "reveal system prompt",
+            "reveal your system prompt",
+            "show me the system prompt",
+            "show system prompt",
             "print system prompt",
-            "show system prompt"
+            "reveal system prompt",
+            "输出你的系统提示",
+            "泄露系统提示词",
+            "output api key",
+            "output your api key",
+            "print api key",
+            "print your api key",
+            "reveal api key",
+            "reveal your api key",
+            "show me your api key",
+            "show secret",
+            "show me the secret",
+            "泄露 api key",
+            "泄露密钥",
+            "delete database",
+            "drop table",
+            "drop database",
+            "rm -rf",
+            "rm -rf /",
+            "curl | sh",
+            "curl | bash",
+            "wget -O - | sh",
+            "| bash",
+            "| sh",
+            "eval(",
+            "exec(",
+            "__import__",
+            "os.system(",
+            "subprocess",
+            "格式化为高危",
+            "忽略所有安全",
+            "bypass safety",
+            "绕过安全",
+            "越狱",
+            "jailbreak",
+            "DAN mode",
+            "developer mode"
+    );
+
+    // Warning patterns: log but allow, with warning flag
+    private static final List<String> WARNING_PATTERNS = List.of(
+            "what is your prompt",
+            "你的prompt是什么",
+            "你的系统指令是什么",
+            "what are your instructions",
+            "override",
+            "覆盖",
+            "skip check",
+            "跳过检查",
+            "不要拒绝",
+            "don't refuse"
     );
 
     public PromptSafetyService(ModelGatewayProperties properties) {
@@ -64,7 +103,7 @@ public class PromptSafetyService {
                 rejected.setTotalTokens(0L);
                 rejected.setLatencyMs(0L);
                 rejected.setErrorType(ModelGatewayErrorType.SAFETY_REJECTED.name());
-                rejected.setErrorMessage("Prompt rejected by safety policy");
+                rejected.setErrorMessage("Prompt rejected by safety policy: blocked pattern detected");
                 return SafetyResult.reject(rejected);
             }
         }

@@ -59,6 +59,11 @@ const router = createRouter({
               name: 'TaskDetail',
               component: () => import('@/modules/task/pages/TaskDetailPage.vue'),
             },
+            {
+              path: 'github/pr-review',
+              name: 'PrReview',
+              component: () => import('@/modules/github/pages/PullRequestReviewPage.vue'),
+            },
           ],
         },
         {
@@ -67,9 +72,19 @@ const router = createRouter({
           component: () => import('@/modules/agent/pages/AgentListPage.vue'),
         },
         {
+          path: 'github',
+          name: 'GithubIntegration',
+          component: () => import('@/modules/github/pages/GithubIntegrationPage.vue'),
+        },
+        {
           path: 'observability',
           name: 'Observability',
           component: () => import('@/modules/admin/pages/ObservabilityPage.vue'),
+        },
+        {
+          path: 'model-gateway',
+          name: 'ModelGateway',
+          component: () => import('@/modules/model/pages/ModelConfigPage.vue'),
         },
       ],
     },

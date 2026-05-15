@@ -75,13 +75,13 @@ public class AuditLogApplicationService {
             wrapper.eq(AuditLogEntity::getActionType, request.getActionType());
         }
         if (request.getUserId() != null && !request.getUserId().isBlank()) {
-            wrapper.eq(AuditLogEntity::getUserId, Long.parseLong(request.getUserId()));
+            wrapper.eq(AuditLogEntity::getUserId, Long.valueOf(request.getUserId()));
         }
         if (request.getResourceType() != null && !request.getResourceType().isBlank()) {
             wrapper.eq(AuditLogEntity::getResourceType, request.getResourceType());
         }
         if (request.getResourceId() != null && !request.getResourceId().isBlank()) {
-            wrapper.eq(AuditLogEntity::getResourceId, Long.parseLong(request.getResourceId()));
+            wrapper.eq(AuditLogEntity::getResourceId, Long.valueOf(request.getResourceId()));
         }
         wrapper.orderByDesc(AuditLogEntity::getCreateTime);
 
@@ -104,13 +104,13 @@ public class AuditLogApplicationService {
             wrapper.eq(AuditLogEntity::getActionType, request.getActionType());
         }
         if (request.getUserId() != null && !request.getUserId().isBlank()) {
-            wrapper.eq(AuditLogEntity::getUserId, Long.parseLong(request.getUserId()));
+            wrapper.eq(AuditLogEntity::getUserId, Long.valueOf(request.getUserId()));
         }
         if (request.getResourceType() != null && !request.getResourceType().isBlank()) {
             wrapper.eq(AuditLogEntity::getResourceType, request.getResourceType());
         }
         if (request.getResourceId() != null && !request.getResourceId().isBlank()) {
-            wrapper.eq(AuditLogEntity::getResourceId, Long.parseLong(request.getResourceId()));
+            wrapper.eq(AuditLogEntity::getResourceId, Long.valueOf(request.getResourceId()));
         }
         wrapper.orderByDesc(AuditLogEntity::getCreateTime);
 

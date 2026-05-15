@@ -18,6 +18,7 @@ const items: DockItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: '◆' },
   { path: '/projects', label: 'Projects', icon: '◇' },
   { path: '/agents', label: 'Agents', icon: '◈' },
+  { path: '/github', label: 'GitHub', icon: '⬡' },
 ]
 
 const isActive = (path: string) => {
@@ -47,6 +48,15 @@ const isActive = (path: string) => {
       >
         <span class="fdock-icon">◎</span>
         <span class="fdock-label">Observe</span>
+      </router-link>
+      <router-link
+        v-if="showObservability"
+        to="/model-gateway"
+        class="fdock-item"
+        :class="{ active: route.path.startsWith('/model-gateway') }"
+      >
+        <span class="fdock-icon">◉</span>
+        <span class="fdock-label">Models</span>
       </router-link>
     </div>
   </nav>

@@ -14,7 +14,7 @@ import { usePagination } from '@/shared/composables/usePagination'
 const route = useRoute()
 const projectId = route.params.projectId as string
 
-const { loading, records: members, load } = usePagination<ProjectMember>(
+const { loading, records: members, pagination, load } = usePagination<ProjectMember>(
   (page, pageSize) => listMembers(projectId, page, pageSize),
 )
 
@@ -86,7 +86,7 @@ onMounted(() => load(1))
       <el-table-column prop="email" label="邮箱" min-width="180" />
       <el-table-column label="角色" width="120">
         <template #default="{ row }">
-          <el-tag size="small" :type="row.role === 'OWNER' ? '' : row.role === 'ADMIN' ? 'warning' : 'info'">
+          <el-tag size="small" :type="row.role === 'OWNER' ? 'success' : row.role === 'ADMIN' ? 'warning' : 'info'">
             {{ row.role }}
           </el-tag>
         </template>
@@ -118,6 +118,9 @@ onMounted(() => load(1))
 
     <el-pagination
       v-if="members.length > 0"
+      v-model:current-page="pagination.page"
+      :page-size="pagination.pageSize"
+      :total="pagination.total"
       layout="total, prev, pager, next" size="small"
       style="margin-top:16px;justify-content:flex-end"
       @current-change="(p: number) => load(p)"

@@ -97,8 +97,18 @@ source .env
 | DB_PASSWORD | 数据库密码 | platform123 |
 | JWT_SECRET | JWT 签名密钥 | (至少 256 位) |
 | MODEL_GATEWAY_PROVIDER | 默认模型供应商 | MOCK |
+| MODEL_GATEWAY_TIMEOUT_MS | 请求超时 (ms) | 60000 |
+| MODEL_GATEWAY_RETRY_TIMES | 重试次数 | 1 |
 | OPENAI_ENABLED | 启用 OpenAI | false |
 | OPENAI_API_KEY | OpenAI API Key | (需自行配置) |
+| CLAUDE_ENABLED | 启用 Claude | false |
+| CLAUDE_API_KEY | Claude API Key | (需自行配置) |
+| DEEPSEEK_ENABLED | 启用 DeepSeek | false |
+| DEEPSEEK_API_KEY | DeepSeek API Key | (需自行配置) |
+| QWEN_ENABLED | 启用 Qwen | false |
+| QWEN_API_KEY | Qwen API Key | (需自行配置) |
+| GEMINI_ENABLED | 启用 Gemini | false |
+| GEMINI_API_KEY | Gemini API Key | (需自行配置) |
 
 ## 后端启动
 
@@ -240,6 +250,77 @@ bash scripts/backend-unified-smoke-test.sh
 
 测试策略详见 [docs/testing-strategy.md](docs/testing-strategy.md)。
 
+## Docker 部署
+
+### 全栈一键启动
+
+```bash
+# 构建镜像并启动所有服务（MySQL + Redis + RabbitMQ + Backend + Frontend）
+docker compose -f deploy/docker-compose.app.yml up -d --build
+
+# 查看日志
+docker compose -f deploy/docker-compose.app.yml logs -f backend
+
+# 停止
+docker compose -f deploy/docker-compose.app.yml down
+```
+
+启动后访问：
+
+| 服务 | 地址 |
+|---|---|
+| 前端控制台 | http://localhost:5173 |
+| 后端 API | http://localhost:8080 |
+| 健康检查 | http://localhost:8080/actuator/health |
+| RabbitMQ Management | http://localhost:15672 |
+
+### 单独构建镜像
+
+```bash
+# 后端
+docker build -t ai-coding-platform-backend:local ./backend
+
+# 前端
+docker build --build-arg VITE_API_BASE_URL=/api -t ai-coding-platform-frontend:local ./frontend
+
+# 或使用脚本
+bash scripts/docker-build-local.sh
+```
+
+### 环境变量
+
+Compose 启动时可通过 `.env` 文件覆盖关键变量：
+
+```bash
+cp .env.example .env
+```
+
+**生产环境必须替换 `JWT_SECRET`**：
+
+```bash
+export JWT_SECRET=$(openssl rand -base64 32)
+```
+
+详细部署文档见 [docs/deployment-guide.md](docs/deployment-guide.md)。
+
+## CI/CD
+
+| 工作流 | 状态 |
+|---|---|
+| [![Backend CI](https://github.com/yc20041001/ai-coding-platform/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/yc20041001/ai-coding-platform/actions/workflows/backend-ci.yml) | Backend compile → test → package |
+| [![Frontend CI](https://github.com/yc20041001/ai-coding-platform/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/yc20041001/ai-coding-platform/actions/workflows/frontend-ci.yml) | Frontend typecheck → build |
+| [![Docker Build](https://github.com/yc20041001/ai-coding-platform/actions/workflows/docker-build.yml/badge.svg)](https://github.com/yc20041001/ai-coding-platform/actions/workflows/docker-build.yml) | Docker 镜像构建 → GHCR |
+
+- PR 触发：仅 build/test，不推送镜像
+- main 分支 / v* 标签推送：build + test + push images to GHCR
+
+### 镜像
+
+```
+ghcr.io/yc20041001/ai-coding-platform-backend:latest
+ghcr.io/yc20041001/ai-coding-platform-frontend:latest
+```
+
 ## API 文档
 
 ### 审计日志
@@ -277,6 +358,95 @@ backend/src/main/resources/db/migration/
 - V7: 编排器和模型网关表
 - V8: RAG 知识库表
 - V9: 审计日志表
+- V10: 模型请求日志增强（fallback/错误码/成本估算）
+
+## 模型网关
+
+模型网关提供统一的 LLM 调用入口，支持多供应商、流式输出、安全检测、回退和成本估算。
+
+### 支持的供应商
+
+| 供应商 | 支持非流式 | 支持流式 | 需要 API Key |
+|--------|-----------|---------|-------------|
+| MOCK | Yes | Yes | No |
+| OpenAI Compatible | Yes | Yes | Yes |
+| Claude (Anthropic) | Yes | Yes | Yes |
+| DeepSeek | Yes | Yes | Yes |
+| Qwen (通义千问) | Yes | Yes | Yes |
+| Gemini (Google) | Yes | Yes | Yes |
+
+### 环境变量
+
+```bash
+# 模型网关通用配置
+MODEL_GATEWAY_PROVIDER=MOCK          # 默认供应商 (MOCK / CLAUDE / OPENAI_COMPATIBLE)
+MODEL_GATEWAY_TIMEOUT_MS=60000       # 请求超时 (ms)
+MODEL_GATEWAY_RETRY_TIMES=1          # 重试次数 (仅网络/超时/限流)
+
+# OpenAI Compatible (支持 OpenAI / DeepSeek / Qwen / Gemini)
+OPENAI_ENABLED=false
+OPENAI_API_KEY=
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1-mini
+
+# Claude (Anthropic)
+CLAUDE_ENABLED=false
+CLAUDE_API_KEY=
+CLAUDE_BASE_URL=https://api.anthropic.com
+CLAUDE_MODEL=claude-3-5-sonnet-latest
+
+# DeepSeek
+DEEPSEEK_ENABLED=false
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+DEEPSEEK_MODEL=deepseek-chat
+
+# Qwen (通义千问)
+QWEN_ENABLED=false
+QWEN_API_KEY=
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL=qwen-plus
+
+# Gemini (Google)
+GEMINI_ENABLED=false
+GEMINI_API_KEY=
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+### API Key 安全
+
+- API Key 明文仅通过环境变量或后台数据库存储
+- 所有响应和日志中 API Key 自动脱敏（`sk-****abcd`）
+- 前端配置页面仅显示脱敏后的 Key
+- Prompt Safety 高危拦截后不触发 Fallback
+
+### 模型配置管理 API (ADMIN)
+
+| Method | Endpoint | 说明 |
+|--------|----------|------|
+| GET | /api/model-gateway/providers | 获取所有供应商能力 |
+| GET | /api/model-gateway/configs | 获取所有模型配置 |
+| POST | /api/model-gateway/configs | 创建/更新模型配置 |
+| PUT | /api/model-gateway/configs/{id} | 更新模型配置 |
+| DELETE | /api/model-gateway/configs/{id} | 删除模型配置 |
+| POST | /api/model-gateway/test-connection | 测试模型连接 |
+| GET | /api/observability/model-usage/cost-summary | 全局用量成本 |
+| GET | /api/projects/{id}/observability/model-usage/cost-summary | 项目用量成本 |
+
+### Prompt Safety
+
+请求经模型网关前会进行安全检查：
+
+- **高危拦截** (32 种模式)：永久拦截，不触发 Fallback，返回 `SAFETY_REJECTED`
+- **警告模式** (10 种模式)：允许通过但记录日志
+
+### 回退策略
+
+1. Provider 不可用 / 未启用 → Fallback 到 MOCK
+2. 网络超时 / 限流 → 自动重试后 Fallback 到 MOCK
+3. Prompt Safety 拦截 → 不 Fallback，直接拒绝
+4. 请求级 `fallbackEnabled=false` → 跳过 Fallback，返回错误
 
 ## 常见问题
 

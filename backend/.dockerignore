@@ -1,0 +1,10 @@
+target/
+.mvn/wrapper/maven-wrapper.jar
+.idea/
+.vscode/
+*.iml
+*.log
+logs/
+.env
+.env.local
+.env.*.local

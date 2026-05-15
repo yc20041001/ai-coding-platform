@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProject, getProjectOverview, type ProjectDetail, type ProjectOverview } from '@/modules/project/api'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -39,6 +39,24 @@ const tabs = [
   { name: 'repository', label: 'Repository' },
   { name: 'members', label: 'Members' },
 ]
+
+watch(
+  () => route.name,
+  (name) => {
+    const routeTabMap: Record<string, string> = {
+      ProjectDetail: 'overview',
+      TaskList: 'tasks',
+      TaskDetail: 'tasks',
+      Chat: 'chat',
+      Knowledge: 'knowledge',
+      Repository: 'repository',
+      Members: 'members',
+      PrReview: 'repository',
+    }
+    activeTab.value = routeTabMap[String(name)] || 'overview'
+  },
+  { immediate: true },
+)
 
 function onTabClick(pane: any) {
   const tabName = typeof pane === 'string' ? pane : pane?.props?.name || pane?.paneName || pane?.name

@@ -50,7 +50,8 @@ public class OpenAiCompatibleModelProvider implements ModelProvider {
     public boolean supports(String provider) {
         if (provider == null) return false;
         String upper = provider.toUpperCase();
-        return "OPENAI".equals(upper) || "DEEPSEEK".equals(upper) || "QWEN".equals(upper);
+        return "OPENAI".equals(upper) || "DEEPSEEK".equals(upper) || "QWEN".equals(upper)
+                || "GEMINI".equals(upper) || "OPENAI_COMPATIBLE".equals(upper);
     }
 
     @Override

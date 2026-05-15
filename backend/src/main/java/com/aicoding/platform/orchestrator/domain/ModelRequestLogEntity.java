@@ -26,6 +26,9 @@ public class ModelRequestLogEntity implements Serializable {
     private Long latencyMs;
     private Boolean success;
     private String errorMessage;
+    private Boolean fallbackUsed;
+    private String errorCode;
+    private java.math.BigDecimal estimatedCost;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
@@ -65,6 +68,15 @@ public class ModelRequestLogEntity implements Serializable {
 
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+
+    public Boolean getFallbackUsed() { return fallbackUsed; }
+    public void setFallbackUsed(Boolean fallbackUsed) { this.fallbackUsed = fallbackUsed; }
+
+    public String getErrorCode() { return errorCode; }
+    public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
+
+    public java.math.BigDecimal getEstimatedCost() { return estimatedCost; }
+    public void setEstimatedCost(java.math.BigDecimal estimatedCost) { this.estimatedCost = estimatedCost; }
 
     public LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
