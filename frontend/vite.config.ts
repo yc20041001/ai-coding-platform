@@ -12,4 +12,27 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
+              return 'vendor-vue'
+            }
+            if (id.includes('element-plus')) {
+              return 'vendor-element'
+            }
+            if (id.includes('markdown-it') || id.includes('highlight.js')) {
+              return 'vendor-markdown'
+            }
+            if (id.includes('@element-plus/icons-vue') || id.includes('lucide')) {
+              return 'vendor-icons'
+            }
+            return 'vendor'
+          }
+        },
+      },
+    },
+  },
 })

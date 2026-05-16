@@ -74,7 +74,7 @@ async function handleCreate() {
       priority: createForm.value.priority,
       agentId: createForm.value.agentId,
     })
-    ElMessage.success('任务创建成功')
+    ElMessage.success('Task created')
     createVisible.value = false
     createForm.value = { title: '', description: '', taskType: 'FEATURE', priority: 'MEDIUM', agentId: '300002' }
     load(1)
@@ -90,7 +90,7 @@ async function handleExecute() {
   executing.value = true
   try {
     await executeTask(executingTaskId.value, executeForm.value)
-    ElMessage.success('任务执行完成')
+    ElMessage.success('Task executed')
     executeVisible.value = false
     load()
   } catch { /* handled */ } finally { executing.value = false }
@@ -131,7 +131,7 @@ load(1)
       :status="`${pipelineStats.total} total`"
     >
       <template #actions>
-        <GlowButton accent="primary" @click="createVisible = true">+ New Task</GlowButton>
+        <GlowButton accent="primary" @click="createVisible = true" data-testid="btn-create-task">+ New Task</GlowButton>
       </template>
 
       <template #metrics>
@@ -164,7 +164,7 @@ load(1)
 
       <NeonDivider tone="primary" />
 
-      <el-table :data="records" v-loading="loading" style="width:100%;margin-top:8px">
+      <el-table :data="records" v-loading="loading" style="width:100%;margin-top:8px" data-testid="task-table">
         <el-table-column prop="title" label="Title" min-width="180">
           <template #default="{ row }">
             <span style="font-weight:600;color:var(--app-text)">{{ row.title }}</span>
@@ -191,10 +191,10 @@ load(1)
         </el-table-column>
         <el-table-column label="Actions" width="300" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="viewDetail(row.id)">Detail</el-button>
-            <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'">Execute</el-button>
-            <el-button size="small" @click="handleViewLogs(row.id)">Logs</el-button>
-            <el-button size="small" @click="handleViewArtifacts(row.id)">Artifacts</el-button>
+            <el-button size="small" text type="primary" @click="viewDetail(row.id)" data-testid="btn-task-detail">Detail</el-button>
+            <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'" data-testid="btn-execute-task">Execute</el-button>
+            <el-button size="small" @click="handleViewLogs(row.id)" data-testid="btn-task-logs">Logs</el-button>
+            <el-button size="small" @click="handleViewArtifacts(row.id)" data-testid="btn-task-artifacts">Artifacts</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -210,15 +210,16 @@ load(1)
 
       <!-- Create Task Dialog -->
       <el-dialog v-model="createVisible" title="Create Task" width="500px">
-        <el-form label-position="top">
+        <div data-testid="dialog-create-task">
+          <el-form label-position="top">
           <el-form-item label="Title" required>
-            <el-input v-model="createForm.title" placeholder="Task title" />
+            <el-input v-model="createForm.title" placeholder="Task title" data-testid="input-task-title" />
           </el-form-item>
           <el-form-item label="Description">
-            <el-input v-model="createForm.description" type="textarea" :rows="3" />
+            <el-input v-model="createForm.description" type="textarea" :rows="3" data-testid="input-task-description" />
           </el-form-item>
           <el-form-item label="Type">
-            <el-select v-model="createForm.taskType" style="width:100%">
+            <el-select v-model="createForm.taskType" style="width:100%" data-testid="select-task-type">
               <el-option label="Feature" value="FEATURE" />
               <el-option label="Bug" value="BUG" />
               <el-option label="Refactor" value="REFACTOR" />
@@ -226,32 +227,35 @@ load(1)
             </el-select>
           </el-form-item>
           <el-form-item label="Priority">
-            <el-select v-model="createForm.priority" style="width:100%">
+            <el-select v-model="createForm.priority" style="width:100%" data-testid="select-task-priority">
               <el-option label="High" value="HIGH" />
               <el-option label="Medium" value="MEDIUM" />
               <el-option label="Low" value="LOW" />
             </el-select>
           </el-form-item>
         </el-form>
+        </div>
         <template #footer>
-          <el-button @click="createVisible = false">Cancel</el-button>
-          <el-button type="primary" :loading="creating" @click="handleCreate">Create</el-button>
+          <el-button @click="createVisible = false" data-testid="btn-cancel-task">Cancel</el-button>
+          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-task">Create</el-button>
         </template>
       </el-dialog>
 
       <!-- Execute Task Dialog -->
       <el-dialog v-model="executeVisible" title="Execute Task" width="500px">
-        <el-form label-position="top">
+        <div data-testid="dialog-execute-task">
+          <el-form label-position="top">
           <el-form-item label="Instruction">
-            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" />
+            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" data-testid="input-execute-instruction" />
           </el-form-item>
           <el-form-item label="Use RAG">
-            <el-switch v-model="executeForm.useRag" />
+            <el-switch v-model="executeForm.useRag" data-testid="switch-execute-rag" />
           </el-form-item>
         </el-form>
+        </div>
         <template #footer>
-          <el-button @click="executeVisible = false">Cancel</el-button>
-          <el-button type="primary" :loading="executing" @click="handleExecute">Execute</el-button>
+          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute">Cancel</el-button>
+          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute">Execute</el-button>
         </template>
       </el-dialog>
 

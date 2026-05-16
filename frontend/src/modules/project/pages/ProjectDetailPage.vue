@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProject, getProjectOverview, type ProjectDetail, type ProjectOverview } from '@/modules/project/api'
 import StatusPulse from '@/shared/components/StatusPulse.vue'
@@ -7,6 +7,7 @@ import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import SectionRail from '@/shared/components/SectionRail.vue'
 import MetricTile from '@/shared/components/MetricTile.vue'
 import NeonDivider from '@/shared/components/NeonDivider.vue'
+import DemoBadge from '@/shared/components/DemoBadge.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
 const route = useRoute()
@@ -59,6 +60,10 @@ watch(
   { immediate: true },
 )
 
+const isDemoProject = computed(() => {
+  return project.value?.name?.includes('Demo') ?? false
+})
+
 function onRailSelect(key: string) {
   const tabRoutes: Record<string, string> = {
     overview: `/projects/${projectId}`,
@@ -81,6 +86,7 @@ function onRailSelect(key: string) {
       eyebrow="Project"
     >
       <template #actions>
+        <DemoBadge v-if="isDemoProject" mode="demo" style="margin-right:8px" />
         <StatusPulse
           :status="project.status"
           :tone="project.status === 'ACTIVE' ? 'success' : 'muted'"
@@ -97,6 +103,10 @@ function onRailSelect(key: string) {
       <NeonDivider tone="primary" />
 
       <div v-if="activeTab === 'overview' && overview" style="margin-top:20px">
+        <div v-if="isDemoProject" class="pd-demo-hint">
+          <span class="pd-demo-hint-icon">◆</span>
+          <span>Demo Project — start by exploring <strong>Knowledge</strong>, then try <strong>Chat</strong> &amp; <strong>Tasks</strong></span>
+        </div>
         <h2 class="pd-section-title">Project Telemetry</h2>
         <div class="card-grid">
           <MetricTile :value="overview.taskCount" label="Tasks" />
@@ -114,6 +124,30 @@ function onRailSelect(key: string) {
 </template>
 
 <style scoped>
+.pd-demo-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  background: rgba(64, 158, 255, 0.06);
+  border: 1px solid rgba(64, 158, 255, 0.15);
+  font-size: 12px;
+  color: var(--app-text-dim);
+}
+
+.pd-demo-hint-icon {
+  color: var(--app-cyan, #409EFF);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.pd-demo-hint strong {
+  color: var(--app-text);
+  font-weight: 600;
+}
+
 .pd-section-title {
   font-size: 12px;
   font-weight: 600;

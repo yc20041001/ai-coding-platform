@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { setupAuthGuard } from '@/app/guards/authGuard'
+import { getToken } from '@/shared/utils/auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -10,10 +11,18 @@ const router = createRouter({
       component: () => import('@/modules/auth/pages/LoginPage.vue'),
     },
     {
+      path: '/public',
+      name: 'PublicHome',
+      component: () => import('@/modules/public/pages/PublicHomePage.vue'),
+    },
+    {
       path: '/',
       component: () => import('@/app/layouts/BasicLayout.vue'),
-      redirect: '/dashboard',
       children: [
+        {
+          path: '',
+          redirect: () => getToken() ? '/dashboard' : '/public',
+        },
         {
           path: 'dashboard',
           name: 'Dashboard',

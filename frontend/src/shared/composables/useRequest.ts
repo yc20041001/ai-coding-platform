@@ -23,9 +23,9 @@ export function useRequest<T>(
       return res.data.data
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string }
-      error.value = err.message || '请求失败'
+      error.value = err.message || 'Request failed'
       if (err.code !== 'UNAUTHORIZED') {
-        ElMessage.error(err.message || '请求失败')
+        ElMessage.error(err.message || 'Request failed')
       }
       return null
     } finally {

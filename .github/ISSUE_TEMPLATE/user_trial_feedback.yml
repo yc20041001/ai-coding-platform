@@ -1,0 +1,160 @@
+name: User Trial Feedback
+description: Submit feedback from a user trial or demo session
+title: "[Trial Feedback]: "
+labels: ["trial-feedback", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your trial experience. This template helps us organize feedback from real user sessions.
+
+        **Please do NOT include real names, emails, screenshots showing personal data, or any API keys / tokens.**
+
+  - type: input
+    id: trial_date
+    attributes:
+      label: Trial Date
+      description: When did the trial take place?
+      placeholder: "YYYY-MM-DD"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user_role
+    attributes:
+      label: User Role
+      description: The trial user's primary role
+      options:
+        - Developer
+        - Tech Lead / Architect
+        - Product Manager
+        - Engineering Manager
+        - Student / Learner
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scenario
+    attributes:
+      label: Primary Use Scenario
+      description: What was the user most interested in?
+      options:
+        - AI-assisted code development
+        - Team knowledge management (RAG)
+        - PR / code review automation
+        - Architecture analysis
+        - Learning / exploring AI coding tools
+        - Evaluating for team adoption
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: completed_path
+    attributes:
+      label: Completed Path
+      description: Which steps in the demo walkthrough did the user complete?
+      placeholder: |
+        - [x] Login
+        - [x] Dashboard exploration
+        - [x] Open Demo Project
+        - [x] Knowledge Base browsing
+        - [x] RAG search
+        - [x] Chat message with SSE streaming
+        - [ ] Task creation
+        - [ ] Task execution
+        - [ ] Observability review
+        - [ ] Model Gateway exploration
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: blocked_step
+    attributes:
+      label: Blocked / Confused At
+      description: Which step(s) caused the user to get stuck or confused?
+      placeholder: "User was confused by the RAG references — didn't understand that Chat was pulling from the Knowledge Base."
+      render: markdown
+
+  - type: textarea
+    id: most_valuable
+    attributes:
+      label: Most Valuable Feature (user's words)
+      description: What did the user say was most useful?
+      placeholder: "\"The chat + RAG integration that automatically pulls relevant docs\""
+      render: markdown
+
+  - type: textarea
+    id: most_confusing
+    attributes:
+      label: Most Confusing Part (user's words)
+      description: What did the user find hardest to understand?
+      placeholder: "\"I didn't know RAG was working until I saw the references at the bottom\""
+      render: markdown
+
+  - type: dropdown
+    id: ui_rating
+    attributes:
+      label: UI Rating (1-5)
+      options:
+        - "1 — Very difficult to use"
+        - "2 — Below average"
+        - "3 — Average"
+        - "4 — Good"
+        - "5 — Excellent"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: model_rating
+    attributes:
+      label: Model Quality Rating (1-5)
+      description: If the user interacted with AI (Chat or Task), how was the output quality?
+      options:
+        - "1 — Unusable"
+        - "2 — Poor"
+        - "3 — Acceptable"
+        - "4 — Good"
+        - "5 — Excellent"
+        - "N/A — Used MOCK provider or no AI interaction"
+
+  - type: dropdown
+    id: perf_rating
+    attributes:
+      label: Performance Rating (1-5)
+      options:
+        - "1 — Very slow"
+        - "2 — Below average"
+        - "3 — Acceptable"
+        - "4 — Fast"
+        - "5 — Very fast"
+
+  - type: dropdown
+    id: continue_using
+    attributes:
+      label: Would the user continue using the platform?
+      options:
+        - "Yes — in real projects"
+        - "Yes — but need more features first"
+        - "Maybe — not sure yet"
+        - "No — not a fit for our needs"
+    validations:
+      required: true
+
+  - type: textarea
+    id: follow_up
+    attributes:
+      label: Follow-up Notes
+      description: Any additional context, quotes, or action items from the session.
+      placeholder: "User mentioned they'd like to try with their own repository next time..."
+      render: markdown
+
+  - type: checkboxes
+    id: sensitive_data
+    attributes:
+      label: Sensitive Data Confirmation
+      options:
+        - label: This report does NOT contain real user names, emails, screenshots with personal data, API keys, or tokens.
+          required: true

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, defineAsyncComponent } from 'vue'
 import { getAgentExecution, getExecutionModelLogs, type AgentExecution, type ModelRequestLog } from '@/modules/task/api'
 import ReferenceList from '@/modules/chat/components/ReferenceList.vue'
-import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
-import StatusTag from '@/shared/components/StatusTag.vue'
+import StatusPulse from '@/shared/components/StatusPulse.vue'
 import { formatDateTime, formatNumber } from '@/shared/utils/format'
+
+const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
 
 const props = defineProps<{
   executionId: string | null
@@ -53,12 +54,12 @@ watch(() => props.visible, async (val) => {
     <div v-loading="loading">
       <template v-if="execution">
         <div class="exec-section">
-          <h4>基本信息</h4>
+          <h4>Overview</h4>
           <div class="exec-grid">
             <div class="exec-field"><span class="exec-label">Execution ID</span><code>{{ execution.id }}</code></div>
             <div class="exec-field"><span class="exec-label">Agent</span><span>{{ execution.agentName }}</span></div>
             <div class="exec-field"><span class="exec-label">Type</span><span>{{ execution.executionType }}</span></div>
-            <div class="exec-field"><span class="exec-label">Status</span><StatusTag :status="execution.status" /></div>
+            <div class="exec-field"><span class="exec-label">Status</span><StatusPulse :status="execution.status" :tone="execution.status === 'COMPLETED' ? 'success' : execution.status === 'RUNNING' ? 'warning' : 'muted'" /></div>
             <div class="exec-field"><span class="exec-label">RAG Used</span><el-tag size="small" :type="execution.ragUsed ? 'success' : 'info'">{{ execution.ragUsed ? 'Yes' : 'No' }}</el-tag></div>
             <div class="exec-field"><span class="exec-label">Token Usage</span><span>{{ formatNumber(execution.tokenUsage) }}</span></div>
             <div class="exec-field"><span class="exec-label">Started</span><span>{{ formatDateTime(execution.startedAt) }}</span></div>
@@ -106,10 +107,10 @@ watch(() => props.visible, async (val) => {
               <div class="ml-time">{{ formatDateTime(log.createTime) }}</div>
             </div>
           </div>
-          <EmptyState v-else-if="!loadingLogs" description="暂无模型日志" />
+          <EmptyState v-else-if="!loadingLogs" description="No model logs" />
         </div>
       </template>
-      <ErrorState v-else-if="!loading" title="加载失败" message="无法获取执行详情" />
+      <ErrorState v-else-if="!loading" title="Load Failed" message="Cannot load execution details" />
     </div>
   </el-drawer>
 </template>
@@ -119,12 +120,14 @@ watch(() => props.visible, async (val) => {
   margin-bottom: 24px;
 }
 .exec-section h4 {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: #303133;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--app-border);
 }
 .exec-grid {
   display: grid;
@@ -137,42 +140,45 @@ watch(() => props.visible, async (val) => {
   gap: 2px;
 }
 .exec-label {
-  font-size: 12px;
-  color: #909399;
+  font-size: 11px;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 .exec-field code {
   font-size: 12px;
-  background: #f5f7fa;
-  padding: 2px 6px;
-  border-radius: 3px;
+  background: var(--app-panel);
+  color: var(--app-text-soft);
+  padding: 2px 8px;
+  border-radius: var(--app-radius-sm);
   word-break: break-all;
 }
 .exec-field span {
   font-size: 13px;
-  color: #303133;
+  color: var(--app-text-soft);
 }
 .exec-error {
   margin-top: 12px;
 }
 .exec-content-box {
-  background: #fafbfc;
-  border: 1px solid #ebeef5;
-  border-radius: 6px;
-  padding: 12px 16px;
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 14px 18px;
   max-height: 300px;
   overflow-y: auto;
 }
 .exec-empty {
-  color: #c0c4cc;
+  color: var(--app-text-muted);
   font-style: italic;
   font-size: 13px;
 }
 .model-log-card {
   padding: 10px 12px;
   margin-bottom: 8px;
-  border: 1px solid #ebeef5;
-  border-radius: 6px;
-  background: #fafafa;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-bg-soft);
 }
 .ml-header {
   display: flex;
@@ -183,22 +189,22 @@ watch(() => props.visible, async (val) => {
 .ml-model {
   font-weight: 500;
   font-size: 13px;
-  color: #303133;
+  color: var(--app-text);
 }
 .ml-stats {
   display: flex;
   gap: 14px;
   font-size: 12px;
-  color: #606266;
+  color: var(--app-text-muted);
   margin-bottom: 4px;
 }
 .ml-error {
   font-size: 12px;
-  color: #f56c6c;
+  color: var(--app-danger);
   margin-bottom: 2px;
 }
 .ml-time {
   font-size: 11px;
-  color: #c0c4cc;
+  color: var(--app-text-muted);
 }
 </style>

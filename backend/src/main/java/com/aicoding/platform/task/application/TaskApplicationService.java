@@ -266,7 +266,7 @@ public class TaskApplicationService {
         return task;
     }
 
-    private void validateTransition(String fromStatus, String toStatus) {
+    protected void validateTransition(String fromStatus, String toStatus) {
         Set<String> allowed = VALID_TRANSITIONS.get(fromStatus);
         if (allowed == null || !allowed.contains(toStatus)) {
             throw new BizException(ErrorCode.CONFLICT,

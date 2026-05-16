@@ -103,7 +103,9 @@ src/
 
 | 路径 | 页面 | 权限 |
 |------|------|------|
+| /public | 产品公开展示页 | 公开（无需登录） |
 | /login | 登录页 | 公开 |
+| / | 控制台入口 | 已登录→/dashboard，未登录→/public |
 | /dashboard | 系统概览 | 登录后 |
 | /projects | 项目列表 | 登录后 |
 | /projects/:id | 项目详情 | 登录后 |
@@ -115,6 +117,20 @@ src/
 | /projects/:id/members | 成员管理 | 登录后 |
 | /agents | Agent 列表 | 登录后 |
 | /observability | 可观测性 (ADMIN) | 登录后 |
+
+## 公开展示入口
+
+访问 `/public` 可查看产品公开展示页，无需登录。包含：
+- 产品定位和核心能力说明
+- 功能展示（7 个模块，含状态标签）
+- 系统架构预览
+- 试用入口（4 步快速启动）
+- FAQ（8 个常见问题）
+- 页面底部链接：GitHub / Roadmap / Changelog / Feedback
+
+公开页不会加载控制台布局（TopCommandBar / FloatingDock），但保持相同的 Dark Tech Console 视觉风格。
+
+`/public` 路由定义在 `src/app/router/index.ts`，`src/app/guards/authGuard.ts` 中已将其加入公开路径白名单。 |
 
 ## 冒烟测试
 

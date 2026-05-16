@@ -34,7 +34,7 @@ async function doReadSSE(
 ): Promise<void> {
   const token = getToken()
   if (!token) {
-    callbacks.onError('UNAUTHORIZED', '未登录')
+    callbacks.onError('UNAUTHORIZED', 'Not authenticated')
     return
   }
 
@@ -50,7 +50,7 @@ async function doReadSSE(
     })
   } catch (err) {
     if ((err as Error).name === 'AbortError') return
-    callbacks.onError('FETCH_ERROR', err instanceof Error ? err.message : '网络请求失败')
+    callbacks.onError('FETCH_ERROR', err instanceof Error ? err.message : 'Network request failed')
     return
   }
 
@@ -61,7 +61,7 @@ async function doReadSSE(
 
   const reader = response.body?.getReader()
   if (!reader) {
-    callbacks.onError('STREAM_ERROR', '无法读取流')
+    callbacks.onError('STREAM_ERROR', 'Unable to read stream')
     return
   }
 

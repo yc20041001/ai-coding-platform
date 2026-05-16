@@ -5,16 +5,23 @@ const ADMIN_PASSWORD = 'Admin@123456'
 
 test.describe('Auth', () => {
   test('should redirect to login page when unauthenticated', async ({ page }) => {
+    await page.goto('/projects')
+    await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
+  })
+
+  test('should show public page when unauthenticated at root', async ({ page }) => {
     await page.goto('/')
-    await expect(page).toHaveURL(/\/login/)
+    // Root redirects to /public when unauthenticated (Milestone 26)
+    await expect(page).toHaveURL(/\/public/, { timeout: 10000 })
+    await expect(page.getByRole('heading', { name: 'AI Coding Platform' })).toBeVisible()
   })
 
   test('should login successfully with admin credentials', async ({ page }) => {
     await page.goto('/login')
 
-    await page.fill('[data-testid="login-email"]', ADMIN_EMAIL)
-    await page.fill('[data-testid="login-password"]', ADMIN_PASSWORD)
-    await page.click('[data-testid="login-submit"]')
+    await page.getByTestId('login-email').fill(ADMIN_EMAIL)
+    await page.getByTestId('login-password').fill(ADMIN_PASSWORD)
+    await page.getByTestId('login-submit').click()
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
     await expect(page.locator('.app-shell')).toBeVisible()
@@ -23,24 +30,24 @@ test.describe('Auth', () => {
 
   test('should logout successfully', async ({ page }) => {
     await page.goto('/login')
-    await page.fill('[data-testid="login-email"]', ADMIN_EMAIL)
-    await page.fill('[data-testid="login-password"]', ADMIN_PASSWORD)
-    await page.click('[data-testid="login-submit"]')
+    await page.getByTestId('login-email').fill(ADMIN_EMAIL)
+    await page.getByTestId('login-password').fill(ADMIN_PASSWORD)
+    await page.getByTestId('login-submit').click()
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
 
-    await page.click('[data-testid="btn-logout"]')
-    await expect(page).toHaveURL(/\/login/)
+    await page.getByTestId('btn-logout').click()
+    await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
   })
 
   test('should stay on login page with wrong password', async ({ page }) => {
     await page.goto('/login')
 
-    await page.fill('[data-testid="login-email"]', ADMIN_EMAIL)
-    await page.fill('[data-testid="login-password"]', 'wrong-password')
-    await page.click('[data-testid="login-submit"]')
+    await page.getByTestId('login-email').fill(ADMIN_EMAIL)
+    await page.getByTestId('login-password').fill('wrong-password-xyz')
+    await page.getByTestId('login-submit').click()
 
-    // Should stay on login page after failed login
-    await page.waitForTimeout(2000)
+    // Submit triggers API call; wait for error alert to appear
+    await expect(page.getByTestId('login-error')).toBeVisible({ timeout: 10000 })
     await expect(page).toHaveURL(/\/login/)
   })
 })

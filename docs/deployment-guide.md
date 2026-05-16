@@ -1,6 +1,33 @@
 # Deployment Guide
 
-## 1. 本地 Docker Compose 启动
+> **Final Delivery Package**: See [Final Delivery Report](final-delivery-report.md) for deployment modes summary, [Handoff Guide](project-handoff-guide.md) for Day 1 setup, and [API / Page / Script Index](api-page-script-index.md#3-script-index) for all deployment scripts.
+
+## Production Deployment
+
+For production cloud deployment with HTTPS, nginx reverse proxy, SSE support, and automated backup scripts, see the [Production Deployment Runbook](./production-deployment-runbook.md).
+
+### External Services
+
+- [Model Provider Setup](./model-provider-production-setup.md) — Configure OpenAI, Claude, DeepSeek, Qwen, Gemini.
+- [GitHub OAuth Setup](./github-oauth-production-setup.md) — Configure GitHub integration for PR review.
+
+### Production Operations
+
+- [Production Observability Runbook](./production-observability-runbook.md) — Daily monitoring, log patterns, model usage, backup status.
+- [Production Alerting Rules](./production-alerting-rules.md) — Alert severity levels (P0-P3) and threshold rules.
+- [Production Security Hardening Checklist](./production-security-hardening-checklist.md) — Secrets, CORS, JWT, headers, actuator, periodic checks.
+- [Incident Response Runbook](./incident-response-runbook.md) — 10 incident scenarios, triage, recovery, rollback.
+
+Quick start:
+
+```bash
+cp .env.production.example .env.production
+# Edit .env.production — replace ALL CHANGE_ME values
+bash scripts/prod-deploy.sh up --build
+bash scripts/prod-smoke-test.sh http://localhost
+```
+
+## 1. Local Docker Compose
 
 ```bash
 # 从项目根目录执行

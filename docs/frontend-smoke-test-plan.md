@@ -140,6 +140,19 @@
 | N4 | 类型检查 | `npm run typecheck` 0 错误 |
 | N5 | 构建 | `npm run build` 成功 |
 
+## E2E 自动化覆盖
+
+本项目 E2E 测试使用 Playwright，通过 `data-testid` 选择器实现稳定定位。关键 `data-testid` 包括：
+
+| 页面 | data-testid |
+|------|------------|
+| LoginPage | `login-email`, `login-password`, `login-submit` |
+| ProjectListPage | `btn-create-project`, `dialog-create-project`, `input-project-name`, `btn-submit-project`, `project-table` |
+| TaskListPage | `btn-create-task`, `dialog-create-task`, `input-task-title`, `btn-submit-task`, `btn-execute-task`, `dialog-execute-task`, `task-table` |
+| ChatPage | `chat-session-list`, `chat-message-input`, `btn-send-message` |
+
+选择器规范详见 [E2E Stability Guide](e2e-stability-guide.md)。
+
 ## 已知限制
 
 - Repository clone/pull 依赖后端和本地 Git 环境，可能报错

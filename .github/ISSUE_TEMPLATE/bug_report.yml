@@ -1,0 +1,150 @@
+name: Bug Report
+description: Report a bug, crash, or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out each section — the more detail you provide, the faster we can reproduce and fix the issue.
+
+        **IMPORTANT: Do NOT paste API keys, passwords, tokens, or other secrets into this issue.** If the bug involves a credential, describe the symptom without revealing the credential value.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line description of the bug
+      placeholder: "e.g. Chat SSE stops streaming after ~20 seconds"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - P0 — Data loss / Security breach / Complete outage
+        - P1 — Core flow broken, no workaround
+        - P2 — Flow broken but workaround exists
+        - P3 — Minor / Cosmetic
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the platform is affected?
+      multiple: true
+      options:
+        - Backend API
+        - Frontend UI
+        - Auth / Permission
+        - Chat SSE
+        - RAG / Knowledge
+        - Task / Agent
+        - Model Gateway
+        - GitHub / PR Review
+        - Deployment / Docker
+        - Observability / Audit
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did you encounter this bug?
+      placeholder: |
+        - Deployment: Local / Docker / Production
+        - Browser: Chrome 130 / Firefox 132 / Safari 18
+        - Backend commit: (run `git rev-parse --short HEAD` if known)
+        - Provider mode: MOCK / OPENAI / CLAUDE / etc.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Write each step precisely so we can follow along.
+      placeholder: |
+        1. Log in as admin@example.com
+        2. Open Demo Project
+        3. Go to Chat tab
+        4. Send message: "..."
+        5. Observe: ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "Streaming reply completes with status COMPLETED"
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "Streaming stopped after ~20s, message stuck at STREAMING status"
+      render: markdown
+    validations:
+      required: true
+
+  - type: input
+    id: trace_id
+    attributes:
+      label: Trace ID
+      description: If available, paste the X-Trace-Id from the response headers or error message. This helps us find the exact request in backend logs.
+      placeholder: "e.g. a1b2c3d4e5f6a7b8"
+
+  - type: input
+    id: screenshot
+    attributes:
+      label: Screenshot / Recording Link
+      description: Link to a screenshot or screen recording showing the bug. Do NOT upload files containing API keys or secrets.
+      placeholder: "https://..."
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs Excerpt
+      description: |
+        Relevant backend or browser console logs. **Mask any secrets (API keys, tokens, passwords) before pasting.**
+        Backend logs: `bash scripts/prod-logs.sh backend | tail -50`
+      placeholder: "Paste logs here (with secrets masked)"
+      render: shell
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Regression?
+      description: Did this work before?
+      options:
+        - "Yes — it worked in a previous version"
+        - "No — this is a new feature or first encounter"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: sensitive_data
+    attributes:
+      label: Sensitive Data Confirmation
+      description: Please confirm before submitting.
+      options:
+        - label: I have NOT included any API keys, passwords, tokens, or other secrets in this report.
+          required: true
+        - label: I have masked all sensitive data in logs and screenshots.
+          required: true

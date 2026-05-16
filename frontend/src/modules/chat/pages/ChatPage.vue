@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
         <el-input v-model="newSessionTitle" placeholder="New session..." size="small" @keyup.enter="handleCreateSession" />
         <el-button type="primary" size="small" :loading="creatingSession" @click="handleCreateSession">+</el-button>
       </div>
-      <div class="session-list" v-loading="loadingSessions">
+      <div class="session-list" v-loading="loadingSessions" data-testid="chat-session-list">
         <div
           v-for="s in sessions" :key="s.id"
           class="session-item"
@@ -222,8 +222,9 @@ onBeforeUnmount(() => {
             placeholder="Send instruction to AI..."
             @keyup.enter.exact.prevent="handleSendMessage"
             class="chat-composer-input"
+            data-testid="chat-message-input"
           />
-          <button class="chat-send-btn" :disabled="!inputMessage.trim() || sending" @click="handleSendMessage">
+          <button class="chat-send-btn" :disabled="!inputMessage.trim() || sending" @click="handleSendMessage" data-testid="btn-send-message">
             <span v-if="sending" class="sending-dots">··</span>
             <span v-else>↑</span>
           </button>

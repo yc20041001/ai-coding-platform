@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -7,13 +7,13 @@ import {
   bindRepository, cloneRepository, pullRepository, getBranches, getDiff, listGithubRepos,
 } from '@/modules/repository/api'
 import type { ApiError } from '@/shared/api/client'
-import PageHeader from '@/shared/components/PageHeader.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
 import GlowButton from '@/shared/components/GlowButton.vue'
-import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import { usePagination } from '@/shared/composables/usePagination'
 import { formatDateTime } from '@/shared/utils/format'
+
+const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
 
 const route = useRoute()
 const projectId = route.params.projectId as string
@@ -54,7 +54,7 @@ async function loadBranches() {
       branches.value = []
       return
     }
-    ElMessage.error('获取分支列表失败')
+    ElMessage.error('Failed to load branches')
   } finally {
     loadingBranches.value = false
   }
@@ -64,11 +64,11 @@ async function handleBind() {
   binding.value = true
   try {
     await bindRepository(projectId, bindForm.value)
-    ElMessage.success('仓库绑定成功')
+    ElMessage.success('Repository bound')
     bindVisible.value = false
     loadBranches()
   } catch {
-    ElMessage.error('仓库绑定失败')
+    ElMessage.error('Failed to bind repository')
   } finally {
     binding.value = false
   }
@@ -78,11 +78,11 @@ async function handleClone() {
   cloning.value = true
   try {
     await cloneRepository(projectId, cloneForm.value)
-    ElMessage.success('Clone 操作已提交')
+    ElMessage.success('Clone submitted')
     cloneVisible.value = false
     loadBranches()
   } catch {
-    ElMessage.error('Clone 失败')
+    ElMessage.error('Clone failed')
   } finally {
     cloning.value = false
   }
@@ -92,10 +92,10 @@ async function handlePull() {
   pulling.value = true
   try {
     await pullRepository(projectId, pullForm.value)
-    ElMessage.success('Pull 操作已提交')
+    ElMessage.success('Pull submitted')
     pullVisible.value = false
   } catch {
-    ElMessage.error('Pull 失败')
+    ElMessage.error('Pull failed')
   } finally {
     pulling.value = false
   }
@@ -108,7 +108,7 @@ async function handleViewDiff() {
     const res = await getDiff(projectId, diffForm.value.base, diffForm.value.head)
     diffData.value = res.data.data
   } catch {
-    ElMessage.error('获取 diff 失败')
+    ElMessage.error('Failed to load diff')
     diffData.value = null
   } finally {
     loadingDiff.value = false
@@ -132,15 +132,19 @@ onMounted(() => loadBranches())
 
 <template>
   <div class="page-container">
-    <PageHeader title="Repository" description="代码仓库管理">
-      <template #actions>
+    <div class="repo-header">
+      <div>
+        <h3 class="repo-title">Repository</h3>
+        <p class="repo-sub">Code Repository Management</p>
+      </div>
+      <div class="repo-actions">
         <GlowButton size="small" accent="primary" :loading="loadingBranches" @click="loadBranches">Refresh</GlowButton>
         <GlowButton size="small" accent="accent" @click="githubVisible = true">Browse</GlowButton>
         <GlowButton size="small" accent="primary" @click="bindVisible = true">Bind</GlowButton>
         <GlowButton size="small" accent="success" @click="cloneVisible = true">Clone</GlowButton>
         <GlowButton size="small" accent="warning" @click="pullVisible = true">Pull</GlowButton>
-      </template>
-    </PageHeader>
+      </div>
+    </div>
 
     <div class="repo-section">
       <h4>Branches</h4>
@@ -167,14 +171,14 @@ onMounted(() => loadBranches())
       <h4>Diff</h4>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
         <el-input v-model="diffForm.base" placeholder="Base" size="small" style="width:140px" />
-        <span>..</span>
+        <span style="color:var(--app-text-muted)">..</span>
         <el-input v-model="diffForm.head" placeholder="Head" size="small" style="width:140px" />
         <GlowButton size="small" accent="primary" @click="handleViewDiff">View Diff</GlowButton>
       </div>
     </div>
 
     <!-- Bind Dialog -->
-    <el-dialog v-model="bindVisible" title="绑定仓库" width="500px">
+    <el-dialog v-model="bindVisible" title="Bind Repository" width="500px">
       <el-form label-position="top">
         <el-form-item label="Provider">
           <el-select v-model="bindForm.provider" style="width:100%">
@@ -197,42 +201,42 @@ onMounted(() => loadBranches())
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="bindVisible = false">取消</el-button>
-        <el-button type="primary" :loading="binding" @click="handleBind">绑定</el-button>
+        <el-button @click="bindVisible = false">Cancel</el-button>
+        <el-button type="primary" :loading="binding" @click="handleBind">Bind</el-button>
       </template>
     </el-dialog>
 
     <!-- Clone Dialog -->
-    <el-dialog v-model="cloneVisible" title="Clone 仓库" width="450px">
+    <el-dialog v-model="cloneVisible" title="Clone Repository" width="450px">
       <el-form label-position="top">
-        <el-form-item label="分支">
+        <el-form-item label="Branch">
           <el-input v-model="cloneForm.branch" placeholder="main" />
         </el-form-item>
-        <el-form-item label="强制 Clone">
+        <el-form-item label="Force Clone">
           <el-switch v-model="cloneForm.force" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cloneVisible = false">取消</el-button>
+        <el-button @click="cloneVisible = false">Cancel</el-button>
         <el-button type="primary" :loading="cloning" @click="handleClone">Clone</el-button>
       </template>
     </el-dialog>
 
     <!-- Pull Dialog -->
-    <el-dialog v-model="pullVisible" title="Pull 仓库" width="450px">
+    <el-dialog v-model="pullVisible" title="Pull Repository" width="450px">
       <el-form label-position="top">
-        <el-form-item label="分支">
+        <el-form-item label="Branch">
           <el-input v-model="pullForm.branch" placeholder="main" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="pullVisible = false">取消</el-button>
+        <el-button @click="pullVisible = false">Cancel</el-button>
         <el-button type="primary" :loading="pulling" @click="handlePull">Pull</el-button>
       </template>
     </el-dialog>
 
     <!-- Github Browse Dialog -->
-    <el-dialog v-model="githubVisible" title="浏览 GitHub 仓库" width="700px">
+    <el-dialog v-model="githubVisible" title="Browse GitHub Repos" width="700px">
       <el-table :data="githubRepos" v-loading="loadingGithub" size="small" @row-click="onGithubRowClick" style="cursor:pointer">
         <el-table-column prop="fullName" label="Full Name" min-width="180" />
         <el-table-column prop="description" label="Description" min-width="200" show-overflow-tooltip />
@@ -270,24 +274,44 @@ onMounted(() => loadBranches())
             <MarkdownRenderer v-if="f.patch" :content="'```diff\n' + f.patch + '\n```'" />
           </div>
         </template>
-        <ErrorState v-else-if="!loadingDiff" title="无法加载 Diff" message="请确认仓库已绑定并 Clone" />
+        <ErrorState v-else-if="!loadingDiff" title="No Diff Available" message="Please bind and clone a repository first." />
       </div>
     </el-drawer>
   </div>
 </template>
 
 <style scoped>
-.repo-section h4 {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
+.repo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.repo-title {
+  font-size: 18px;
+  font-weight: 700;
   color: var(--app-text);
+  margin: 0;
+}
+.repo-sub {
+  font-size: 13px;
+  color: var(--app-text-muted);
+  margin-top: 2px;
+}
+.repo-actions {
+  display: flex;
+  gap: 8px;
+}
+.repo-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
 }
 :deep(.nowrap-column .cell) {
   white-space: nowrap;
-}
-:deep(.page-header__actions) {
-  gap: 8px;
 }
 .diff-summary {
   display: flex;
@@ -301,7 +325,7 @@ onMounted(() => loadBranches())
   color: var(--app-text-soft);
 }
 .diff-summary code {
-  background: rgba(148, 163, 184, 0.1);
+  background: var(--app-bg-soft);
   color: var(--app-text-soft);
   padding: 1px 6px;
   border-radius: 3px;

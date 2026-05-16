@@ -72,7 +72,7 @@ function formatCost(cost: number): string {
           </el-table>
         </div>
       </template>
-      <EmptyState v-else-if="!loading" description="暂无统计（需要 ADMIN 权限）" />
+      <EmptyState v-else-if="!loading" description="No statistics (requires ADMIN role)" />
     </div>
   </TechPanel>
 </template>

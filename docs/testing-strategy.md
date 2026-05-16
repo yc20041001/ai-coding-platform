@@ -1,5 +1,7 @@
 # Testing Strategy
 
+> **Final Delivery Package**: See [Final Delivery Report](final-delivery-report.md) for quality gate summary, [Backend Test Matrix](backend-test-matrix.md) for full coverage details, and [Backend Testing Guide](backend-testing-guide.md) for test patterns and troubleshooting.
+
 ## 测试分层
 
 本项目采用三层测试策略：
@@ -18,9 +20,51 @@
 - `@SpringBootTest(webEnvironment = RANDOM_PORT)`
 - `@ActiveProfiles("test")`
 - `TestRestTemplate` — 真实 HTTP 请求
-- 真实 MySQL 测试库 (`ai_coding_platform_test`)
-- Flyway 自动迁移
+- 真实 MySQL 测试库 (`ai_coding_platform`)
+- Flyway 默认禁用（test profile），schema 由 `spring.sql.init` 管理
 - MOCK Model Gateway（不依赖真实 API Key）
+
+### 测试覆盖矩阵
+
+详见 [Backend Test Matrix](backend-test-matrix.md)。
+
+| 测试类 | 类型 | 测试数 | 覆盖模块 |
+|--------|------|--------|----------|
+| `AuthIntegrationTest` | 集成 | 7 | Auth / JWT / 认证边界 |
+| `JwtTokenProviderTest` | 单元 | 15 | JWT token 类型、验证、解析 |
+| `ProjectIntegrationTest` | 集成 | 5 | 项目 CRUD / 权限 |
+| `TaskOrchestratorIntegrationTest` | 集成 | 4 | 任务创建 / 执行 / 重复执行拦截 |
+| `TaskStateMachineTest` | 单元 | 20 | 状态机合法/非法流转 / 边界 |
+| `ChatIntegrationTest` | 集成 | 4 | 会话创建 / 消息发送 / SSE 状态 |
+| `RagIntegrationTest` | 集成 | 4 | 知识库 / 文档上传 / chunk / 搜索 |
+| `DocumentChunkServiceTest` | 单元 | 14 | Chunk 分片 / overlap / hash / token 估算 |
+| `PromptSafetyServiceTest` | 单元 | 9 | Prompt 安全过滤 / 高危拦截 / 警告 |
+| `ModelSecretMaskingServiceTest` | 单元 | 15 | API Key 掩码 / 日志脱敏 |
+| `ModelPricingServiceTest` | 单元 | 12 | 成本估算 / 覆盖定价 / 所有模型 |
+| `ModelGatewayIntegrationTest` | 集成 | 7 | MOCK Provider / 配置验证 |
+| `PrReviewApplicationServiceTest` | 单元 | 21 | JSON 解析 / 风险评估 / Prompt 构建 / 异常输出 |
+| `GithubPropertiesTest` | 单元 | 4 | GitHub OAuth 配置检查 |
+
+### 后端质量门
+
+以下质量门在发布前**必须通过**：
+
+| 门禁 | 类型 | 说明 |
+|------|------|------|
+| `mvn test` | **Blocking** | 所有后端测试必须通过 |
+| `mvn compile` | **Blocking** | 编译通过 |
+| `mvn package -DskipTests` | **Blocking** | 可打包 |
+
+后端测试失败阻塞发布。`scripts/run-backend-checks.sh` 串行执行 compile → test → package，任一步失败即退出。
+
+### 测试辅助工具
+
+[`TestDataFactory.java`](../backend/src/test/java/com/aicoding/platform/support/TestDataFactory.java) — 测试数据工厂，生成唯一名称的测试数据。
+
+[`TestJsonHelper.java`](../backend/src/test/java/com/aicoding/platform/support/TestJsonHelper.java)：
+- `parse(json)` → `JsonNode`
+- `getString(root, "data.id")` — 点号分隔路径提取
+- `getLong(root, path)` / `getBool(root, path)`
 
 ### 测试配置
 
@@ -94,15 +138,54 @@ bash scripts/run-backend-checks.sh
 
 | 测试文件 | 覆盖内容 |
 |----------|----------|
-| `auth.spec.ts` | 未登录跳转登录页、admin 登录成功、登出、错误密码提示 |
-| `project-task-chat.spec.ts` | 创建项目、创建+执行任务(COMPLETED)、Chat Tab + 会话创建 |
-| `knowledge-observability.spec.ts` | 创建知识库、RAG 搜索、可观测性页面可访问 |
+| `auth.spec.ts` | 未登录跳转登录页、admin 登录成功、登出、错误密码提示、未登录根路径跳转 /public |
+| `project-task-chat.spec.ts` | 创建项目、创建+执行任务(COMPLETED)、Chat 会话创建+消息发送+SSE 流完成 |
+| `knowledge-observability.spec.ts` | Knowledge Tab 导航、RAG 搜索、可观测性页面可访问 |
+| `model-gateway.spec.ts` | 模型网关页面导航、Provider 区域可见 |
 
 ### 稳定选择器策略
 
-- 优先使用 `data-testid` 属性：`[data-testid="login-email"]`
-- 次要使用按钮文本：`button:has-text("新建项目")`
-- 避免依赖动态内容：使用 `Date.now()` 生成唯一名称
+严格遵守选择器优先级：
+
+1. **`page.getByTestId()`** — 首选，所有关键元素必须有 `data-testid`
+2. **`page.getByRole()`** — 标准 HTML 元素
+3. **`page.getByLabel()`** — 表单输入
+4. **`page.getByText()`** — 唯一可见文本
+5. **`page.getByPlaceholder()`** — 输入占位符
+6. **`page.locator('css')`** — 仅限结构性元素（如 `.app-shell`）
+
+**禁止使用：**
+- Element Plus 内部 CSS 类名（`.el-input__inner`, `.el-button--primary`）
+- `.nth()` 不加稳定过滤的链式调用
+- 固定 `waitForTimeout`（除非明确注解原因）
+
+### data-testid 命名规范
+
+| 元素类型 | 命名模式 | 示例 |
+|---------|---------|------|
+| 操作按钮 | `btn-<action>-<entity>` | `btn-create-project`, `btn-submit-task` |
+| 输入框 | `input-<entity>-<field>` | `input-project-name`, `input-task-title` |
+| 对话框 | `dialog-<action>-<entity>` | `dialog-create-project`, `dialog-execute-task` |
+| 表格 | `<entity>-table` | `project-table`, `task-table` |
+| 列表容器 | `<entity>-<container-type>` | `chat-session-list` |
+| 下拉选择 | `select-<entity>-<field>` | `select-task-type` |
+
+### 等待策略
+
+| 场景 | 推荐策略 | 超时 |
+|------|---------|------|
+| API 写操作完成 | `waitForResponse(url pattern + method + status)` | 15-30s |
+| 路由跳转完成 | `expect(page).toHaveURL(/pattern/)` | 8-10s |
+| 对话框打开 | `expect(getByTestId('dialog-...')).toBeVisible()` | 5s |
+| 对话框关闭 | `expect(getByTestId('dialog-...')).not.toBeVisible()` | 8s |
+| 表格数据更新 | `expect(getByTestId('...-table')).toContainText(name)` | 8s |
+| SSE 流完成 | `expect(streaming-indicator).not.toBeVisible()` | 30s |
+
+### 测试数据隔离
+
+- 所有测试数据使用唯一后缀：`const SUFFIX = Date.now().toString()`
+- 不依赖 Demo 数据（Demo AI Workspace 等）必须存在
+- 测试前通过 admin 登录即可，不依赖预置项目/任务/会话
 
 ### 运行
 
@@ -116,11 +199,35 @@ npx playwright install chromium
 cd backend && mvn spring-boot:run
 
 # 运行 E2E 测试
-cd frontend && npm run test:e2e
+cd frontend && npm run test:e2e -- --workers=1
 
 # 或使用脚本
 bash scripts/run-frontend-checks.sh
 ```
+
+### 发布质量门
+
+以下质量门在发布前**必须通过**：
+
+| 门禁 | 类型 | 说明 |
+|------|------|------|
+| TypeCheck | Blocking | `cd frontend && npm run typecheck` |
+| Build | Blocking | `cd frontend && npm run build` |
+| E2E (Run 1) | Blocking | 13/13 通过，`--workers=1` |
+| E2E (Run 2) | Blocking | 13/13 通过（稳定性验证） |
+| Bundle Check | Warning | `scripts/frontend-bundle-check.sh` — 超过预算 WARN，不阻塞 |
+
+E2E 测试失败阻塞发布。以下情况阻塞发布：
+- `auth.spec.ts` 任何用例失败
+- `project-task-chat.spec.ts` 任何用例失败
+- 其他 spec 失败需评估是否为环境问题
+
+Bundle 体积检查当前为 Warning 级别，不阻塞发布。后续 Milestone 将逐步收紧为 Blocking。
+
+详见：
+- [E2E Stability Guide](e2e-stability-guide.md)
+- [Frontend Performance Budget](frontend-performance-budget.md)
+- [Bundle Analysis Report](bundle-analysis-report.md)
 
 ## Smoke Test
 

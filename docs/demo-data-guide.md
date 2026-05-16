@@ -2,11 +2,31 @@
 
 ## 概述
 
-`scripts/dev-seed-demo-data.sh` 提供一套可重复生成的演示数据，用于：
+Demo 数据脚本提供一套可重复生成的演示数据，用于：
 
 - 本地演示
 - 功能验证
 - 新人上手体验
+- 用户试用
+
+## 快速开始
+
+```bash
+# 1. 确保后端已启动
+cd backend && mvn spring-boot:run
+
+# 2. 初始化 Demo 数据（幂等，可重复运行）
+bash scripts/demo-seed-data.sh
+
+# 3. 验证 Demo 环境
+bash scripts/demo-smoke-test.sh
+
+# 4. 浏览器打开 http://localhost:5173
+#    登录：admin@example.com / Admin@123456
+
+# 5. 按 Demo Walkthrough 体验
+#    见 docs/demo-walkthrough.md
+```
 
 ## 前置条件
 
@@ -22,87 +42,63 @@
 
 ## 演示数据内容
 
-脚本按顺序创建以下数据（幂等，已存在则复用）：
+`scripts/demo-seed-data.sh` 按顺序创建以下数据（幂等，已存在则复用）：
 
 | 序号 | 数据 | 名称 | 说明 |
 |------|------|------|------|
-| 1 | Demo Project | Demo Project | 包含 Java, Spring Boot, Vue 3, TypeScript 技术栈 |
-| 2 | Knowledge Base | Demo Knowledge Base | chunkSize=300, chunkOverlap=30 |
-| 3 | Document | Agent Orchestrator Guide | Markdown 文档，介绍编排器架构与 RAG 集成 |
-| 4 | Chat Session | Demo Chat Session | PROJECT 类型会话 |
-| 5 | Chat Message | "Hello! Please explain..." | 用户消息 + Mock 助手回复 |
-| 6 | Task | Demo Task - Implement Greeting API | FEATURE 类型，MEDIUM 优先级 |
-| 7 | Task Execution | 执行上述 Task | 使用 Mock Agent，状态 COMPLETED |
+| 1 | Demo Project | Demo AI Workspace | 包含 Java, Spring Boot, Vue 3, TypeScript, RAG, AI Agent 技术栈 |
+| 2 | Knowledge Base | Product Knowledge Base | chunkSize=300, chunkOverlap=30 |
+| 3 | Document 1 | AI Coding Platform Overview | 平台能力总览：Chat、RAG、Task、Model Gateway、GitHub、Observability |
+| 4 | Document 2 | Agent Workflow Guide | Agent 编排器执行流程、任务状态机、集成点 |
+| 5 | Document 3 | Repository Review Guide | GitHub PR Review 只读流程和安全说明 |
+| 6 | Chat Session | Ask Product Knowledge | PROJECT 类型会话，预置 RAG 消息 |
+| 7 | Chat Message | "Please summarize how..." | 用户消息 + Mock 助手回复，useRag=true |
+| 8 | Task 1 | Generate architecture review summary | REVIEW 类型，MEDIUM 优先级，Agent 执行 |
+| 9 | Task 2 | Implement health check endpoint | FEATURE 类型，HIGH 优先级 |
 
-## 使用方法
+## 脚本说明
 
-### 初始化演示数据
+### demo-seed-data.sh
+
+初始化 Demo 数据，幂等（通过名称检查复用已有数据）。
 
 ```bash
 # 默认连接 http://localhost:8080
-bash scripts/dev-seed-demo-data.sh
+bash scripts/demo-seed-data.sh
 
-# 自定义 Base URL
-BASE_URL=http://localhost:8080 bash scripts/dev-seed-demo-data.sh
+# 自定义后端地址
+BASE_URL=http://localhost:8080 bash scripts/demo-seed-data.sh
+
+# 自定义 Demo 项目名
+DEMO_PROJECT_NAME="My Demo" bash scripts/demo-seed-data.sh
 ```
 
-成功输出示例：
+输出格式：`[PASS]` / `[WARN]` / `[FAIL]` / `[SKIP]`。
 
-```
-==========================================
-  演示数据初始化完成
-==========================================
-  Project ID:       200001
-  Knowledge Base:   300001
-  Document:         400001
-  Chat Session:     500001
-  Task:             600001
-==========================================
-```
+### demo-smoke-test.sh
 
-### 幂等性
-
-脚本通过检查名称来复用已有数据（"Demo Project"、"Demo Knowledge Base"），不会重复创建。可以安全地多次运行。
-
-## 演示路径建议
-
-推荐演示流程：
-
-1. **登录** → `http://localhost:5173/login`，使用 admin 账号
-2. **Dashboard** → 查看项目概览
-3. **Projects** → 点击 Demo Project 进入
-4. **Tasks Tab** → 查看 Demo Task，点击"详情"查看 Logs / Artifacts / Executions
-5. **Chat Tab** → 进入 Demo Chat Session，查看消息历史
-6. **Knowledge Tab** → 查看 Demo Knowledge Base，执行 RAG 搜索 "Agent Orchestrator"
-7. **Observability** → 查看 Overview 和 Audit Logs（需 Admin 权限）
-
-## 清理演示数据
-
-### 重置数据库
+验证 Demo 环境是否就绪，检查 10 大类：
+Frontend → Login → Auth/me → Project → Knowledge/RAG → Chat → Task → Model Gateway → Observability/Audit → Security
 
 ```bash
-# 重置测试库（推荐）
-bash scripts/dev-reset-db.sh --yes
-
-# 重置开发库
-bash scripts/dev-reset-db.sh --url "jdbc:mysql://127.0.0.1:3306/ai_coding_platform" --yes
+bash scripts/demo-smoke-test.sh
 ```
 
-**安全警告**：重置脚本只允许操作名称包含 `ai_coding_platform` 的本地数据库，且拒绝操作名称包含 `prod` 或 `production` 的库。
+退出码 0 = 就绪，非 0 = 有问题。会报告 MOCK/Real Provider 状态。
 
-### 手动清理
+### demo-reset-data.sh
 
-如需手动删除 Demo 数据，在应用内操作：
+清理 Demo 前缀数据。**必须传 `--yes`**，否则只显示帮助。
 
-1. 进入 Demo Project → 删除 Task
-2. 进入 Demo Project → Knowledge Tab → 删除 Document → 删除 Knowledge Base
-3. 进入 Demo Project → Chat Tab → 删除 Session
-4. 删除 Demo Project
+```bash
+# 查看将删除什么（不执行）
+bash scripts/demo-reset-data.sh
 
-## 环境变量
+# 执行删除
+bash scripts/demo-reset-data.sh --yes
+```
 
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `BASE_URL` | `http://localhost:8080` | 后端 API 地址 |
-| `ADMIN_EMAIL` | `admin@example.com` | Admin 邮箱 |
-| `ADMIN_PASSWORD` | `Admin@123456` | Admin 密码 |
+安全保证：
+- 只删除名称包含 "Demo" 或已知 Demo 名称前缀的数据
+- 不执行 DROP DATABASE
+- 不触碰非 Demo 数据

@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<{
   link?: boolean
 }>(), {
   type: 'danger',
-  buttonText: '删除',
+  buttonText: 'Delete',
   size: 'small',
   link: false,
 })
@@ -30,8 +30,8 @@ function handleConfirm() {
   <el-popconfirm
     v-model:visible="visible"
     :title="message"
-    confirm-button-text="确定"
-    cancel-button-text="取消"
+    confirm-button-text="Confirm"
+    cancel-button-text="Cancel"
     @confirm="handleConfirm"
   >
     <template #reference>

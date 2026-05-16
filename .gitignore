@@ -32,10 +32,22 @@ backend/workspace/
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Logs
 *.log
 logs/
+
+# Database backups
+backups/
+*.sql
+*.dump
+
+# Diagnostics
+diagnostics/
+
+# Trial reports
+trial-reports/
 
 # Temporary files
 *.swp

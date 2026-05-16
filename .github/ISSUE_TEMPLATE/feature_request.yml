@@ -1,0 +1,91 @@
+name: Feature Request
+description: Propose a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please describe the problem you're trying to solve and how you'd like it solved.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem are you trying to solve? Describe the current pain point.
+      placeholder: "e.g. When I'm reviewing a PR, I can't see which files changed most recently..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: input
+    id: target_user
+    attributes:
+      label: Target User
+      description: Who would benefit from this feature?
+      placeholder: "e.g. Developer, Tech Lead, PM, Architect"
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Current Workflow / Workaround
+      description: How do you handle this today? What's the workaround?
+      placeholder: "Currently I have to open each file individually and check the commit history..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe what you'd like to see implemented.
+      placeholder: "Add a 'changed files' timeline in the PR Review page that shows files sorted by most recent change..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches did you think about?
+      placeholder: "Could also add a filter in the file tree, but a timeline would be more visual..."
+      render: markdown
+
+  - type: dropdown
+    id: value
+    attributes:
+      label: Business Value
+      description: How valuable is this feature?
+      options:
+        - Critical — blocks core workflows
+        - High — significantly improves efficiency
+        - Medium — nice to have
+        - Low — minor improvement
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What specific things must be true for this to be considered complete?
+      placeholder: |
+        - [ ] User can see a timeline of recently changed files
+        - [ ] Files are sorted by most recent change
+        - [ ] Timeline shows last 10 changes
+        - [ ] Clicking a file opens the diff view
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-Goals (explicitly out of scope)
+      description: What should this feature NOT do?
+      placeholder: "- Does NOT include real-time file change notifications\n- Does NOT require additional database tables"
+      render: markdown

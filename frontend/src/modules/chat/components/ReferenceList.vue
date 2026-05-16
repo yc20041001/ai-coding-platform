@@ -52,7 +52,7 @@ function formatScore(score: number | null): string {
           size="small" text type="primary"
           @click="toggleSnippet(ref.id)"
         >
-          {{ expandedSnippets.has(ref.id) ? '收起' : '展开' }}
+          {{ expandedSnippets.has(ref.id) ? 'Collapse' : 'Expand' }}
         </el-button>
       </div>
     </div>
@@ -62,28 +62,28 @@ function formatScore(score: number | null): string {
 <style scoped>
 .ref-list {
   margin-top: 8px;
-  padding: 8px 10px;
-  background: #fafbfc;
-  border-radius: 6px;
-  border: 1px solid #ebeef5;
+  padding: 10px 12px;
+  background: var(--app-bg-soft);
+  border-radius: var(--app-radius);
+  border: 1px solid var(--app-border);
   max-width: 100%;
   overflow: hidden;
 }
 .ref-list--compact {
-  padding: 4px 8px;
+  padding: 6px 10px;
   font-size: 12px;
 }
 .ref-list__title {
   font-size: 11px;
   font-weight: 600;
-  color: #909399;
-  margin-bottom: 6px;
+  color: var(--app-text-muted);
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .ref-item {
   padding: 6px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--app-border);
 }
 .ref-item:last-child {
   border-bottom: none;
@@ -97,10 +97,10 @@ function formatScore(score: number | null): string {
 }
 .ref-item__title {
   font-weight: 500;
-  color: #303133;
+  color: var(--app-text);
 }
 .ref-item__path {
-  color: #606266;
+  color: var(--app-text-muted);
   font-family: monospace;
   font-size: 11px;
 }
@@ -109,7 +109,7 @@ function formatScore(score: number | null): string {
 }
 .ref-item__lines {
   font-size: 11px;
-  color: #c0c4cc;
+  color: var(--app-text-muted);
   font-family: monospace;
 }
 .ref-item__url {
@@ -117,7 +117,7 @@ function formatScore(score: number | null): string {
   font-size: 11px;
 }
 .ref-item__url a {
-  color: var(--el-color-primary);
+  color: var(--app-primary);
   text-decoration: none;
 }
 .ref-item__snippet {
@@ -133,9 +133,9 @@ function formatScore(score: number | null): string {
 }
 .snippet-content pre {
   margin: 0;
-  padding: 4px 8px;
-  background: #f0f2f5;
-  border-radius: 4px;
+  padding: 6px 10px;
+  background: var(--app-panel);
+  border-radius: var(--app-radius-sm);
   font-size: 11px;
   overflow-x: auto;
 }

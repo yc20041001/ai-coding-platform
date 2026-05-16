@@ -31,8 +31,11 @@ client.interceptors.response.use(
     const body = response.data as ApiResponse<unknown>
     if (body.code && body.code !== 'OK') {
       if (body.code === 'UNAUTHORIZED') {
-        clearAuth()
-        window.location.href = '/login'
+        // Don't redirect for login failures — let the login page show the error
+        if (!response.config.url?.includes('/auth/login')) {
+          clearAuth()
+          window.location.href = '/login'
+        }
       }
       return Promise.reject({
         code: body.code,
@@ -45,17 +48,20 @@ client.interceptors.response.use(
   (error: AxiosError<ApiResponse<unknown>>) => {
     const data = error.response?.data
     if (data?.code === 'UNAUTHORIZED') {
-      clearAuth()
-      window.location.href = '/login'
+      // Don't redirect for login failures — let the login page show the error
+      if (!error.config?.url?.includes('/auth/login')) {
+        clearAuth()
+        window.location.href = '/login'
+      }
     }
     if (error.code === 'ECONNABORTED') {
-      ElMessage.error('请求超时')
+      ElMessage.error('Request timeout')
     } else if (!error.response) {
-      ElMessage.error('网络错误，请检查后端是否启动')
+      ElMessage.error('Network error - check if backend is running')
     }
     return Promise.reject({
       code: data?.code || 'NETWORK_ERROR',
-      message: data?.message || error.message || '网络错误',
+      message: data?.message || error.message || 'Network error',
       traceId: data?.traceId,
     })
   },

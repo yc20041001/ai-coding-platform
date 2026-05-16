@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import client from '@/shared/api/client'
 import type { ApiResponse } from '@/shared/api/types'
 import MetricTile from '@/shared/components/MetricTile.vue'
@@ -7,6 +8,8 @@ import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import SignalStrip from '@/shared/components/SignalStrip.vue'
 import StatusPulse from '@/shared/components/StatusPulse.vue'
 import NeonDivider from '@/shared/components/NeonDivider.vue'
+import DemoBadge from '@/shared/components/DemoBadge.vue'
+import DemoGuidePanel from '@/shared/components/DemoGuidePanel.vue'
 
 interface Overview {
   projectCount: number
@@ -23,20 +26,41 @@ interface Overview {
   todayTokenUsage: number
 }
 
+const router = useRouter()
 const overview = ref<Overview | null>(null)
 const loading = ref(false)
+const demoProjectId = ref<string | null>(null)
 
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await client.get<ApiResponse<Overview>>('/api/observability/overview')
-    overview.value = res.data.data
+    const [oRes, pRes] = await Promise.all([
+      client.get<ApiResponse<Overview>>('/api/observability/overview'),
+      client.get<ApiResponse<{ records: { id: string; name: string }[] }>>('/api/projects?page=1&pageSize=50'),
+    ])
+    overview.value = oRes.data.data
+
+    const records = pRes.data.data?.records ?? []
+    const demoProj = records.find((r: { name: string }) =>
+      r.name.includes('Demo')
+    )
+    if (demoProj) {
+      demoProjectId.value = demoProj.id
+    }
   } catch {
     // handled by client interceptor
   } finally {
     loading.value = false
   }
 })
+
+function goToDemoProject() {
+  if (demoProjectId.value) {
+    router.push(`/projects/${demoProjectId.value}`)
+  } else {
+    router.push('/projects')
+  }
+}
 </script>
 
 <template>
@@ -47,6 +71,12 @@ onMounted(async () => {
       eyebrow="Command Center"
       status="Online"
     >
+      <template #actions>
+        <DemoBadge
+          :mode="overview && overview.modelRequestCount > 0 ? 'demo' : 'demo'"
+        />
+      </template>
+
       <template #metrics>
         <div class="dash-flow">
           <div class="dash-flow-item">
@@ -84,6 +114,16 @@ onMounted(async () => {
       <div v-if="loading" v-loading="loading" style="min-height:200px;border-radius:10px" />
 
       <template v-else-if="overview">
+        <DemoGuidePanel
+          :has-demo-data="overview.projectCount > 0"
+          :demo-project-id="demoProjectId ?? undefined"
+          style="margin-bottom: 12px"
+        >
+          <template #badge>
+            <DemoBadge mode="demo" style="margin-left:auto" />
+          </template>
+        </DemoGuidePanel>
+
         <NeonDivider tone="primary" />
 
         <section class="dash-section">

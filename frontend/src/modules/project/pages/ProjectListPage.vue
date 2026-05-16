@@ -32,7 +32,7 @@ async function handleCreate() {
       description: createForm.value.description,
       techStack,
     })
-    ElMessage.success('项目创建成功')
+    ElMessage.success('Project created')
     createVisible.value = false
     createForm.value = { name: '', description: '', techStackStr: '' }
     load(1)
@@ -54,7 +54,7 @@ load(1)
   <div class="page-container">
     <DynamicWorkspace
       title="Projects"
-      subtitle="项目运行空间入口"
+      subtitle="Project Workspace Hub"
       eyebrow="Workspace"
       :status="`${pagination.total} active`"
     >
@@ -66,13 +66,15 @@ load(1)
 
       <NeonDivider tone="primary" />
 
-      <el-table
-        v-if="records.length > 0"
-        :data="records"
-        v-loading="loading"
-        @row-click="(row: ProjectItem) => goDetail(row.id)"
-        style="cursor:pointer;width:100%;margin-top:8px"
-      >
+      <div data-testid="project-table-area">
+        <el-table
+          v-if="records.length > 0"
+          :data="records"
+          v-loading="loading"
+          @row-click="(row: ProjectItem) => goDetail(row.id)"
+          style="cursor:pointer;width:100%;margin-top:8px"
+          data-testid="project-table"
+        >
         <el-table-column prop="name" label="Name" min-width="180">
           <template #default="{ row }">
             <div class="proj-name">
@@ -98,6 +100,7 @@ load(1)
       </el-table>
 
       <EmptyState v-else-if="!loading" description="No projects yet" />
+      </div>
 
       <el-pagination
         v-if="pagination.total > 0"
@@ -110,20 +113,22 @@ load(1)
       />
 
       <el-dialog v-model="createVisible" title="Create Project" width="480px">
-        <el-form label-position="top">
+        <div data-testid="dialog-create-project">
+          <el-form label-position="top">
           <el-form-item label="Name" required>
-            <el-input v-model="createForm.name" placeholder="Project name" />
+            <el-input v-model="createForm.name" placeholder="Project name" data-testid="input-project-name" />
           </el-form-item>
           <el-form-item label="Description">
-            <el-input v-model="createForm.description" type="textarea" :rows="3" placeholder="Project description" />
+            <el-input v-model="createForm.description" type="textarea" :rows="3" placeholder="Project description" data-testid="input-project-description" />
           </el-form-item>
           <el-form-item label="Tech Stack (comma-separated)">
-            <el-input v-model="createForm.techStackStr" placeholder="Java, Spring Boot, Vue 3" />
+            <el-input v-model="createForm.techStackStr" placeholder="Java, Spring Boot, Vue 3" data-testid="input-project-techstack" />
           </el-form-item>
         </el-form>
+        </div>
         <template #footer>
-          <el-button @click="createVisible = false">Cancel</el-button>
-          <el-button type="primary" :loading="creating" @click="handleCreate">Create</el-button>
+          <el-button @click="createVisible = false" data-testid="btn-cancel-project">Cancel</el-button>
+          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-project">Create</el-button>
         </template>
       </el-dialog>
     </DynamicWorkspace>

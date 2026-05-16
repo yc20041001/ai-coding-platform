@@ -24,10 +24,10 @@ async function handleLogin() {
   })
   loading.value = false
   if (ok) {
-    ElMessage.success('登录成功')
+    ElMessage.success('Login successful')
     router.replace('/')
   } else {
-    errorMsg.value = '登录失败，请检查邮箱和密码'
+    errorMsg.value = 'Login failed. Check email and password.'
   }
 }
 </script>
@@ -39,40 +39,40 @@ async function handleLogin() {
       <div class="login-brand-content">
         <div class="login-logo">◈</div>
         <h1 class="login-title">AI Coding Platform</h1>
-        <p class="login-subtitle">企业级智能编程协作平台</p>
+        <p class="login-subtitle">Enterprise AI-Powered Development Workspace</p>
         <div class="login-features">
           <div class="login-feat">
             <span class="login-feat-dot" />
-            <span>AI Agent 任务编排</span>
+            <span>AI Agent Task Orchestration</span>
           </div>
           <div class="login-feat">
             <span class="login-feat-dot" />
-            <span>RAG 知识库增强</span>
+            <span>RAG Knowledge Base Augmentation</span>
           </div>
           <div class="login-feat">
             <span class="login-feat-dot" />
-            <span>实时 SSE 流式协作</span>
+            <span>Real-time SSE Streaming Collaboration</span>
           </div>
         </div>
       </div>
     </div>
     <div class="login-form-side">
       <div class="login-card">
-        <h2 class="login-card-title">登录控制台</h2>
+        <h2 class="login-card-title">Console Login</h2>
         <el-form @submit.prevent="handleLogin" label-position="top" size="large">
-          <el-form-item label="邮箱">
+          <el-form-item label="Email">
             <el-input v-model="form.email" placeholder="admin@example.com" data-testid="login-email" />
           </el-form-item>
-          <el-form-item label="密码">
+          <el-form-item label="Password">
             <el-input v-model="form.password" type="password" placeholder="Admin@123456" show-password data-testid="login-password" />
           </el-form-item>
-          <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" style="margin-bottom:16px" />
+          <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" style="margin-bottom:16px" data-testid="login-error" />
           <el-button type="primary" native-type="submit" :loading="loading" style="width:100%" data-testid="login-submit">
-            {{ loading ? '登录中...' : '登录' }}
+            {{ loading ? 'Signing in...' : 'Sign In' }}
           </el-button>
         </el-form>
         <div class="login-hint">
-          <span>演示账号：admin@example.com / Admin@123456</span>
+          <span>Demo account: admin@example.com / Admin@123456</span>
         </div>
       </div>
     </div>

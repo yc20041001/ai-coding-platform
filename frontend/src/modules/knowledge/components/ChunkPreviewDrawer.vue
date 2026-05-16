@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
+import { defineAsyncComponent } from 'vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import type { DocumentChunk } from '@/modules/knowledge/api'
+
+const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
 
 defineProps<{
   chunks: DocumentChunk[]
@@ -33,7 +35,7 @@ const emit = defineEmits<{
           <pre v-else class="chunk-plain">{{ chunk.content }}</pre>
         </div>
       </div>
-      <EmptyState v-if="!loading && chunks.length === 0" description="暂无 chunk 数据" />
+      <EmptyState v-if="!loading && chunks.length === 0" description="No chunk data" />
     </div>
   </el-drawer>
 </template>

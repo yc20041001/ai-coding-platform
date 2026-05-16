@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="error-state">
-    <el-icon :size="40" color="#f56c6c"><svg viewBox="0 0 1024 1024" width="1em" height="1em" fill="currentColor"><path d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm0 64a384 384 0 1 0 0 768 384 384 0 0 0 0-768zm-42.667 256h85.334v256h-85.334V384zm0 298.667h85.334V768h-85.334v-85.333z"/></svg></el-icon>
+    <el-icon :size="40" color="var(--app-danger)"><svg viewBox="0 0 1024 1024" width="1em" height="1em" fill="currentColor"><path d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896zm0 64a384 384 0 1 0 0 768 384 384 0 0 0 0-768zm-42.667 256h85.334v256h-85.334V384zm0 298.667h85.334V768h-85.334v-85.333z"/></svg></el-icon>
     <div v-if="title" class="error-title">{{ title }}</div>
     <div v-if="message" class="error-message">{{ message }}</div>
     <el-button v-if="retryText" type="primary" size="small" @click="emit('retry')">{{ retryText }}</el-button>
@@ -31,11 +31,11 @@ const emit = defineEmits<{
 .error-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--app-text);
 }
 .error-message {
   font-size: 13px;
-  color: #909399;
+  color: var(--app-text-muted);
   max-width: 400px;
   text-align: center;
 }

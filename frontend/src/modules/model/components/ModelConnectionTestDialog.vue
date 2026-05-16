@@ -40,7 +40,7 @@ async function handleTest() {
     result.value = res.data.data
   } catch (e: unknown) {
     const err = e as { response?: { data?: { message?: string } }, message?: string }
-    ElMessage.error(err?.response?.data?.message || err?.message || '测试失败')
+    ElMessage.error(err?.response?.data?.message || err?.message || 'Connection test failed')
   } finally {
     testing.value = false
   }
@@ -87,8 +87,8 @@ function providerLabel(p: string) {
     </div>
 
     <template #footer>
-      <el-button @click="emit('close')">关闭</el-button>
-      <el-button type="primary" :loading="testing" @click="handleTest">测试连接</el-button>
+      <el-button @click="emit('close')">Close</el-button>
+      <el-button type="primary" :loading="testing" @click="handleTest">Test Connection</el-button>
     </template>
   </el-dialog>
 </template>

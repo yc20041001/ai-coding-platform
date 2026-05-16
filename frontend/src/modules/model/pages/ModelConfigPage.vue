@@ -212,7 +212,7 @@ function providerDisplayName(provider: string) {
           </el-select>
         </el-form-item>
         <el-form-item label="Model Name" required>
-          <el-input v-model="editForm.modelName" placeholder="如 gpt-4.1-mini" />
+          <el-input v-model="editForm.modelName" placeholder="e.g. gpt-4.1-mini" />
         </el-form-item>
         <el-form-item label="API Base URL">
           <el-input v-model="editForm.apiBase" placeholder="https://api.openai.com/v1" />

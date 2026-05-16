@@ -1,0 +1,130 @@
+name: Release Checklist
+description: Pre-release verification checklist
+title: "[Release]: v"
+labels: ["release"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Complete this checklist before publishing a release. All items must be verified.
+
+  - type: input
+    id: version
+    attributes:
+      label: Release Version
+      description: Semantic version number
+      placeholder: "v1.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Release Audience
+      description: Who is this release for?
+      options:
+        - Internal alpha users (5-10)
+        - External beta users (20-30)
+        - General availability
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope Summary
+      description: What's included in this release?
+      placeholder: |
+        ### Added
+        - New feature: ...
+        ### Changed
+        - Improved: ...
+        ### Fixed
+        - Bug fix: ...
+      render: markdown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: backend_checks
+    attributes:
+      label: Backend Checks
+      options:
+        - label: "`mvn test` — all tests pass"
+        - label: "`mvn clean compile` — compiles without errors"
+        - label: "No new compiler warnings"
+        - label: "Flyway migrations run cleanly"
+        - label: "Actuator health check returns UP"
+        - label: "No secrets in test output"
+
+  - type: checkboxes
+    id: frontend_checks
+    attributes:
+      label: Frontend Checks
+      options:
+        - label: "`npm run typecheck` — clean"
+        - label: "`npm run build` — succeeds"
+        - label: "`npm run test:e2e -- --workers=1` — all pass or known flaky documented"
+        - label: "No console errors on key pages"
+
+  - type: checkboxes
+    id: docker_checks
+    attributes:
+      label: Docker Checks
+      options:
+        - label: "`docker compose -f deploy/prod/docker-compose.prod.yml config` — valid"
+        - label: "Images build successfully"
+        - label: "Containers start without errors"
+
+  - type: checkboxes
+    id: security_checks
+    attributes:
+      label: Security Checks
+      options:
+        - label: "`bash scripts/prod-security-check.sh` — passes"
+        - label: "`rg` scan for secrets — clean"
+        - label: "No `.env.production` tracked by git"
+        - label: "No API keys or tokens in logs"
+        - label: "CORS not using wildcard origin"
+
+  - type: checkboxes
+    id: demo_checks
+    attributes:
+      label: Demo / Smoke Checks
+      options:
+        - label: "`bash scripts/demo-seed-data.sh` — completes successfully"
+        - label: "`bash scripts/demo-smoke-test.sh` — all pass"
+        - label: "`bash scripts/prod-health-check.sh` — passes (if deployed)"
+        - label: "Demo walkthrough steps verified manually"
+
+  - type: textarea
+    id: known_limitations
+    attributes:
+      label: Known Limitations
+      description: What limitations should users be aware of in this release?
+      placeholder: "- E2E test 'should create a project' may timeout on first run\n- RAG search may need ~30s to index new documents"
+      render: markdown
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Plan
+      description: How to roll back this release if something goes wrong.
+      placeholder: |
+        1. `bash scripts/prod-deploy.sh down`
+        2. `git checkout <previous-version-tag>`
+        3. `bash scripts/prod-deploy.sh up --build`
+        4. If DB migration was applied: restore from backup using `bash scripts/prod-restore-mysql.sh`
+      render: markdown
+
+  - type: checkboxes
+    id: sign_off
+    attributes:
+      label: Release Sign-off
+      options:
+        - label: Backend verified by developer
+        - label: Frontend verified by developer
+        - label: Security reviewed
+        - label: Demo path verified manually
+        - label: Release notes written
+        - label: CHANGELOG updated

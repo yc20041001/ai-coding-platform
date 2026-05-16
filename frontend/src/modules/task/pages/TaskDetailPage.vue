@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -12,12 +12,13 @@ import SectionRail from '@/shared/components/SectionRail.vue'
 import StatusPulse from '@/shared/components/StatusPulse.vue'
 import SignalStrip from '@/shared/components/SignalStrip.vue'
 import NeonDivider from '@/shared/components/NeonDivider.vue'
-import MarkdownRenderer from '@/shared/components/MarkdownRenderer.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
 import GlowButton from '@/shared/components/GlowButton.vue'
 import AgentExecutionDrawer from '@/modules/task/components/AgentExecutionDrawer.vue'
 import { formatDateTime } from '@/shared/utils/format'
+
+const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -62,22 +63,22 @@ const statusTone = (status: string) => {
 
 async function loadTask() {
   loading.value = true
-  try { const res = await getTaskDetail(taskId); task.value = res.data.data } catch { ElMessage.error('加载任务详情失败') } finally { loading.value = false }
+  try { const res = await getTaskDetail(taskId); task.value = res.data.data } catch { ElMessage.error('Failed to load task') } finally { loading.value = false }
 }
 
 async function loadLogs() {
   loadingLogs.value = true
-  try { const res = await getTaskLogs(taskId); logs.value = res.data.data } catch { ElMessage.error('加载日志失败') } finally { loadingLogs.value = false }
+  try { const res = await getTaskLogs(taskId); logs.value = res.data.data } catch { ElMessage.error('Failed to load logs') } finally { loadingLogs.value = false }
 }
 
 async function loadArtifacts() {
   loadingArtifacts.value = true
-  try { const res = await getTaskArtifacts(taskId); artifacts.value = res.data.data; selectedArtifact.value = res.data.data[0] || null } catch { ElMessage.error('加载产物失败') } finally { loadingArtifacts.value = false }
+  try { const res = await getTaskArtifacts(taskId); artifacts.value = res.data.data; selectedArtifact.value = res.data.data[0] || null } catch { ElMessage.error('Failed to load artifacts') } finally { loadingArtifacts.value = false }
 }
 
 async function loadExecutions() {
   loadingExecutions.value = true
-  try { const res = await getTaskExecutions(taskId); executions.value = res.data.data.records } catch { ElMessage.error('加载执行记录失败') } finally { loadingExecutions.value = false }
+  try { const res = await getTaskExecutions(taskId); executions.value = res.data.data.records } catch { ElMessage.error('Failed to load executions') } finally { loadingExecutions.value = false }
 }
 
 function onRailSelect(key: string) {
@@ -89,12 +90,12 @@ function onRailSelect(key: string) {
 
 async function handleExecute() {
   executing.value = true
-  try { await executeTask(taskId, executeForm.value); ElMessage.success('任务执行完成'); executeVisible.value = false; loadTask(); loadExecutions() } catch { ElMessage.error('执行失败') } finally { executing.value = false }
+  try { await executeTask(taskId, executeForm.value); ElMessage.success('Task executed'); executeVisible.value = false; loadTask(); loadExecutions() } catch { ElMessage.error('Execution failed') } finally { executing.value = false }
 }
 
-async function handleCancel() { try { await cancelTask(taskId, '用户取消'); ElMessage.success('任务已取消'); loadTask() } catch { ElMessage.error('取消失败') } }
-async function handleRetry() { try { await retryTask(taskId); ElMessage.success('任务已重试'); loadTask(); loadExecutions() } catch { ElMessage.error('重试失败') } }
-async function handleStart() { try { await startTask(taskId); ElMessage.success('任务已开始'); loadTask() } catch { ElMessage.error('启动失败') } }
+async function handleCancel() { try { await cancelTask(taskId, 'User cancelled'); ElMessage.success('Task cancelled'); loadTask() } catch { ElMessage.error('Cancel failed') } }
+async function handleRetry() { try { await retryTask(taskId); ElMessage.success('Task retrying'); loadTask(); loadExecutions() } catch { ElMessage.error('Retry failed') } }
+async function handleStart() { try { await startTask(taskId); ElMessage.success('Task started'); loadTask() } catch { ElMessage.error('Start failed') } }
 
 function openExecution(executionId: string) {
   selectedExecutionId.value = executionId
@@ -264,17 +265,19 @@ onMounted(() => loadTask())
 
       <!-- Execute Dialog -->
       <el-dialog v-model="executeVisible" title="Execute Task" width="500px">
-        <el-form label-position="top">
+        <div data-testid="dialog-execute-task-detail">
+          <el-form label-position="top">
           <el-form-item label="Instruction">
-            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" />
+            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" data-testid="input-execute-instruction-detail" />
           </el-form-item>
           <el-form-item label="Use RAG">
-            <el-switch v-model="executeForm.useRag" />
+            <el-switch v-model="executeForm.useRag" data-testid="switch-execute-rag-detail" />
           </el-form-item>
         </el-form>
+        </div>
         <template #footer>
-          <el-button @click="executeVisible = false">Cancel</el-button>
-          <el-button type="primary" :loading="executing" @click="handleExecute">Execute</el-button>
+          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute-detail">Cancel</el-button>
+          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute-detail">Execute</el-button>
         </template>
       </el-dialog>
 
