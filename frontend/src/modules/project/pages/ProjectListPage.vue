@@ -32,7 +32,7 @@ async function handleCreate() {
       description: createForm.value.description,
       techStack,
     })
-    ElMessage.success('Project created')
+    ElMessage.success('项目已创建')
     createVisible.value = false
     createForm.value = { name: '', description: '', techStackStr: '' }
     load(1)
@@ -53,14 +53,14 @@ load(1)
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="Projects"
-      subtitle="Project Workspace Hub"
-      eyebrow="Workspace"
+      title="项目"
+      subtitle="项目工作台中心"
+      eyebrow="工作台"
       :status="`${pagination.total} active`"
     >
       <template #actions>
         <GlowButton accent="primary" @click="createVisible = true" data-testid="btn-create-project">
-          + New Project
+          + 新建项目
         </GlowButton>
       </template>
 
@@ -75,7 +75,7 @@ load(1)
           style="cursor:pointer;width:100%;margin-top:8px"
           data-testid="project-table"
         >
-        <el-table-column prop="name" label="Name" min-width="180">
+        <el-table-column prop="name" label="名称" min-width="180">
           <template #default="{ row }">
             <div class="proj-name">
               <span class="proj-name-icon">◇</span>
@@ -83,10 +83,10 @@ load(1)
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="Description" min-width="240">
+        <el-table-column prop="description" label="描述" min-width="240">
           <template #default="{ row }">{{ truncate(row.description, 80) }}</template>
         </el-table-column>
-        <el-table-column label="Status" width="120">
+        <el-table-column label="状态" width="120">
           <template #default="{ row }">
             <StatusPulse
               :status="row.status"
@@ -94,12 +94,12 @@ load(1)
             />
           </template>
         </el-table-column>
-        <el-table-column label="Created" width="170">
+        <el-table-column label="创建时间" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
       </el-table>
 
-      <EmptyState v-else-if="!loading" description="No projects yet" />
+      <EmptyState v-else-if="!loading" description="暂无项目" />
       </div>
 
       <el-pagination
@@ -112,23 +112,23 @@ load(1)
         @change="load()"
       />
 
-      <el-dialog v-model="createVisible" title="Create Project" width="480px">
+      <el-dialog v-model="createVisible" title="创建项目" width="480px">
         <div data-testid="dialog-create-project">
           <el-form label-position="top">
-          <el-form-item label="Name" required>
-            <el-input v-model="createForm.name" placeholder="Project name" data-testid="input-project-name" />
+          <el-form-item label="名称" required>
+            <el-input v-model="createForm.name" placeholder="项目名称" data-testid="input-project-name" />
           </el-form-item>
-          <el-form-item label="Description">
-            <el-input v-model="createForm.description" type="textarea" :rows="3" placeholder="Project description" data-testid="input-project-description" />
+          <el-form-item label="描述">
+            <el-input v-model="createForm.description" type="textarea" :rows="3" placeholder="项目描述" data-testid="input-project-description" />
           </el-form-item>
-          <el-form-item label="Tech Stack (comma-separated)">
+          <el-form-item label="技术栈（逗号分隔）">
             <el-input v-model="createForm.techStackStr" placeholder="Java, Spring Boot, Vue 3" data-testid="input-project-techstack" />
           </el-form-item>
         </el-form>
         </div>
         <template #footer>
-          <el-button @click="createVisible = false" data-testid="btn-cancel-project">Cancel</el-button>
-          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-project">Create</el-button>
+          <el-button @click="createVisible = false" data-testid="btn-cancel-project">取消</el-button>
+          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-project">创建</el-button>
         </template>
       </el-dialog>
     </DynamicWorkspace>

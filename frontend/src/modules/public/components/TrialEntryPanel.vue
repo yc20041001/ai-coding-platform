@@ -4,32 +4,32 @@
 <template>
   <section class="te">
     <div class="te-header">
-      <span class="te-eyebrow">Try It Now</span>
-      <h2 class="te-title">Start Your Trial</h2>
-      <p class="te-sub">Get a fully functional demo environment running in under 3 minutes. No API keys, no cloud dependencies.</p>
+      <span class="te-eyebrow">立即试用</span>
+      <h2 class="te-title">开始试用</h2>
+      <p class="te-sub">3 分钟内启动完整演示环境，无需 API Key，也不依赖云服务。</p>
     </div>
 
     <div class="te-grid">
       <div class="te-card">
         <h3 class="te-card-title">
           <span class="te-step">1</span>
-          Start the Backend
+          启动后端
         </h3>
         <pre class="te-code">cd backend
 source ../.env
 mvn spring-boot:run</pre>
-        <p class="te-card-note">Requires Java 17 + Maven. MySQL, Redis, RabbitMQ via Docker Compose.</p>
+        <p class="te-card-note">需要 Java 17 与 Maven。MySQL、Redis、RabbitMQ 可通过 Docker Compose 启动。</p>
       </div>
 
       <div class="te-card">
         <h3 class="te-card-title">
           <span class="te-step">2</span>
-          Start the Frontend
+          启动前端
         </h3>
         <pre class="te-code">cd frontend
 npm install
 npm run dev -- --host 0.0.0.0</pre>
-        <p class="te-card-note">Opens at http://localhost:5173. Node.js 18+ required.</p>
+        <p class="te-card-note">访问地址为 http://localhost:5173，需要 Node.js 18+。</p>
       </div>
 
       <div class="te-card">
@@ -38,54 +38,54 @@ npm run dev -- --host 0.0.0.0</pre>
           Initialize Demo Data
         </h3>
         <pre class="te-code">bash scripts/demo-seed-data.sh</pre>
-        <p class="te-card-note">Creates a demo project, knowledge base with 3 docs, chat session, and 2 executed tasks. Idempotent — safe to re-run.</p>
+        <p class="te-card-note">创建演示项目、包含 3 个文档的知识库、对话会话和 2 个已执行任务。脚本幂等，可安全重复运行。</p>
       </div>
 
       <div class="te-card">
         <h3 class="te-card-title">
           <span class="te-step">4</span>
-          Login & Explore
+          登录并体验
         </h3>
         <div class="te-cred">
           <div class="te-cred-row">
-            <span class="te-cred-key">Email</span>
+            <span class="te-cred-key">邮箱</span>
             <code class="te-cred-val">admin@example.com</code>
           </div>
           <div class="te-cred-row">
-            <span class="te-cred-key">Password</span>
+            <span class="te-cred-key">密码</span>
             <code class="te-cred-val">Admin@123456</code>
           </div>
         </div>
-        <p class="te-card-note">Follow the <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/demo-walkthrough.md" target="_blank">Demo Walkthrough</a> for a guided tour.</p>
+        <p class="te-card-note">查看 <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/demo-walkthrough.md" target="_blank">演示指南</a> 获取完整体验路线。</p>
       </div>
     </div>
 
     <div class="te-disclaimers">
       <div class="te-disclaimer">
         <span class="te-disclaimer-icon">&#9888;</span>
-        <strong>Mock Provider by Default</strong> — Chat and Task responses are simulated.
+        <strong>默认使用模拟供应商</strong> — Chat 与任务回复均为模拟生成。
         No real LLM API calls are made unless you configure API keys.
       </div>
       <div class="te-disclaimer">
         <span class="te-disclaimer-icon">&#8505;</span>
-        <strong>GitHub OAuth is Optional</strong> — Repository browsing and PR review
+        <strong>GitHub OAuth 可选</strong> — 仓库浏览与 PR 评审
         work only after configuring GitHub OAuth credentials. Not required for core features.
       </div>
       <div class="te-disclaimer">
         <span class="te-disclaimer-icon">&#128273;</span>
-        <strong>Real Models Need API Keys</strong> — To use OpenAI, Claude, DeepSeek, Qwen,
+        <strong>真实模型需要 API Key</strong> — 如需使用 OpenAI、Claude、DeepSeek、Qwen，
         or Gemini, set the corresponding <code>*_ENABLED=true</code> and <code>*_API_KEY</code> in your <code>.env</code>.
       </div>
     </div>
 
     <div class="te-footer">
       <p>
-        For detailed setup instructions, see
-        <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/trial-entry-guide.md" target="_blank">Trial Entry Guide</a>
+        详细启动说明请查看
+        <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/trial-entry-guide.md" target="_blank">试用入口指南</a>
         and
-        <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/README.md" target="_blank">README</a>.
-        Found an issue?
-        <a href="https://github.com/yc20041001/ai-coding-platform/issues/new?template=user_trial_feedback.yml" target="_blank">Submit Feedback</a>.
+        <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/README.md" target="_blank">README</a>。
+        发现问题？
+        <a href="https://github.com/yc20041001/ai-coding-platform/issues/new?template=user_trial_feedback.yml" target="_blank">提交反馈</a>.
       </p>
     </div>
   </section>

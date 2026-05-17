@@ -21,12 +21,12 @@ const loading = ref(false)
 const activeTab = ref('overview')
 
 const railItems = [
-  { key: 'overview', label: 'Overview', icon: '◆' },
-  { key: 'tasks', label: 'Tasks', icon: '◈' },
-  { key: 'chat', label: 'Chat', icon: '◇' },
-  { key: 'knowledge', label: 'Knowledge', icon: '◉' },
-  { key: 'repository', label: 'Repository', icon: '⬡' },
-  { key: 'members', label: 'Members', icon: '◎' },
+  { key: 'overview', label: '概览', icon: '◆' },
+  { key: 'tasks', label: '任务', icon: '◈' },
+  { key: 'chat', label: '对话', icon: '◇' },
+  { key: 'knowledge', label: '知识库', icon: '◉' },
+  { key: 'repository', label: '仓库', icon: '⬡' },
+  { key: 'members', label: '成员', icon: '◎' },
 ]
 
 onMounted(async () => {
@@ -82,8 +82,8 @@ function onRailSelect(key: string) {
     <DynamicWorkspace
       v-if="project"
       :title="project.name"
-      :subtitle="project.description || 'Project Command Center'"
-      eyebrow="Project"
+      :subtitle="project.description || '项目指挥中心'"
+      eyebrow="项目"
     >
       <template #actions>
         <DemoBadge v-if="isDemoProject" mode="demo" style="margin-right:8px" />
@@ -105,16 +105,16 @@ function onRailSelect(key: string) {
       <div v-if="activeTab === 'overview' && overview" style="margin-top:20px">
         <div v-if="isDemoProject" class="pd-demo-hint">
           <span class="pd-demo-hint-icon">◆</span>
-          <span>Demo Project — start by exploring <strong>Knowledge</strong>, then try <strong>Chat</strong> &amp; <strong>Tasks</strong></span>
+          <span>演示项目：建议先查看 <strong>知识库</strong>，再体验 <strong>Chat</strong> 与 <strong>任务</strong></span>
         </div>
-        <h2 class="pd-section-title">Project Telemetry</h2>
+        <h2 class="pd-section-title">项目遥测</h2>
         <div class="card-grid">
-          <MetricTile :value="overview.taskCount" label="Tasks" />
-          <MetricTile :value="overview.runningTaskCount" label="Running" accent="warning" />
-          <MetricTile :value="overview.completedTaskCount" label="Completed" accent="success" />
-          <MetricTile :value="overview.documentCount" label="Documents" />
-          <MetricTile :value="overview.agentCount" label="Agents" accent="accent" />
-          <MetricTile :value="overview.memberCount" label="Members" accent="warning" />
+          <MetricTile :value="overview.taskCount" label="任务" />
+          <MetricTile :value="overview.runningTaskCount" label="运行中" accent="warning" />
+          <MetricTile :value="overview.completedTaskCount" label="已完成" accent="success" />
+          <MetricTile :value="overview.documentCount" label="文档" />
+          <MetricTile :value="overview.agentCount" label="智能体" accent="accent" />
+          <MetricTile :value="overview.memberCount" label="成员" accent="warning" />
         </div>
       </div>
 

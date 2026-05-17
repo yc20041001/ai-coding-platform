@@ -11,7 +11,7 @@ export interface ApiError {
 }
 
 const client: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ client.interceptors.response.use(
       }
       return Promise.reject({
         code: body.code,
-        message: body.message || 'Request failed',
+        message: body.message || '请求失败',
         traceId: body.traceId,
       })
     }
@@ -55,13 +55,13 @@ client.interceptors.response.use(
       }
     }
     if (error.code === 'ECONNABORTED') {
-      ElMessage.error('Request timeout')
+      ElMessage.error('请求超时')
     } else if (!error.response) {
-      ElMessage.error('Network error - check if backend is running')
+      ElMessage.error('网络错误，请检查后端是否已启动')
     }
     return Promise.reject({
       code: data?.code || 'NETWORK_ERROR',
-      message: data?.message || error.message || 'Network error',
+      message: data?.message || error.message || '网络错误',
       traceId: data?.traceId,
     })
   },

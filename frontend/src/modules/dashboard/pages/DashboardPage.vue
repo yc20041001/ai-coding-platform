@@ -66,9 +66,9 @@ function goToDemoProject() {
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="System Dashboard"
-      subtitle="AI Coding Platform · Real-time Telemetry"
-      eyebrow="Command Center"
+      title="系统仪表盘"
+      subtitle="AI Coding Platform · 实时遥测"
+      eyebrow="指挥中心"
       status="Online"
     >
       <template #actions>
@@ -81,31 +81,31 @@ function goToDemoProject() {
         <div class="dash-flow">
           <div class="dash-flow-item">
             <SignalStrip tone="primary" active />
-            <span class="dash-flow-label">Projects</span>
+            <span class="dash-flow-label">项目</span>
             <span class="dash-flow-value">{{ overview?.projectCount ?? '--' }}</span>
           </div>
           <div class="dash-flow-connector" />
           <div class="dash-flow-item">
             <SignalStrip tone="accent" active />
-            <span class="dash-flow-label">Tasks</span>
+            <span class="dash-flow-label">任务</span>
             <span class="dash-flow-value">{{ overview?.taskCount ?? '--' }}</span>
           </div>
           <div class="dash-flow-connector" />
           <div class="dash-flow-item">
             <SignalStrip tone="success" active />
-            <span class="dash-flow-label">Chat</span>
+            <span class="dash-flow-label">对话</span>
             <span class="dash-flow-value">{{ overview?.chatMessageCount ?? '--' }}</span>
           </div>
           <div class="dash-flow-connector" />
           <div class="dash-flow-item">
             <SignalStrip tone="warning" active />
-            <span class="dash-flow-label">RAG</span>
+            <span class="dash-flow-label">知识检索</span>
             <span class="dash-flow-value">{{ overview?.documentCount ?? '--' }}</span>
           </div>
           <div class="dash-flow-connector" />
           <div class="dash-flow-item">
             <SignalStrip tone="primary" active />
-            <span class="dash-flow-label">Model Calls</span>
+            <span class="dash-flow-label">模型调用</span>
             <span class="dash-flow-value">{{ overview?.modelRequestCount ?? '--' }}</span>
           </div>
         </div>
@@ -127,38 +127,38 @@ function goToDemoProject() {
         <NeonDivider tone="primary" />
 
         <section class="dash-section">
-          <h2 class="dash-section-title">Platform Overview</h2>
+          <h2 class="dash-section-title">平台概览</h2>
           <div class="card-grid">
-            <MetricTile :value="overview.projectCount" label="Projects" />
-            <MetricTile :value="overview.userCount" label="Users" accent="accent" />
-            <MetricTile :value="overview.agentCount" label="Agents" accent="accent" />
-            <MetricTile :value="overview.knowledgeBaseCount" label="Knowledge Bases" accent="warning" />
-            <MetricTile :value="overview.documentCount" label="Documents" />
-            <MetricTile :value="overview.chatMessageCount" label="Chat Messages" accent="warning" />
+            <MetricTile :value="overview.projectCount" label="项目" />
+            <MetricTile :value="overview.userCount" label="用户" accent="accent" />
+            <MetricTile :value="overview.agentCount" label="智能体" accent="accent" />
+            <MetricTile :value="overview.knowledgeBaseCount" label="知识库" accent="warning" />
+            <MetricTile :value="overview.documentCount" label="文档" />
+            <MetricTile :value="overview.chatMessageCount" label="对话消息" accent="warning" />
           </div>
         </section>
 
         <NeonDivider tone="accent" />
 
         <section class="dash-section">
-          <h2 class="dash-section-title">Task Pipeline</h2>
+          <h2 class="dash-section-title">任务流水线</h2>
           <div class="card-grid">
-            <MetricTile :value="overview.taskCount" label="Total Tasks" />
-            <MetricTile :value="overview.runningTaskCount" label="Running" accent="warning" />
-            <MetricTile :value="overview.completedTaskCount" label="Completed" accent="success" />
-            <MetricTile :value="overview.taskCount - overview.runningTaskCount - overview.completedTaskCount" label="Pending" accent="primary" />
+            <MetricTile :value="overview.taskCount" label="任务总数" />
+            <MetricTile :value="overview.runningTaskCount" label="运行中" accent="warning" />
+            <MetricTile :value="overview.completedTaskCount" label="已完成" accent="success" />
+            <MetricTile :value="overview.taskCount - overview.runningTaskCount - overview.completedTaskCount" label="待处理" accent="primary" />
           </div>
         </section>
 
         <NeonDivider tone="primary" />
 
         <section class="dash-section">
-          <h2 class="dash-section-title">Model Usage</h2>
+          <h2 class="dash-section-title">模型用量</h2>
           <div class="card-grid">
-            <MetricTile :value="overview.modelRequestCount" label="Total Calls" />
-            <MetricTile :value="overview.todayModelRequestCount" label="Today Calls" accent="success" />
-            <MetricTile :value="overview.todayTokenUsage?.toLocaleString() ?? '0'" label="Today Tokens" accent="accent" />
-            <MetricTile :value="overview.chatMessageCount" label="Messages" accent="warning" />
+            <MetricTile :value="overview.modelRequestCount" label="调用总数" />
+            <MetricTile :value="overview.todayModelRequestCount" label="今日调用" accent="success" />
+            <MetricTile :value="overview.todayTokenUsage?.toLocaleString() ?? '0'" label="今日 Token" accent="accent" />
+            <MetricTile :value="overview.chatMessageCount" label="消息" accent="warning" />
           </div>
         </section>
       </template>

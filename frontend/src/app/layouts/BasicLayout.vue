@@ -18,7 +18,7 @@ function handleLogout() {
     <div class="app-bg-mesh" />
     <TopCommandBar
       :username="authStore.username"
-      provider="Mock Gateway"
+      provider="模拟网关"
       @logout="handleLogout"
     />
     <main class="app-workspace">

@@ -65,7 +65,7 @@ async function loadRepos() {
     repos.value = data ?? []
   } catch {
     repos.value = []
-    ElMessage.warning('Please sync repos on GitHub Integration page first')
+    ElMessage.warning('请先在 GitHub 集成页面同步仓库')
   } finally {
     loadingRepos.value = false
   }
@@ -85,7 +85,7 @@ async function onRepoSelect(repo: GithubRepository) {
     pullRequests.value = data ?? []
   } catch {
     pullRequests.value = []
-    ElMessage.error('Failed to get PR list')
+    ElMessage.error('获取 PR 列表失败')
   } finally {
     loadingPRs.value = false
   }
@@ -107,7 +107,7 @@ async function onPrSelect(pr: GithubPullRequest) {
     prFiles.value = filesRes.data ?? []
     patch.value = patchRes.data ?? ''
   } catch {
-    ElMessage.error('Failed to get PR details')
+    ElMessage.error('获取 PR 详情失败')
   }
 }
 
@@ -124,7 +124,7 @@ async function handleRunReview() {
     currentReview.value = data
     await loadFindings(data.id)
     await loadReviewHistory()
-    ElMessage.success('Review completed')
+    ElMessage.success('评审已完成')
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || 'Review failed')
   } finally {
@@ -162,13 +162,13 @@ loadReviewHistory()
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="Pull Request Review"
-      subtitle="AI-Powered Code Review"
-      eyebrow="Code Quality"
+      title="拉取请求评审"
+      subtitle="AI 驱动代码评审"
+      eyebrow="代码质量"
     >
       <template #actions>
         <StatusPulse
-          :status="selectedPr ? `PR #${selectedPr.number}` : 'Select PR'"
+          :status="selectedPr ? `PR #${selectedPr.number}` : '选择 PR'"
           :tone="selectedPr ? 'primary' : 'muted'"
         />
       </template>
@@ -178,10 +178,10 @@ loadReviewHistory()
       <div class="layout">
         <!-- Left: Repo + PR Selection -->
         <aside class="sidebar">
-          <TechPanel title="Repositories" glow>
-            <div v-if="loadingRepos" class="loading-hint">Loading repos...</div>
+          <TechPanel title="仓库" glow>
+            <div v-if="loadingRepos" class="loading-hint">正在加载仓库...</div>
             <div v-else-if="repos.length === 0" class="empty-hint">
-              No repos. <router-link to="/github">Sync on GitHub Integration</router-link>
+              暂无仓库。 <router-link to="/github">前往 GitHub 集成同步</router-link>
             </div>
             <div v-else class="repo-list">
               <div
@@ -197,9 +197,9 @@ loadReviewHistory()
             </div>
           </TechPanel>
 
-          <TechPanel v-if="selectedRepo" title="Pull Requests" class="mt-16">
-            <div v-if="loadingPRs" class="loading-hint">Loading PRs...</div>
-            <div v-else-if="pullRequests.length === 0" class="empty-hint">No PRs</div>
+          <TechPanel v-if="selectedRepo" title="拉取请求" class="mt-16">
+            <div v-if="loadingPRs" class="loading-hint">正在加载 PR...</div>
+            <div v-else-if="pullRequests.length === 0" class="empty-hint">暂无 PR</div>
             <div v-else class="repo-list">
               <div
                 v-for="pr in pullRequests"
@@ -214,8 +214,8 @@ loadReviewHistory()
             </div>
           </TechPanel>
 
-          <TechPanel v-if="currentReview" title="Review History" class="mt-16">
-            <div v-if="reviewHistory.length === 0" class="empty-hint">No history</div>
+          <TechPanel v-if="currentReview" title="评审历史" class="mt-16">
+            <div v-if="reviewHistory.length === 0" class="empty-hint">暂无历史记录</div>
             <div v-else class="repo-list">
               <div
                 v-for="review in reviewHistory"
@@ -237,11 +237,11 @@ loadReviewHistory()
         <!-- Right: Diff + Review -->
         <section class="main">
           <!-- PR Info -->
-          <TechPanel v-if="selectedPr" title="PR Info" glow>
+          <TechPanel v-if="selectedPr" title="PR 信息" glow>
             <div class="pr-info">
               <h3>{{ selectedPr.title }}</h3>
               <div class="pr-meta-row">
-                <span>Author: {{ selectedPr.authorLogin || 'unknown' }}</span>
+                <span>作者：{{ selectedPr.authorLogin || '未知' }}</span>
                 <span>{{ selectedPr.baseBranch }} ← {{ selectedPr.headBranch }}</span>
                 <span class="diff-stat">+{{ selectedPr.additions }} -{{ selectedPr.deletions }}</span>
                 <span>{{ selectedPr.changedFiles }} files</span>
@@ -269,7 +269,7 @@ loadReviewHistory()
           </TechPanel>
 
           <!-- Review Result -->
-          <TechPanel v-if="currentReview && currentReview.status !== 'PENDING' && currentReview.status !== 'RUNNING'" title="Review Result" glow class="mt-16">
+          <TechPanel v-if="currentReview && currentReview.status !== 'PENDING' && currentReview.status !== 'RUNNING'" title="评审结果" glow class="mt-16">
             <div v-if="currentReview.status === 'FAILED'" class="review-error">
               Error: {{ currentReview.errorMessage }}
             </div>
@@ -288,7 +288,7 @@ loadReviewHistory()
           </TechPanel>
 
           <!-- Findings -->
-          <TechPanel v-if="findings.length > 0" title="Review Findings" class="mt-16">
+          <TechPanel v-if="findings.length > 0" title="评审发现" class="mt-16">
             <div v-for="f in findings" :key="f.id" class="finding-card">
               <div class="finding-header">
                 <span class="finding-severity" :style="{ background: severityColors[f.severity] ?? '#6b7280' }">
@@ -300,20 +300,20 @@ loadReviewHistory()
               <h4 class="finding-title">{{ f.title }}</h4>
               <p v-if="f.description" class="finding-desc">{{ f.description }}</p>
               <div v-if="f.suggestion" class="finding-suggestion">
-                <strong>Suggestion:</strong> {{ f.suggestion }}
+                <strong>建议：</strong> {{ f.suggestion }}
               </div>
               <pre v-if="f.codeSnippet" class="finding-snippet"><code>{{ f.codeSnippet }}</code></pre>
             </div>
           </TechPanel>
 
           <!-- Diff Viewer -->
-          <TechPanel v-if="patch" title="Diff / Patch" class="mt-16">
+          <TechPanel v-if="patch" title="差异 / Patch" class="mt-16">
             <pre class="diff-view"><code>{{ patch }}</code></pre>
           </TechPanel>
 
           <!-- Empty state -->
           <div v-if="!selectedPr" class="empty-state">
-            <EmptyState description="Select a Pull Request to view diff and run AI Review" />
+            <EmptyState description="选择一个拉取请求查看 Diff 并运行 AI 评审" />
           </div>
         </section>
       </div>

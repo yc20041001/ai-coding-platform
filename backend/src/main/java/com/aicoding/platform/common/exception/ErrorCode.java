@@ -29,7 +29,12 @@ public enum ErrorCode {
     GITHUB_REPO_NOT_FOUND("GITHUB_REPO_NOT_FOUND", "GitHub 仓库不存在", HttpStatus.NOT_FOUND),
     GITHUB_PR_NOT_FOUND("GITHUB_PR_NOT_FOUND", "Pull Request 不存在", HttpStatus.NOT_FOUND),
     GITHUB_API_ERROR("GITHUB_API_ERROR", "GitHub API 调用失败", HttpStatus.BAD_GATEWAY),
-    GITHUB_BAD_RESPONSE("GITHUB_BAD_RESPONSE", "GitHub API 返回异常", HttpStatus.BAD_GATEWAY);
+    GITHUB_BAD_RESPONSE("GITHUB_BAD_RESPONSE", "GitHub API 返回异常", HttpStatus.BAD_GATEWAY),
+
+    // 验证码错误
+    CAPTCHA_REQUIRED("CAPTCHA_REQUIRED", "验证码不能为空", HttpStatus.BAD_REQUEST),
+    CAPTCHA_INVALID("CAPTCHA_INVALID", "验证码错误", HttpStatus.BAD_REQUEST),
+    CAPTCHA_EXPIRED("CAPTCHA_EXPIRED", "验证码已过期", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

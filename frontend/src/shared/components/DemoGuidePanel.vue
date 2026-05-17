@@ -13,44 +13,44 @@ defineEmits<{
   <div class="guide-panel">
     <div class="guide-header">
       <span class="guide-icon">◈</span>
-      <span class="guide-title">Demo Experience Path</span>
+      <span class="guide-title">演示体验路径</span>
       <slot name="badge" />
     </div>
 
     <div v-if="!hasDemoData" class="guide-empty">
-      <p>No demo data found. Initialize demo data to explore the platform.</p>
+      <p>未发现演示数据。初始化演示数据后即可体验平台。</p>
       <button class="guide-action" @click="$emit('seedData')">
         Initialize Demo Data
       </button>
       <p class="guide-hint">
-        Or run: <code>bash scripts/demo-seed-data.sh</code>
+        也可以运行：<code>bash scripts/demo-seed-data.sh</code>
       </p>
     </div>
 
     <div v-else class="guide-steps">
       <div class="guide-step">
         <span class="guide-step-num">1</span>
-        <span class="guide-step-label">Open Demo Project</span>
+        <span class="guide-step-label">打开演示项目</span>
         <span class="guide-step-arrow">→</span>
       </div>
       <div class="guide-step">
         <span class="guide-step-num">2</span>
-        <span class="guide-step-label">Explore Knowledge Base</span>
+        <span class="guide-step-label">查看知识库</span>
         <span class="guide-step-arrow">→</span>
       </div>
       <div class="guide-step">
         <span class="guide-step-num">3</span>
-        <span class="guide-step-label">Ask Chat with RAG</span>
+        <span class="guide-step-label">使用 RAG 对话</span>
         <span class="guide-step-arrow">→</span>
       </div>
       <div class="guide-step">
         <span class="guide-step-num">4</span>
-        <span class="guide-step-label">Execute Agent Task</span>
+        <span class="guide-step-label">执行智能体任务</span>
         <span class="guide-step-arrow">→</span>
       </div>
       <div class="guide-step">
         <span class="guide-step-num">5</span>
-        <span class="guide-step-label">Review Usage & Audit</span>
+        <span class="guide-step-label">查看用量与审计</span>
       </div>
     </div>
   </div>

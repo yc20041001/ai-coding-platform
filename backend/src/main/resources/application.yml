@@ -71,6 +71,14 @@ app:
     secret: ${JWT_SECRET:}
     access-token-expire-seconds: ${JWT_ACCESS_EXPIRE:7200}
     refresh-token-expire-seconds: ${JWT_REFRESH_EXPIRE:604800}
+  auth:
+    captcha:
+      enabled: ${AUTH_CAPTCHA_ENABLED:true}
+      expire-seconds: ${AUTH_CAPTCHA_EXPIRE_SECONDS:120}
+      length: ${AUTH_CAPTCHA_LENGTH:4}
+      max-attempts: ${AUTH_CAPTCHA_MAX_ATTEMPTS:3}
+      width: ${AUTH_CAPTCHA_WIDTH:120}
+      height: ${AUTH_CAPTCHA_HEIGHT:40}
   workspace:
     root-path: ${WORKSPACE_ROOT:./workspace}
   model-gateway:

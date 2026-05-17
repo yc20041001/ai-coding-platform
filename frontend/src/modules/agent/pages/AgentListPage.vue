@@ -41,9 +41,9 @@ function statusTone(status: string) {
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="Agents"
-      subtitle="AI Agent Management"
-      eyebrow="AI Workforce"
+      title="智能体"
+      subtitle="AI 智能体管理"
+      eyebrow="智能体工作台"
       :status="`${agents.length} agents`"
     >
       <template #actions>
@@ -57,7 +57,7 @@ function statusTone(status: string) {
 
       <div v-loading="loading">
         <el-table v-if="agents.length > 0" :data="agents" style="width:100%">
-          <el-table-column label="Agent" min-width="200">
+          <el-table-column label="智能体" min-width="200">
             <template #default="{ row }">
               <div class="agent-row">
                 <span class="agent-icon">{{ typeIcon(row.type) }}</span>
@@ -68,23 +68,23 @@ function statusTone(status: string) {
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="type" label="Type" width="100" />
-          <el-table-column label="Status" width="110">
+          <el-table-column prop="type" label="类型" width="100" />
+          <el-table-column label="状态" width="110">
             <template #default="{ row }">
               <StatusPulse :status="row.status" :tone="statusTone(row.status)" />
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="Description" min-width="240">
+          <el-table-column prop="description" label="描述" min-width="240">
             <template #default="{ row }">
               <span v-if="row.description" style="color:var(--app-text-muted);font-size:13px">{{ row.description }}</span>
               <span v-else style="color:var(--app-text-muted)">-</span>
             </template>
           </el-table-column>
-          <el-table-column label="Created" width="160">
+          <el-table-column label="创建时间" width="160">
             <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
           </el-table-column>
         </el-table>
-        <EmptyState v-if="!loading && agents.length === 0" description="No agents" />
+        <EmptyState v-if="!loading && agents.length === 0" description="暂无智能体" />
       </div>
     </DynamicWorkspace>
   </div>

@@ -16,6 +16,14 @@ app:
     secret: ${JWT_SECRET:verification-test-secret-min-32bytes}
     access-token-expire-seconds: 7200
     refresh-token-expire-seconds: 604800
+  auth:
+    captcha:
+      enabled: ${AUTH_CAPTCHA_ENABLED:false}
+      expire-seconds: 5
+      length: 4
+      max-attempts: 3
+      width: 120
+      height: 40
   model-gateway:
     default-provider: MOCK
     fallback-provider: MOCK

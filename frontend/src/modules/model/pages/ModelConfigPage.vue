@@ -80,10 +80,10 @@ async function handleSave() {
   try {
     if (editForm.value.id) {
       await updateModelConfig(editForm.value.id, editForm.value)
-      ElMessage.success('Config updated')
+      ElMessage.success('配置已更新')
     } else {
       await createModelConfig(editForm.value)
-      ElMessage.success('Config created')
+      ElMessage.success('配置已创建')
     }
     editVisible.value = false
     loadConfigs()
@@ -93,7 +93,7 @@ async function handleSave() {
 async function handleDelete(item: ModelConfigItem) {
   try {
     await deleteModelConfig(item.id)
-    ElMessage.success('Config deleted')
+    ElMessage.success('配置已删除')
     loadConfigs()
   } catch { /* handled */ }
 }
@@ -111,9 +111,9 @@ function providerDisplayName(provider: string) {
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="Model Gateway"
-      subtitle="Model Configuration & Connection Testing"
-      eyebrow="AI Infrastructure"
+      title="模型网关"
+      subtitle="模型配置与连接测试"
+      eyebrow="AI 基础设施"
       :status="`${configs.length} configs`"
     >
       <template #actions>
@@ -124,7 +124,7 @@ function providerDisplayName(provider: string) {
     <NeonDivider tone="primary" style="margin-bottom:16px" />
 
     <!-- Provider Cards -->
-    <TechPanel title="Available Providers" glow style="margin-bottom:20px">
+    <TechPanel title="可用供应商" glow style="margin-bottom:20px">
       <div v-loading="loadingProviders" class="provider-grid">
         <div v-for="p in providers" :key="p.provider" class="provider-card">
           <div class="provider-card-header">
@@ -137,7 +137,7 @@ function providerDisplayName(provider: string) {
           <div class="provider-details">
             <div class="provider-detail">
               <span :class="p.supportsStream ? 'cap-yes' : 'cap-no'">{{ p.supportsStream ? '✓' : '✗' }}</span>
-              <span>Stream</span>
+              <span>流式</span>
             </div>
             <div class="provider-detail">
               <span :class="p.requiresApiKey ? 'cap-warn' : 'cap-ok'">{{ p.requiresApiKey ? '🔑' : '—' }}</span>
@@ -148,54 +148,54 @@ function providerDisplayName(provider: string) {
             <el-tag v-for="m in p.knownModels.slice(0, 3)" :key="m" size="small" type="info">{{ m }}</el-tag>
             <el-tag v-if="p.knownModels.length > 3" size="small" type="info">+{{ p.knownModels.length - 3 }}</el-tag>
           </div>
-          <GlowButton size="small" accent="primary" class="provider-test-btn" @click="openTest(p.provider)">Test Connection</GlowButton>
+          <GlowButton size="small" accent="primary" class="provider-test-btn" @click="openTest(p.provider)">测试连接</GlowButton>
         </div>
       </div>
     </TechPanel>
 
     <!-- Model Configs Table -->
-    <TechPanel title="Model Configurations">
+    <TechPanel title="模型配置">
       <el-table :data="configs" v-loading="loadingConfigs" size="small" style="width:100%">
-        <el-table-column label="Provider" width="160">
+        <el-table-column label="供应商" width="160">
           <template #default="{ row }">
             <span style="font-weight:600">{{ providerDisplayName(row.provider) }}</span>
             <div style="font-size:11px;color:var(--app-text-muted)">{{ row.provider }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="modelName" label="Model" min-width="160" />
-        <el-table-column prop="modelType" label="Type" width="90" />
-        <el-table-column label="Status" width="90">
+        <el-table-column prop="modelName" label="模型" min-width="160" />
+        <el-table-column prop="modelType" label="类型" width="90" />
+        <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="API Key" width="140">
+        <el-table-column label="API 密钥" width="140">
           <template #default="{ row }">
             <code style="font-size:11px;color:var(--app-text-muted)">{{ row.maskedApiKey || '<not set>' }}</code>
           </template>
         </el-table-column>
-        <el-table-column label="Stream" width="70">
+        <el-table-column label="流式" width="70">
           <template #default="{ row }">
             <el-tag size="small" :type="row.streamEnabled ? 'success' : 'info'">{{ row.streamEnabled ? 'On' : 'Off' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Fallback" width="80">
+        <el-table-column label="降级" width="80">
           <template #default="{ row }">
             <el-tag size="small" :type="row.fallbackEnabled !== false ? 'success' : 'info'">{{ row.fallbackEnabled !== false ? 'On' : 'Off' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Updated" width="150">
+        <el-table-column label="更新时间" width="150">
           <template #default="{ row }">{{ formatDateTime(row.updateTime || row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="Actions" width="180" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="openEdit(row)">Edit</el-button>
-            <el-button size="small" text type="primary" @click="openTest(row.provider)">Test</el-button>
-            <el-button size="small" text type="danger" @click="handleDelete(row)">Delete</el-button>
+            <el-button size="small" text type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button size="small" text type="primary" @click="openTest(row.provider)">测试</el-button>
+            <el-button size="small" text type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-      <EmptyState v-if="!loadingConfigs && configs.length === 0" description="No model configs yet. Click + New Config to create" />
+      <EmptyState v-if="!loadingConfigs && configs.length === 0" description="暂无模型配置，点击 + 新建配置 创建。" />
     </TechPanel>
 
     <!-- Usage Cost Panel -->
@@ -204,58 +204,58 @@ function providerDisplayName(provider: string) {
     </DynamicWorkspace>
 
     <!-- Edit Dialog -->
-    <el-dialog v-model="editVisible" :title="editForm.id ? 'Edit Model Config' : 'New Model Config'" width="550px">
+    <el-dialog v-model="editVisible" :title="editForm.id ? '编辑模型配置' : '新建模型配置'" width="550px">
       <el-form label-position="top">
-        <el-form-item label="Provider" required>
+        <el-form-item label="供应商" required>
           <el-select v-model="editForm.provider" style="width:100%" @change="onProviderChange" :disabled="!!editForm.id">
             <el-option v-for="p in providers" :key="p.provider" :label="`${p.displayName} (${p.provider})`" :value="p.provider" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Model Name" required>
+        <el-form-item label="模型名称" required>
           <el-input v-model="editForm.modelName" placeholder="e.g. gpt-4.1-mini" />
         </el-form-item>
-        <el-form-item label="API Base URL">
+        <el-form-item label="API 基础地址">
           <el-input v-model="editForm.apiBase" placeholder="https://api.openai.com/v1" />
         </el-form-item>
-        <el-form-item label="API Key">
+        <el-form-item label="API 密钥">
           <el-input v-model="editForm.apiKey" type="password" show-password placeholder="sk-..." />
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12">
-            <el-form-item label="Status">
+            <el-form-item label="状态">
               <el-select v-model="editForm.status" style="width:100%">
-                <el-option label="Enabled" value="ENABLED" />
-                <el-option label="Disabled" value="DISABLED" />
+                <el-option label="启用" value="ENABLED" />
+                <el-option label="停用" value="DISABLED" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="Timeout (ms)">
+            <el-form-item label="超时（毫秒）">
               <el-input-number v-model="editForm.timeoutMs" :min="5000" :max="300000" :step="5000" style="width:100%" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="12">
           <el-col :span="8">
-            <el-form-item label="Max Retries">
+            <el-form-item label="最大重试次数">
               <el-input-number v-model="editForm.maxRetries" :min="0" :max="10" style="width:100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="Stream">
+            <el-form-item label="流式">
               <el-switch v-model="editForm.streamEnabled" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="Fallback">
+            <el-form-item label="降级">
               <el-switch v-model="editForm.fallbackEnabled" />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="editing" @click="handleSave">Save</el-button>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" :loading="editing" @click="handleSave">保存</el-button>
       </template>
     </el-dialog>
 

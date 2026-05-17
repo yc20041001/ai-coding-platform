@@ -26,53 +26,53 @@ function formatCost(cost: number): string {
 </script>
 
 <template>
-  <TechPanel title="Model Usage & Cost" glow>
+  <TechPanel title="模型用量与成本" glow>
     <div v-loading="loading">
       <template v-if="costData">
         <div class="card-grid" style="margin-bottom:16px">
-          <MetricTile :value="costData.totalRequests" label="Total Requests" />
-          <MetricTile :value="costData.successCount" label="Success" accent="success" />
-          <MetricTile :value="costData.failureCount" label="Failure" accent="danger" />
-          <MetricTile :value="costData.fallbackCount" label="Fallback" accent="warning" />
-          <MetricTile :value="costData.successRate.toFixed(1) + '%'" label="Success Rate" accent="success" />
-          <MetricTile :value="costData.totalTokens.toLocaleString()" label="Total Tokens" accent="accent" />
-          <MetricTile :value="costData.promptTokens.toLocaleString()" label="Prompt Tokens" />
-          <MetricTile :value="costData.completionTokens.toLocaleString()" label="Completion Tokens" />
-          <MetricTile :value="formatCost(costData.estimatedCost)" label="Est. Cost" accent="accent" />
+          <MetricTile :value="costData.totalRequests" label="请求总数" />
+          <MetricTile :value="costData.successCount" label="成功" accent="success" />
+          <MetricTile :value="costData.failureCount" label="失败" accent="danger" />
+          <MetricTile :value="costData.fallbackCount" label="降级" accent="warning" />
+          <MetricTile :value="costData.successRate.toFixed(1) + '%'" label="成功率" accent="success" />
+          <MetricTile :value="costData.totalTokens.toLocaleString()" label="Token 总量" accent="accent" />
+          <MetricTile :value="costData.promptTokens.toLocaleString()" label="提示词 Token" />
+          <MetricTile :value="costData.completionTokens.toLocaleString()" label="补全 Token" />
+          <MetricTile :value="formatCost(costData.estimatedCost)" label="预估成本" accent="accent" />
         </div>
 
-        <!-- Provider Breakdown -->
+        <!-- 供应商分布 -->
         <div v-if="costData.providerBreakdowns && costData.providerBreakdowns.length > 0" style="margin-bottom:16px">
-          <h4 style="margin-bottom:10px;color:var(--app-text);font-size:14px">Provider Breakdown</h4>
+          <h4 style="margin-bottom:10px;color:var(--app-text);font-size:14px">供应商分布</h4>
           <el-table :data="costData.providerBreakdowns" size="small" style="width:100%">
-            <el-table-column prop="provider" label="Provider" min-width="120" />
-            <el-table-column prop="requestCount" label="Requests" width="100" />
-            <el-table-column prop="successCount" label="Success" width="100" />
-            <el-table-column label="Tokens" width="120">
+            <el-table-column prop="provider" label="供应商" min-width="120" />
+            <el-table-column prop="requestCount" label="请求数" width="100" />
+            <el-table-column prop="successCount" label="成功" width="100" />
+            <el-table-column label="Token" width="120">
               <template #default="{ row }">{{ row.tokenCount.toLocaleString() }}</template>
             </el-table-column>
-            <el-table-column label="Cost" width="120">
+            <el-table-column label="成本" width="120">
               <template #default="{ row }">{{ formatCost(row.cost) }}</template>
             </el-table-column>
           </el-table>
         </div>
 
-        <!-- Model Breakdown -->
+        <!-- 模型分布 -->
         <div v-if="costData.modelBreakdowns && costData.modelBreakdowns.length > 0">
-          <h4 style="margin-bottom:10px;color:var(--app-text);font-size:14px">Model Breakdown</h4>
+          <h4 style="margin-bottom:10px;color:var(--app-text);font-size:14px">模型分布</h4>
           <el-table :data="costData.modelBreakdowns" size="small" style="width:100%">
-            <el-table-column prop="modelName" label="Model" min-width="160" />
-            <el-table-column prop="requestCount" label="Requests" width="100" />
-            <el-table-column label="Tokens" width="120">
+            <el-table-column prop="modelName" label="模型" min-width="160" />
+            <el-table-column prop="requestCount" label="请求数" width="100" />
+            <el-table-column label="Token" width="120">
               <template #default="{ row }">{{ row.tokenCount.toLocaleString() }}</template>
             </el-table-column>
-            <el-table-column label="Cost" width="120">
+            <el-table-column label="成本" width="120">
               <template #default="{ row }">{{ formatCost(row.cost) }}</template>
             </el-table-column>
           </el-table>
         </div>
       </template>
-      <EmptyState v-else-if="!loading" description="No statistics (requires ADMIN role)" />
+      <EmptyState v-else-if="!loading" description="暂无统计数据（需要管理员权限）" />
     </div>
   </TechPanel>
 </template>

@@ -54,7 +54,7 @@ async function loadBranches() {
       branches.value = []
       return
     }
-    ElMessage.error('Failed to load branches')
+    ElMessage.error('加载分支失败')
   } finally {
     loadingBranches.value = false
   }
@@ -64,11 +64,11 @@ async function handleBind() {
   binding.value = true
   try {
     await bindRepository(projectId, bindForm.value)
-    ElMessage.success('Repository bound')
+    ElMessage.success('仓库已绑定')
     bindVisible.value = false
     loadBranches()
   } catch {
-    ElMessage.error('Failed to bind repository')
+    ElMessage.error('绑定仓库失败')
   } finally {
     binding.value = false
   }
@@ -78,11 +78,11 @@ async function handleClone() {
   cloning.value = true
   try {
     await cloneRepository(projectId, cloneForm.value)
-    ElMessage.success('Clone submitted')
+    ElMessage.success('克隆任务已提交')
     cloneVisible.value = false
     loadBranches()
   } catch {
-    ElMessage.error('Clone failed')
+    ElMessage.error('克隆失败')
   } finally {
     cloning.value = false
   }
@@ -92,10 +92,10 @@ async function handlePull() {
   pulling.value = true
   try {
     await pullRepository(projectId, pullForm.value)
-    ElMessage.success('Pull submitted')
+    ElMessage.success('拉取任务已提交')
     pullVisible.value = false
   } catch {
-    ElMessage.error('Pull failed')
+    ElMessage.error('拉取失败')
   } finally {
     pulling.value = false
   }
@@ -108,7 +108,7 @@ async function handleViewDiff() {
     const res = await getDiff(projectId, diffForm.value.base, diffForm.value.head)
     diffData.value = res.data.data
   } catch {
-    ElMessage.error('Failed to load diff')
+    ElMessage.error('加载 Diff 失败')
     diffData.value = null
   } finally {
     loadingDiff.value = false
@@ -134,118 +134,118 @@ onMounted(() => loadBranches())
   <div class="page-container">
     <div class="repo-header">
       <div>
-        <h3 class="repo-title">Repository</h3>
-        <p class="repo-sub">Code Repository Management</p>
+        <h3 class="repo-title">代码仓库</h3>
+        <p class="repo-sub">代码仓库管理</p>
       </div>
       <div class="repo-actions">
-        <GlowButton size="small" accent="primary" :loading="loadingBranches" @click="loadBranches">Refresh</GlowButton>
-        <GlowButton size="small" accent="accent" @click="githubVisible = true">Browse</GlowButton>
-        <GlowButton size="small" accent="primary" @click="bindVisible = true">Bind</GlowButton>
-        <GlowButton size="small" accent="success" @click="cloneVisible = true">Clone</GlowButton>
-        <GlowButton size="small" accent="warning" @click="pullVisible = true">Pull</GlowButton>
+        <GlowButton size="small" accent="primary" :loading="loadingBranches" @click="loadBranches">刷新</GlowButton>
+        <GlowButton size="small" accent="accent" @click="githubVisible = true">浏览</GlowButton>
+        <GlowButton size="small" accent="primary" @click="bindVisible = true">绑定</GlowButton>
+        <GlowButton size="small" accent="success" @click="cloneVisible = true">克隆</GlowButton>
+        <GlowButton size="small" accent="warning" @click="pullVisible = true">拉取</GlowButton>
       </div>
     </div>
 
     <div class="repo-section">
-      <h4>Branches</h4>
+      <h4>分支</h4>
       <el-table :data="branches" v-loading="loadingBranches" size="small" style="width:100%">
-        <el-table-column prop="name" label="Branch" min-width="160" />
-        <el-table-column prop="commitHash" label="Commit Hash" width="280">
+        <el-table-column prop="name" label="分支" min-width="160" />
+        <el-table-column prop="commitHash" label="提交哈希" width="280">
           <template #default="{ row }">
             <code>{{ row.commitHash?.substring(0, 12) || '-' }}</code>
           </template>
         </el-table-column>
-        <el-table-column label="Protected" width="100">
+        <el-table-column label="受保护" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.protectedBranch ? 'warning' : 'info'" size="small">{{ row.protectedBranch ? 'Yes' : 'No' }}</el-tag>
+            <el-tag :type="row.protectedBranch ? 'warning' : 'info'" size="small">{{ row.protectedBranch ? '是' : '否' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Last Sync" width="150" class-name="nowrap-column">
+        <el-table-column label="最近同步" width="150" class-name="nowrap-column">
           <template #default="{ row }">{{ formatDateTime(row.lastSyncTime) }}</template>
         </el-table-column>
       </el-table>
-      <EmptyState v-if="!loadingBranches && branches.length === 0" title="No Branches" description="Bind and clone a repository to inspect branches." />
+      <EmptyState v-if="!loadingBranches && branches.length === 0" title="暂无分支" description="绑定并克隆仓库后可查看分支。" />
     </div>
 
     <div class="repo-section" style="margin-top:20px">
-      <h4>Diff</h4>
+      <h4>Diff 差异</h4>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <el-input v-model="diffForm.base" placeholder="Base" size="small" style="width:140px" />
+        <el-input v-model="diffForm.base" placeholder="基准" size="small" style="width:140px" />
         <span style="color:var(--app-text-muted)">..</span>
-        <el-input v-model="diffForm.head" placeholder="Head" size="small" style="width:140px" />
-        <GlowButton size="small" accent="primary" @click="handleViewDiff">View Diff</GlowButton>
+        <el-input v-model="diffForm.head" placeholder="目标" size="small" style="width:140px" />
+        <GlowButton size="small" accent="primary" @click="handleViewDiff">查看 Diff</GlowButton>
       </div>
     </div>
 
     <!-- Bind Dialog -->
-    <el-dialog v-model="bindVisible" title="Bind Repository" width="500px">
+    <el-dialog v-model="bindVisible" title="绑定仓库" width="500px">
       <el-form label-position="top">
-        <el-form-item label="Provider">
+        <el-form-item label="供应商">
           <el-select v-model="bindForm.provider" style="width:100%">
             <el-option label="GitHub" value="GITHUB" />
             <el-option label="GitLab" value="GITLAB" />
             <el-option label="Gitee" value="GITEE" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Repo Full Name" required>
+        <el-form-item label="仓库全名" required>
           <el-input v-model="bindForm.repoFullName" placeholder="owner/repo" />
         </el-form-item>
-        <el-form-item label="Repo URL" required>
+        <el-form-item label="仓库地址" required>
           <el-input v-model="bindForm.repoUrl" placeholder="https://github.com/owner/repo" />
         </el-form-item>
-        <el-form-item label="Clone URL" required>
+        <el-form-item label="克隆地址" required>
           <el-input v-model="bindForm.cloneUrl" />
         </el-form-item>
-        <el-form-item label="Default Branch">
+        <el-form-item label="默认分支">
           <el-input v-model="bindForm.defaultBranch" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="bindVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="binding" @click="handleBind">Bind</el-button>
+        <el-button @click="bindVisible = false">取消</el-button>
+        <el-button type="primary" :loading="binding" @click="handleBind">绑定</el-button>
       </template>
     </el-dialog>
 
     <!-- Clone Dialog -->
-    <el-dialog v-model="cloneVisible" title="Clone Repository" width="450px">
+    <el-dialog v-model="cloneVisible" title="克隆仓库" width="450px">
       <el-form label-position="top">
-        <el-form-item label="Branch">
+        <el-form-item label="分支">
           <el-input v-model="cloneForm.branch" placeholder="main" />
         </el-form-item>
-        <el-form-item label="Force Clone">
+        <el-form-item label="强制克隆">
           <el-switch v-model="cloneForm.force" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cloneVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="cloning" @click="handleClone">Clone</el-button>
+        <el-button @click="cloneVisible = false">取消</el-button>
+        <el-button type="primary" :loading="cloning" @click="handleClone">克隆</el-button>
       </template>
     </el-dialog>
 
     <!-- Pull Dialog -->
-    <el-dialog v-model="pullVisible" title="Pull Repository" width="450px">
+    <el-dialog v-model="pullVisible" title="拉取仓库" width="450px">
       <el-form label-position="top">
-        <el-form-item label="Branch">
+        <el-form-item label="分支">
           <el-input v-model="pullForm.branch" placeholder="main" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="pullVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="pulling" @click="handlePull">Pull</el-button>
+        <el-button @click="pullVisible = false">取消</el-button>
+        <el-button type="primary" :loading="pulling" @click="handlePull">拉取</el-button>
       </template>
     </el-dialog>
 
     <!-- Github Browse Dialog -->
-    <el-dialog v-model="githubVisible" title="Browse GitHub Repos" width="700px">
+    <el-dialog v-model="githubVisible" title="浏览 GitHub 仓库" width="700px">
       <el-table :data="githubRepos" v-loading="loadingGithub" size="small" @row-click="onGithubRowClick" style="cursor:pointer">
-        <el-table-column prop="fullName" label="Full Name" min-width="180" />
-        <el-table-column prop="description" label="Description" min-width="200" show-overflow-tooltip />
-        <el-table-column label="Private" width="80">
+        <el-table-column prop="fullName" label="全名" min-width="180" />
+        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+        <el-table-column label="私有" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.isPrivate ? 'warning' : 'success'" size="small">{{ row.isPrivate ? 'Yes' : 'No' }}</el-tag>
+            <el-tag :type="row.isPrivate ? 'warning' : 'success'" size="small">{{ row.isPrivate ? '是' : '否' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="defaultBranch" label="Default Branch" width="120" />
+        <el-table-column prop="defaultBranch" label="默认分支" width="120" />
       </el-table>
       <el-pagination
         v-if="githubRepos.length > 0"
@@ -255,12 +255,12 @@ onMounted(() => loadBranches())
     </el-dialog>
 
     <!-- Diff Drawer -->
-    <el-drawer v-model="diffVisible" title="Diff" size="700px">
+    <el-drawer v-model="diffVisible" title="Diff 差异" size="700px">
       <div v-loading="loadingDiff">
         <template v-if="diffData">
           <div class="diff-summary">
-            <span>Base: <code>{{ diffData.base }}</code></span>
-            <span>Head: <code>{{ diffData.head }}</code></span>
+            <span>基准：<code>{{ diffData.base }}</code></span>
+            <span>目标：<code>{{ diffData.head }}</code></span>
             <span>{{ diffData.files?.length || 0 }} files changed</span>
           </div>
           <div v-for="f in diffData.files" :key="f.path" class="diff-file">
@@ -274,7 +274,7 @@ onMounted(() => loadBranches())
             <MarkdownRenderer v-if="f.patch" :content="'```diff\n' + f.patch + '\n```'" />
           </div>
         </template>
-        <ErrorState v-else-if="!loadingDiff" title="No Diff Available" message="Please bind and clone a repository first." />
+        <ErrorState v-else-if="!loadingDiff" title="暂无 Diff" message="请先绑定并克隆仓库。" />
       </div>
     </el-drawer>
   </div>

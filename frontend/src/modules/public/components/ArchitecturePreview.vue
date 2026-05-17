@@ -5,12 +5,12 @@ interface Layer {
 }
 
 const layers: Layer[] = [
-  { label: 'Frontend Console', items: ['Vue 3 SPA', 'Dark Tech UI', 'SSE Streaming'] },
-  { label: 'Spring Boot API', items: ['REST Controllers', 'JWT Auth', 'RBAC Permissions'] },
-  { label: 'Core Modules', items: ['Project', 'Task', 'Chat', 'RAG', 'Agent', 'Repo'] },
-  { label: 'Model Gateway', items: ['Multi-Provider', 'Fallback', 'Cost Tracking', 'Safety'] },
-  { label: 'Integrations', items: ['GitHub OAuth', 'PR Review'] },
-  { label: 'Infrastructure', items: ['MySQL 8', 'Redis 7', 'RabbitMQ', 'Docker'] },
+  { label: '前端控制台', items: ['Vue 3 SPA', '暗色科技界面', 'SSE 流式输出'] },
+  { label: 'Spring Boot API', items: ['REST 控制器', 'JWT 认证', 'RBAC 权限'] },
+  { label: '核心模块', items: ['项目', '任务', '对话', 'RAG', '智能体', '仓库'] },
+  { label: '模型网关', items: ['多供应商', '降级', '成本追踪', '安全过滤'] },
+  { label: '外部集成', items: ['GitHub OAuth', 'PR 评审'] },
+  { label: '基础设施', items: ['MySQL 8', 'Redis 7', 'RabbitMQ', 'Docker'] },
 ]
 
 const deps: [number, number][] = [
@@ -22,9 +22,9 @@ const deps: [number, number][] = [
 <template>
   <section class="ap">
     <div class="ap-header">
-      <span class="ap-eyebrow">Architecture</span>
-      <h2 class="ap-title">System Overview</h2>
-      <p class="ap-sub">Layered architecture with clear separation of concerns.</p>
+      <span class="ap-eyebrow">架构</span>
+      <h2 class="ap-title">系统总览</h2>
+      <p class="ap-sub">分层架构，职责边界清晰。</p>
     </div>
     <div class="ap-stack">
       <div
@@ -48,7 +48,7 @@ const deps: [number, number][] = [
       </div>
       <div class="ap-observability">
         <span class="ap-obs-dot" />
-        Observability & Audit — spans all layers
+        可观测性与审计 — 覆盖全部层级
       </div>
     </div>
   </section>

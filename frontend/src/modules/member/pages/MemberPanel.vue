@@ -32,12 +32,12 @@ async function handleInvite() {
   inviting.value = true
   try {
     await inviteMember(projectId, inviteForm.value)
-    ElMessage.success('Invitation sent')
+    ElMessage.success('邀请已发送')
     inviteVisible.value = false
     inviteForm.value = { email: '', role: 'DEVELOPER' }
     load(1)
   } catch {
-    ElMessage.error('Failed to invite member')
+    ElMessage.error('邀请成员失败')
   } finally {
     inviting.value = false
   }
@@ -52,11 +52,11 @@ async function handleUpdateRole() {
   updatingRole.value = true
   try {
     await updateMemberRole(projectId, roleForm.value.userId, { role: roleForm.value.role })
-    ElMessage.success('Role updated')
+    ElMessage.success('角色已更新')
     roleVisible.value = false
     load()
   } catch {
-    ElMessage.error('Failed to update role')
+    ElMessage.error('更新角色失败')
   } finally {
     updatingRole.value = false
   }
@@ -65,10 +65,10 @@ async function handleUpdateRole() {
 async function handleRemove(userId: string) {
   try {
     await removeMember(projectId, userId)
-    ElMessage.success('Member removed')
+    ElMessage.success('成员已移除')
     load()
   } catch {
-    ElMessage.error('Failed to remove member')
+    ElMessage.error('移除成员失败')
   }
 }
 
@@ -77,33 +77,33 @@ onMounted(() => load(1))
 
 <template>
   <div class="page-container">
-    <PageHeader title="Members" description="Project access control">
+    <PageHeader title="成员" description="项目访问控制">
       <template #actions>
-        <GlowButton size="small" accent="primary" @click="inviteVisible = true">Invite Member</GlowButton>
+        <GlowButton size="small" accent="primary" @click="inviteVisible = true">邀请成员</GlowButton>
       </template>
     </PageHeader>
 
     <el-table :data="members" v-loading="loading" style="width:100%">
-      <el-table-column prop="username" label="User" min-width="120" />
-      <el-table-column prop="email" label="Email" min-width="180" />
-      <el-table-column label="Role" width="120">
+      <el-table-column prop="username" label="用户" min-width="120" />
+      <el-table-column prop="email" label="邮箱" min-width="180" />
+      <el-table-column label="角色" width="120">
         <template #default="{ row }">
           <el-tag size="small" :type="row.role === 'OWNER' ? 'success' : row.role === 'ADMIN' ? 'warning' : 'info'">
             {{ row.role }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Status" width="100">
+      <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag size="small" :type="row.status === 'ACTIVE' ? 'success' : 'info'">{{ row.status }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Joined" width="150" class-name="nowrap-column">
+      <el-table-column label="加入时间" width="150" class-name="nowrap-column">
         <template #default="{ row }">{{ formatDateTime(row.joinedTime) }}</template>
       </el-table-column>
-      <el-table-column label="Actions" width="180" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" text type="primary" @click="openRoleDialog(row)">Role</el-button>
+          <el-button size="small" text type="primary" @click="openRoleDialog(row)">角色</el-button>
           <ConfirmButton
             :message="`Remove member ${row.username}?`"
             button-text="Remove"
@@ -116,7 +116,7 @@ onMounted(() => load(1))
       </el-table-column>
     </el-table>
 
-    <EmptyState v-if="!loading && members.length === 0" title="No Members" description="Invite teammates to collaborate on this project." />
+    <EmptyState v-if="!loading && members.length === 0" title="暂无成员" description="邀请团队成员协作此项目。" />
 
     <el-pagination
       v-if="members.length > 0"
@@ -129,41 +129,41 @@ onMounted(() => load(1))
     />
 
     <!-- Invite Dialog -->
-    <el-dialog v-model="inviteVisible" title="Invite Member" width="450px">
+    <el-dialog v-model="inviteVisible" title="邀请成员" width="450px">
       <el-form label-position="top">
-        <el-form-item label="Email" required>
+        <el-form-item label="邮箱" required>
           <el-input v-model="inviteForm.email" placeholder="user@example.com" />
         </el-form-item>
-        <el-form-item label="Role">
+        <el-form-item label="角色">
           <el-select v-model="inviteForm.role" style="width:100%">
-            <el-option label="Owner" value="OWNER" />
-            <el-option label="Admin" value="ADMIN" />
-            <el-option label="Developer" value="DEVELOPER" />
-            <el-option label="Viewer" value="VIEWER" />
+            <el-option label="负责人" value="OWNER" />
+            <el-option label="管理员" value="ADMIN" />
+            <el-option label="开发者" value="DEVELOPER" />
+            <el-option label="查看者" value="VIEWER" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="inviteVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="inviting" @click="handleInvite">Invite</el-button>
+        <el-button @click="inviteVisible = false">取消</el-button>
+        <el-button type="primary" :loading="inviting" @click="handleInvite">邀请</el-button>
       </template>
     </el-dialog>
 
     <!-- Role Dialog -->
-    <el-dialog v-model="roleVisible" title="Update Role" width="400px">
+    <el-dialog v-model="roleVisible" title="更新角色" width="400px">
       <el-form label-position="top">
-        <el-form-item label="Role">
+        <el-form-item label="角色">
           <el-select v-model="roleForm.role" style="width:100%">
-            <el-option label="Owner" value="OWNER" />
-            <el-option label="Admin" value="ADMIN" />
-            <el-option label="Developer" value="DEVELOPER" />
-            <el-option label="Viewer" value="VIEWER" />
+            <el-option label="负责人" value="OWNER" />
+            <el-option label="管理员" value="ADMIN" />
+            <el-option label="开发者" value="DEVELOPER" />
+            <el-option label="查看者" value="VIEWER" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="roleVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="updatingRole" @click="handleUpdateRole">Save</el-button>
+        <el-button @click="roleVisible = false">取消</el-button>
+        <el-button type="primary" :loading="updatingRole" @click="handleUpdateRole">保存</el-button>
       </template>
     </el-dialog>
   </div>

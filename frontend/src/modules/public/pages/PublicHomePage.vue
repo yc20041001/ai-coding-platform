@@ -18,9 +18,9 @@ import PublicFaq from '../components/PublicFaq.vue'
         <span>AI Coding Platform — Internal Alpha v1.0</span>
         <nav class="public-footer-links">
           <a href="https://github.com/yc20041001/ai-coding-platform" target="_blank">GitHub</a>
-          <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/roadmap.md" target="_blank">Roadmap</a>
-          <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
-          <a href="https://github.com/yc20041001/ai-coding-platform/issues/new?template=user_trial_feedback.yml" target="_blank">Feedback</a>
+          <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/roadmap.md" target="_blank">路线图</a>
+          <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/CHANGELOG.md" target="_blank">更新日志</a>
+          <a href="https://github.com/yc20041001/ai-coding-platform/issues/new?template=user_trial_feedback.yml" target="_blank">反馈</a>
         </nav>
       </div>
     </footer>

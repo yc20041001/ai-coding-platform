@@ -155,11 +155,11 @@ onBeforeUnmount(() => {
     <!-- Session Rail -->
     <aside class="chat-rail">
       <div class="chat-rail-header">
-        <span class="chat-rail-title">Sessions</span>
+        <span class="chat-rail-title">会话</span>
         <StatusPulse status="AI Ready" tone="primary" />
       </div>
       <div class="session-create">
-        <el-input v-model="newSessionTitle" placeholder="New session..." size="small" @keyup.enter="handleCreateSession" />
+        <el-input v-model="newSessionTitle" placeholder="新建会话..." size="small" @keyup.enter="handleCreateSession" />
         <el-button type="primary" size="small" :loading="creatingSession" @click="handleCreateSession">+</el-button>
       </div>
       <div class="session-list" v-loading="loadingSessions" data-testid="chat-session-list">
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
           <div class="session-title">{{ s.title }}</div>
           <div class="session-time">{{ formatDateTime(s.lastMessageTime || s.createTime) }}</div>
         </div>
-        <EmptyState v-if="!loadingSessions && sessions.length === 0" description="No sessions" />
+        <EmptyState v-if="!loadingSessions && sessions.length === 0" description="暂无会话" />
       </div>
     </aside>
 
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
     <section class="chat-main">
       <div v-if="!selectedSessionId" class="chat-empty">
         <div class="chat-empty-icon">◈</div>
-        <div class="chat-empty-text">Select a session to start AI conversation</div>
+        <div class="chat-empty-text">选择一个会话开始 AI 对话</div>
       </div>
       <template v-else>
         <div class="chat-messages" ref="chatContainer" v-loading="loadingMessages">
@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
             v-model="inputMessage"
             type="textarea"
             :rows="2"
-            placeholder="Send instruction to AI..."
+            placeholder="向 AI 发送指令..."
             @keyup.enter.exact.prevent="handleSendMessage"
             class="chat-composer-input"
             data-testid="chat-message-input"

@@ -14,37 +14,34 @@ defineProps<{
     <div class="ph-content">
       <div class="ph-badge">
         <span class="ph-badge-dot" />
-        Internal Alpha — Mock Provider by Default
+        内部 Alpha 版 — 默认使用模拟网关
       </div>
       <h1 class="ph-title">
         AI Coding Platform
       </h1>
       <p class="ph-tagline">
-        AI-native workspace for projects, agents, knowledge, and code review.
+        面向项目、智能体、知识库与代码评审的 AI 原生工作台。
       </p>
       <p class="ph-desc">
-        A unified collaboration console that connects project context, knowledge base RAG,
-        agent task execution, and GitHub PR review — with full observability and audit trail.
-        Start exploring with built-in Mock provider, or bring your own API keys for real models.
+        一个统一的协作控制台，把项目上下文、知识库 RAG、智能体任务执行和 GitHub PR Review 串成闭环，并提供完整的可观测性与审计轨迹。你可以先用内置模拟网关体验，也可以配置自己的 API Key 接入真实模型。
       </p>
       <div class="ph-actions">
         <a :href="primaryCtaHref || '/login'" class="ph-cta-primary">
-          Open Console
+          进入控制台
           <span class="ph-cta-arrow">&rarr;</span>
         </a>
         <a :href="secondaryCtaHref || 'https://github.com/yc20041001/ai-coding-platform'" target="_blank" class="ph-cta-secondary">
-          View GitHub
+          查看 GitHub
         </a>
         <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/demo-walkthrough.md" target="_blank" class="ph-cta-ghost">
-          Read Walkthrough
+          阅读演示指南
         </a>
         <a href="https://github.com/yc20041001/ai-coding-platform/blob/main/docs/roadmap.md" target="_blank" class="ph-cta-ghost">
-          View Roadmap
+          查看路线图
         </a>
       </div>
       <p class="ph-note">
-        No API key required to explore. Default: Mock Provider.
-        GitHub OAuth is optional. Real model access requires your own API keys.
+        体验无需 API Key，默认使用模拟网关。GitHub OAuth 为可选配置，真实模型访问需要你自己的 API Key。
       </p>
     </div>
   </section>

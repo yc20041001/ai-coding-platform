@@ -138,7 +138,7 @@ test.describe('Project, Task & Chat', () => {
     await expect(page.getByTestId('chat-session-list')).toBeVisible({ timeout: 8000 })
 
     // Fill session name and create
-    const sessionInput = page.getByPlaceholder('New session...')
+    const sessionInput = page.getByPlaceholder('新建会话...')
     await sessionInput.fill(CHAT_TITLE)
     await sessionInput.press('Enter')
 

@@ -42,6 +42,7 @@ public class AuthApplicationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
+    private final CaptchaService captchaService;
 
     public AuthApplicationService(UserMapper userMapper,
                                   RoleMapper roleMapper,
@@ -50,7 +51,8 @@ public class AuthApplicationService {
                                   RolePermissionMapper rolePermissionMapper,
                                   PasswordEncoder passwordEncoder,
                                   JwtTokenProvider jwtTokenProvider,
-                                  JwtProperties jwtProperties) {
+                                  JwtProperties jwtProperties,
+                                  CaptchaService captchaService) {
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
@@ -59,10 +61,13 @@ public class AuthApplicationService {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.jwtProperties = jwtProperties;
+        this.captchaService = captchaService;
     }
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        captchaService.validate(request.getCaptchaId(), request.getCaptchaCode());
+
         UserEntity user = userMapper.selectOne(
                 new LambdaQueryWrapper<UserEntity>()
                         .eq(UserEntity::getEmail, request.getEmail()));

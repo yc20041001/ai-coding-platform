@@ -20,7 +20,7 @@ const emit = defineEmits<{
 <template>
   <el-drawer
     :model-value="visible"
-    :title="documentTitle ? `Chunks: ${documentTitle}` : 'Chunks'"
+    :title="documentTitle ? `切片：${documentTitle}` : '切片'"
     size="600px"
     @close="emit('close')"
   >
@@ -35,7 +35,7 @@ const emit = defineEmits<{
           <pre v-else class="chunk-plain">{{ chunk.content }}</pre>
         </div>
       </div>
-      <EmptyState v-if="!loading && chunks.length === 0" description="No chunk data" />
+      <EmptyState v-if="!loading && chunks.length === 0" description="暂无切片数据" />
     </div>
   </el-drawer>
 </template>

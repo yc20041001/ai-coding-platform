@@ -8,62 +8,62 @@ interface Feature {
 
 const features: Feature[] = [
   {
-    title: 'Project Workspace',
-    summary: 'Multi-tab project console with Overview, Tasks, Chat, Knowledge, Repository, and Members. Each project is a self-contained AI collaboration unit.',
+    title: '项目工作台',
+    summary: '多标签项目控制台，包含概览、任务、对话、知识库、仓库和成员。每个项目都是一个独立的 AI 协作单元。',
     status: 'ready',
     icon: 'P',
   },
   {
-    title: 'Knowledge Base & RAG',
-    summary: 'Upload documents, auto-chunk, embed, and search. RAG context is automatically injected into Chat prompts and Task executions with relevance scoring.',
+    title: '知识库与 RAG',
+    summary: '上传文档后自动切片、向量化和检索。RAG 上下文会自动注入 Chat 和任务执行，并保留相关性评分。',
     status: 'ready',
     icon: 'K',
   },
   {
-    title: 'Chat with SSE Streaming',
-    summary: 'Real-time SSE streaming chat with RAG reference highlighting. Each response shows which knowledge chunks were used, with relevance scores.',
+    title: 'SSE 流式对话',
+    summary: '实时 SSE 流式对话，并高亮 RAG 引用。每条回复都会展示使用了哪些知识片段及相关性评分。',
     status: 'ready',
     icon: 'C',
   },
   {
-    title: 'Agent Task Execution',
-    summary: 'Create and execute AI agent tasks (FEATURE, BUGFIX, REVIEW, REFACTOR). Full state machine: PENDING → RUNNING → COMPLETED, with logs, artifacts, and model call traces.',
+    title: '智能体任务执行',
+    summary: '创建并执行 AI 智能体任务。完整状态机覆盖待处理、运行中、已完成，并保留日志、产物和模型调用轨迹。',
     status: 'ready',
     icon: 'T',
   },
   {
-    title: 'Model Gateway',
-    summary: 'Unified LLM access layer supporting OpenAI, Claude, DeepSeek, Qwen, Gemini + Mock. Connection testing, fallback strategy, cost estimation, and prompt safety filtering.',
+    title: '模型网关',
+    summary: '统一的大模型接入层，支持 OpenAI、Claude、DeepSeek、Qwen、Gemini 和 Mock。包含连接测试、降级策略、成本估算和 Prompt 安全过滤。',
     status: 'ready',
     icon: 'M',
   },
   {
-    title: 'GitHub PR Review',
-    summary: 'Read-only GitHub OAuth integration. Browse repositories and review pull requests with AI-assisted analysis. No automatic comments or pushes.',
+    title: 'GitHub PR 评审',
+    summary: '只读 GitHub OAuth 集成。可浏览仓库并用 AI 辅助分析 Pull Request，不会自动评论、推送或合并。',
     status: 'ready',
     icon: 'G',
   },
   {
-    title: 'Observability & Audit',
-    summary: 'System-wide metrics dashboard, per-project model usage and cost summaries, full audit log with action filtering, and model request traceability.',
+    title: '可观测性与审计',
+    summary: '系统级指标面板、项目级模型用量与成本汇总、可筛选审计日志，以及模型请求追踪。',
     status: 'ready',
     icon: 'O',
   },
 ]
 
 function statusLabel(s: Feature['status']): string {
-  if (s === 'ready') return 'Ready'
-  if (s === 'mock') return 'Mock'
-  return 'Planned'
+  if (s === 'ready') return '已就绪'
+  if (s === 'mock') return '模拟'
+  return '规划中'
 }
 </script>
 
 <template>
   <section class="fs">
     <div class="fs-header">
-      <span class="fs-eyebrow">Capabilities</span>
-      <h2 class="fs-title">What's Inside</h2>
-      <p class="fs-sub">Seven integrated modules forming a complete AI coding collaboration loop.</p>
+      <span class="fs-eyebrow">核心能力</span>
+      <h2 class="fs-title">平台包含什么</h2>
+      <p class="fs-sub">七个模块串起完整的 AI 编程协作闭环。</p>
     </div>
     <div class="fs-grid">
       <article

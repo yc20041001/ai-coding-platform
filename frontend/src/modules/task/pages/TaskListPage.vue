@@ -74,7 +74,7 @@ async function handleCreate() {
       priority: createForm.value.priority,
       agentId: createForm.value.agentId,
     })
-    ElMessage.success('Task created')
+    ElMessage.success('任务已创建')
     createVisible.value = false
     createForm.value = { title: '', description: '', taskType: 'FEATURE', priority: 'MEDIUM', agentId: '300002' }
     load(1)
@@ -90,7 +90,7 @@ async function handleExecute() {
   executing.value = true
   try {
     await executeTask(executingTaskId.value, executeForm.value)
-    ElMessage.success('Task executed')
+    ElMessage.success('任务已执行')
     executeVisible.value = false
     load()
   } catch { /* handled */ } finally { executing.value = false }
@@ -125,38 +125,38 @@ load(1)
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="Tasks"
-      subtitle="Agent Task Pipeline"
-      eyebrow="Execution"
+      title="任务"
+      subtitle="智能体任务流水线"
+      eyebrow="执行"
       :status="`${pipelineStats.total} total`"
     >
       <template #actions>
-        <GlowButton accent="primary" @click="createVisible = true" data-testid="btn-create-task">+ New Task</GlowButton>
+        <GlowButton accent="primary" @click="createVisible = true" data-testid="btn-create-task">+ 新建任务</GlowButton>
       </template>
 
       <template #metrics>
         <div class="task-pipeline">
           <div class="task-pipe-item">
             <SignalStrip tone="muted" :active="pipelineStats.pending > 0" />
-            <span class="task-pipe-label">Pending</span>
+            <span class="task-pipe-label">待处理</span>
             <span class="task-pipe-val">{{ pipelineStats.pending }}</span>
           </div>
           <div class="task-pipe-arrow">→</div>
           <div class="task-pipe-item">
             <SignalStrip tone="warning" :active="pipelineStats.running > 0" />
-            <span class="task-pipe-label">Running</span>
+            <span class="task-pipe-label">运行中</span>
             <span class="task-pipe-val">{{ pipelineStats.running }}</span>
           </div>
           <div class="task-pipe-arrow">→</div>
           <div class="task-pipe-item">
             <SignalStrip tone="success" :active="pipelineStats.completed > 0" />
-            <span class="task-pipe-label">Completed</span>
+            <span class="task-pipe-label">已完成</span>
             <span class="task-pipe-val">{{ pipelineStats.completed }}</span>
           </div>
           <div class="task-pipe-arrow">→</div>
           <div class="task-pipe-item">
             <SignalStrip tone="danger" :active="pipelineStats.failed > 0" />
-            <span class="task-pipe-label">Failed</span>
+            <span class="task-pipe-label">失败</span>
             <span class="task-pipe-val">{{ pipelineStats.failed }}</span>
           </div>
         </div>
@@ -165,15 +165,15 @@ load(1)
       <NeonDivider tone="primary" />
 
       <el-table :data="records" v-loading="loading" style="width:100%;margin-top:8px" data-testid="task-table">
-        <el-table-column prop="title" label="Title" min-width="180">
+        <el-table-column prop="title" label="标题" min-width="180">
           <template #default="{ row }">
             <span style="font-weight:600;color:var(--app-text)">{{ row.title }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Type" width="100">
+        <el-table-column label="类型" width="100">
           <template #default="{ row }">{{ row.taskType }}</template>
         </el-table-column>
-        <el-table-column label="Priority" width="100">
+        <el-table-column label="优先级" width="100">
           <template #default="{ row }">
             <el-tag
               size="small"
@@ -181,25 +181,25 @@ load(1)
             >{{ row.priority }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Status" width="130">
+        <el-table-column label="状态" width="130">
           <template #default="{ row }">
             <StatusPulse :status="row.status" :tone="statusTone(row.status)" />
           </template>
         </el-table-column>
-        <el-table-column label="Created" width="170">
+        <el-table-column label="创建时间" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="Actions" width="300" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="viewDetail(row.id)" data-testid="btn-task-detail">Detail</el-button>
-            <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'" data-testid="btn-execute-task">Execute</el-button>
-            <el-button size="small" @click="handleViewLogs(row.id)" data-testid="btn-task-logs">Logs</el-button>
-            <el-button size="small" @click="handleViewArtifacts(row.id)" data-testid="btn-task-artifacts">Artifacts</el-button>
+            <el-button size="small" text type="primary" @click="viewDetail(row.id)" data-testid="btn-task-detail">详情</el-button>
+            <el-button size="small" @click="openExecute(row.id)" :disabled="row.status !== 'PENDING'" data-testid="btn-execute-task">执行</el-button>
+            <el-button size="small" @click="handleViewLogs(row.id)" data-testid="btn-task-logs">日志</el-button>
+            <el-button size="small" @click="handleViewArtifacts(row.id)" data-testid="btn-task-artifacts">产物</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <EmptyState v-if="!loading && records.length === 0" description="No tasks yet" />
+      <EmptyState v-if="!loading && records.length === 0" description="暂无任务" />
 
       <el-pagination
         v-if="pagination.total > 0" v-model:current-page="pagination.page"
@@ -209,58 +209,58 @@ load(1)
       />
 
       <!-- Create Task Dialog -->
-      <el-dialog v-model="createVisible" title="Create Task" width="500px">
+      <el-dialog v-model="createVisible" title="创建任务" width="500px">
         <div data-testid="dialog-create-task">
           <el-form label-position="top">
-          <el-form-item label="Title" required>
-            <el-input v-model="createForm.title" placeholder="Task title" data-testid="input-task-title" />
+          <el-form-item label="标题" required>
+            <el-input v-model="createForm.title" placeholder="任务标题" data-testid="input-task-title" />
           </el-form-item>
-          <el-form-item label="Description">
+          <el-form-item label="描述">
             <el-input v-model="createForm.description" type="textarea" :rows="3" data-testid="input-task-description" />
           </el-form-item>
-          <el-form-item label="Type">
+          <el-form-item label="类型">
             <el-select v-model="createForm.taskType" style="width:100%" data-testid="select-task-type">
-              <el-option label="Feature" value="FEATURE" />
-              <el-option label="Bug" value="BUG" />
-              <el-option label="Refactor" value="REFACTOR" />
-              <el-option label="Docs" value="DOCS" />
+              <el-option label="功能" value="FEATURE" />
+              <el-option label="缺陷" value="BUG" />
+              <el-option label="重构" value="REFACTOR" />
+              <el-option label="文档" value="DOCS" />
             </el-select>
           </el-form-item>
-          <el-form-item label="Priority">
+          <el-form-item label="优先级">
             <el-select v-model="createForm.priority" style="width:100%" data-testid="select-task-priority">
-              <el-option label="High" value="HIGH" />
-              <el-option label="Medium" value="MEDIUM" />
-              <el-option label="Low" value="LOW" />
+              <el-option label="高" value="HIGH" />
+              <el-option label="中" value="MEDIUM" />
+              <el-option label="低" value="LOW" />
             </el-select>
           </el-form-item>
         </el-form>
         </div>
         <template #footer>
-          <el-button @click="createVisible = false" data-testid="btn-cancel-task">Cancel</el-button>
-          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-task">Create</el-button>
+          <el-button @click="createVisible = false" data-testid="btn-cancel-task">取消</el-button>
+          <el-button type="primary" :loading="creating" @click="handleCreate" data-testid="btn-submit-task">创建</el-button>
         </template>
       </el-dialog>
 
       <!-- Execute Task Dialog -->
-      <el-dialog v-model="executeVisible" title="Execute Task" width="500px">
+      <el-dialog v-model="executeVisible" title="执行任务" width="500px">
         <div data-testid="dialog-execute-task">
           <el-form label-position="top">
-          <el-form-item label="Instruction">
-            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" data-testid="input-execute-instruction" />
+          <el-form-item label="执行指令">
+            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="请输入执行指令" data-testid="input-execute-instruction" />
           </el-form-item>
-          <el-form-item label="Use RAG">
+          <el-form-item label="使用 RAG">
             <el-switch v-model="executeForm.useRag" data-testid="switch-execute-rag" />
           </el-form-item>
         </el-form>
         </div>
         <template #footer>
-          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute">Cancel</el-button>
-          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute">Execute</el-button>
+          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute">取消</el-button>
+          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute">执行</el-button>
         </template>
       </el-dialog>
 
       <!-- Logs Drawer -->
-      <el-drawer v-model="logsVisible" title="Task Logs" size="500px">
+      <el-drawer v-model="logsVisible" title="任务日志" size="500px">
         <div v-loading="logsLoading">
           <div v-for="log in logs" :key="log.id" class="log-line">
             <span class="log-stage">{{ log.stage }}</span>
@@ -268,18 +268,18 @@ load(1)
             <span class="log-msg">{{ log.message }}</span>
             <span class="log-time">{{ formatDateTime(log.createTime) }}</span>
           </div>
-          <EmptyState v-if="!logsLoading && logs.length === 0" description="No logs" />
+          <EmptyState v-if="!logsLoading && logs.length === 0" description="暂无日志" />
         </div>
       </el-drawer>
 
       <!-- Artifacts Drawer -->
-      <el-drawer v-model="artifactVisible" title="Artifacts" size="600px">
+      <el-drawer v-model="artifactVisible" title="产物" size="600px">
         <div v-loading="artifactLoading">
           <div v-if="selectedArtifact">
             <el-tag size="small" style="margin-bottom:12px">{{ selectedArtifact.artifactType }}</el-tag>
             <MarkdownRenderer :content="selectedArtifact.content || ''" />
           </div>
-          <EmptyState v-else-if="!artifactLoading" description="No artifacts" />
+          <EmptyState v-else-if="!artifactLoading" description="暂无产物" />
         </div>
       </el-drawer>
     </DynamicWorkspace>

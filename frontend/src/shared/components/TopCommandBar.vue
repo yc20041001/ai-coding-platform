@@ -19,14 +19,14 @@ defineEmits<{
       <div class="tcb-divider" />
       <div class="tcb-env">
         <span class="tcb-env-dot" />
-        <span class="tcb-env-text">{{ provider || 'Mock Gateway' }}</span>
+        <span class="tcb-env-text">{{ provider || '模拟网关' }}</span>
       </div>
     </div>
 
     <div class="tcb-center">
       <div class="tcb-cmd">
         <span class="tcb-cmd-icon">›</span>
-        <span class="tcb-cmd-placeholder">Command Center</span>
+        <span class="tcb-cmd-placeholder">指挥中心</span>
         <span class="tcb-cmd-hint">⌘K</span>
       </div>
     </div>
@@ -34,11 +34,11 @@ defineEmits<{
     <div class="tcb-right">
       <div class="tcb-status">
         <span class="tcb-dot" />
-        <span class="tcb-status-text">System Online</span>
+        <span class="tcb-status-text">系统在线</span>
       </div>
       <div class="tcb-divider" />
       <span class="tcb-user">{{ username || 'admin' }}</span>
-      <button class="tcb-logout" data-testid="btn-logout" @click="$emit('logout')">Exit</button>
+      <button class="tcb-logout" data-testid="btn-logout" @click="$emit('logout')">退出</button>
     </div>
   </header>
 </template>

@@ -53,14 +53,14 @@ async function handleAuthorize() {
   try {
     const { data } = await getOAuthAuthorize()
     if (!data.configured) {
-      ElMessage.warning('GitHub OAuth not configured, contact admin')
+      ElMessage.warning('GitHub OAuth 未配置，请联系管理员')
       return
     }
     if (data.authorizeUrl) {
       window.open(data.authorizeUrl, '_blank', 'width=800,height=700')
     }
   } catch {
-    ElMessage.error('Failed to get authorization URL')
+    ElMessage.error('获取授权地址失败')
   } finally {
     loadingOAuth.value = false
   }
@@ -73,7 +73,7 @@ async function handleSync() {
     repositories.value = data ?? []
     ElMessage.success(`Sync complete: ${repositories.value.length} repos`)
   } catch {
-    ElMessage.error('Sync failed. Confirm GitHub account is bound')
+    ElMessage.error('同步失败，请确认已绑定 GitHub 账号')
   } finally {
     loadingRepo.value = false
   }
@@ -96,9 +96,9 @@ async function handleUnbind() {
 <template>
   <div class="page-container">
     <DynamicWorkspace
-      title="GitHub Integration"
-      subtitle="Repository Sync & OAuth Binding"
-      eyebrow="DevOps"
+      title="GitHub 集成"
+      subtitle="仓库同步与 OAuth 绑定"
+      eyebrow="研发运维"
     >
       <template #actions>
         <StatusPulse
@@ -109,7 +109,7 @@ async function handleUnbind() {
 
       <NeonDivider tone="primary" style="margin-bottom:20px" />
 
-      <TechPanel title="GitHub OAuth" glow style="margin-bottom:20px">
+      <TechPanel title="GitHub OAuth 配置" glow style="margin-bottom:20px">
         <div v-if="!oauthStatus" class="status-row">
           <StatusPulse status="Checking..." tone="warning" />
         </div>
@@ -118,9 +118,9 @@ async function handleUnbind() {
           <div class="notice">
             <span class="notice-icon">&#9888;</span>
             <div>
-              <p class="notice-title">GitHub OAuth Not Configured</p>
+              <p class="notice-title">GitHub OAuth 未配置</p>
               <p class="notice-desc">
-                Set <code>GITHUB_CLIENT_ID</code> and <code>GITHUB_CLIENT_SECRET</code>
+                请设置 <code>GITHUB_CLIENT_ID</code> 和 <code>GITHUB_CLIENT_SECRET</code>
                 in <code>.env</code>, then restart the backend.
               </p>
             </div>
@@ -135,7 +135,7 @@ async function handleUnbind() {
             <GlowButton accent="primary" size="small" :loading="loadingRepo" @click="handleSync">
               Sync Repos
             </GlowButton>
-            <el-button size="small" @click="handleUnbind">Unbind</el-button>
+            <el-button size="small" @click="handleUnbind">解绑</el-button>
           </div>
         </template>
 
@@ -154,7 +154,7 @@ async function handleUnbind() {
         </template>
       </TechPanel>
 
-      <TechPanel v-if="oauthStatus?.bound" title="Repositories">
+      <TechPanel v-if="oauthStatus?.bound" title="仓库">
         <div v-if="loadingRepo" style="padding:8px 0">
           <StatusPulse status="Loading..." tone="warning" />
         </div>
@@ -172,12 +172,12 @@ async function handleUnbind() {
             <div class="repo-name">
               <span class="repo-icon">◈</span>
               <a :href="repo.htmlUrl ?? '#'" target="_blank" rel="noopener">{{ repo.fullName }}</a>
-              <span v-if="repo.privateRepo" class="badge">Private</span>
+              <span v-if="repo.privateRepo" class="badge">私有</span>
             </div>
             <p v-if="repo.description" class="repo-desc">{{ repo.description }}</p>
             <div class="repo-meta">
               <span v-if="repo.language">{{ repo.language }}</span>
-              <span v-if="repo.defaultBranch">branch: {{ repo.defaultBranch }}</span>
+              <span v-if="repo.defaultBranch">分支：{{ repo.defaultBranch }}</span>
             </div>
           </div>
         </div>

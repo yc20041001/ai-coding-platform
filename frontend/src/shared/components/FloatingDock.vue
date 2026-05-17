@@ -15,9 +15,9 @@ interface DockItem {
 }
 
 const items: DockItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: '◆' },
-  { path: '/projects', label: 'Projects', icon: '◇' },
-  { path: '/agents', label: 'Agents', icon: '◈' },
+  { path: '/dashboard', label: '仪表盘', icon: '◆' },
+  { path: '/projects', label: '项目', icon: '◇' },
+  { path: '/agents', label: '智能体', icon: '◈' },
   { path: '/github', label: 'GitHub', icon: '⬡' },
 ]
 
@@ -51,7 +51,7 @@ const isActive = (path: string) => {
           :class="{ active: route.path.startsWith('/observability') }"
         >
           <span class="fdock-icon">◎</span>
-          <span class="fdock-label">Observe</span>
+          <span class="fdock-label">观测</span>
           <span v-if="route.path.startsWith('/observability')" class="fdock-bar" />
         </router-link>
         <router-link
@@ -60,7 +60,7 @@ const isActive = (path: string) => {
           :class="{ active: route.path.startsWith('/model-gateway') }"
         >
           <span class="fdock-icon">◉</span>
-          <span class="fdock-label">Models</span>
+          <span class="fdock-label">模型</span>
           <span v-if="route.path.startsWith('/model-gateway')" class="fdock-bar" />
         </router-link>
       </template>

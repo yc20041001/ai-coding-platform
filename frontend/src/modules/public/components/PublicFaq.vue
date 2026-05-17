@@ -17,7 +17,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: 'Is GitHub OAuth required?',
-    a: 'No. GitHub OAuth is entirely optional. The Repository and PR Review features are available but will show a "Not Configured" state until you set up GitHub OAuth credentials. All other features (Projects, Tasks, Chat, RAG, Model Gateway) work without it.',
+    a: 'No. GitHub OAuth is entirely optional. The Repository and PR Review features are available but will show a "Not Configured" state until you set up GitHub OAuth credentials. All other features (Projects, Tasks, Chat, RAG, 模型网关) work without it.',
   },
   {
     q: 'Does any data leave my machine?',
@@ -33,7 +33,7 @@ const faqs: FaqItem[] = [
   },
   {
     q: 'How do I connect a real AI model?',
-    a: 'Edit your .env file and set *_ENABLED=true plus *_API_KEY for each provider you want to use (OpenAI, Claude, DeepSeek, Qwen, Gemini). Then configure models in the Model Gateway page of the console. See the README for a complete list of environment variables.',
+    a: 'Edit your .env file and set *_ENABLED=true plus *_API_KEY for each provider you want to use (OpenAI、Claude、DeepSeek、Qwen， Gemini). Then configure models in the 模型网关 page of the console. See the README for a complete list of environment variables.',
   },
   {
     q: 'What are the current limitations?',
@@ -51,8 +51,8 @@ function toggle(idx: number) {
 <template>
   <section class="faq">
     <div class="faq-header">
-      <span class="faq-eyebrow">FAQ</span>
-      <h2 class="faq-title">Frequently Asked Questions</h2>
+      <span class="faq-eyebrow">常见问题</span>
+      <h2 class="faq-title">常见问题</h2>
     </div>
     <div class="faq-list">
       <div

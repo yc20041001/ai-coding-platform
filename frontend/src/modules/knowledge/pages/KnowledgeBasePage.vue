@@ -67,7 +67,7 @@ async function handleCreateKb() {
   creatingKb.value = true
   try {
     await createKnowledgeBase(projectId, createKbForm.value.name, createKbForm.value.description)
-    ElMessage.success('Knowledge base created')
+    ElMessage.success('知识库已创建')
     createKbVisible.value = false
     createKbForm.value = { name: '', description: '' }
     loadKbs()
@@ -84,7 +84,7 @@ async function handleUpload() {
       documentType: uploadForm.value.documentType,
       content: uploadForm.value.content,
     })
-    ElMessage.success('Document uploaded')
+    ElMessage.success('文档已上传')
     uploadVisible.value = false
     uploadForm.value = { title: '', documentType: 'MARKDOWN', content: '' }
     selectKb(selectedKbId.value)
@@ -120,10 +120,10 @@ async function handleSearch() {
     <aside class="kb-sidebar">
       <div class="kb-sidebar-header">
         <div class="kb-sidebar-title-row">
-          <span class="kb-sidebar-title">Knowledge Base</span>
+          <span class="kb-sidebar-title">知识库</span>
           <StatusPulse status="Active" tone="success" />
         </div>
-        <p class="kb-sidebar-sub">Project Memory System</p>
+        <p class="kb-sidebar-sub">项目记忆系统</p>
         <GlowButton accent="primary" size="small" style="width:100%;margin-top:10px" @click="createKbVisible = true">+ New KB</GlowButton>
       </div>
       <div v-loading="loadingKbs" class="kb-list">
@@ -136,29 +136,29 @@ async function handleSearch() {
           <div class="kb-name">{{ kb.name }}</div>
           <div class="kb-meta">{{ kb.documentCount }} docs / {{ formatNumber(kb.chunkCount) }} chunks</div>
         </div>
-        <EmptyState v-if="!loadingKbs && kbs.length === 0" description="No knowledge bases" />
+        <EmptyState v-if="!loadingKbs && kbs.length === 0" description="暂无知识库" />
       </div>
     </aside>
 
     <section class="kb-main">
       <div v-if="!selectedKbId" class="kb-empty">
         <span class="kb-empty-icon">◈</span>
-        <span>Select a knowledge base to view documents</span>
+        <span>选择一个知识库查看文档</span>
       </div>
       <template v-else>
         <div class="kb-toolbar">
-          <span class="kb-section-title">Documents</span>
+          <span class="kb-section-title">文档</span>
           <GlowButton accent="success" size="small" @click="uploadVisible = true">+ Upload</GlowButton>
         </div>
 
         <el-table :data="documents" v-loading="loadingDocs" size="small" style="width:100%">
-          <el-table-column prop="title" label="Title" min-width="180">
+          <el-table-column prop="title" label="标题" min-width="180">
             <template #default="{ row }">
               <span style="font-weight:600;color:var(--app-text)">{{ row.title }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="documentType" label="Type" width="100" />
-          <el-table-column label="Status" width="130">
+          <el-table-column prop="documentType" label="类型" width="100" />
+          <el-table-column label="状态" width="130">
             <template #default="{ row }">
               <StatusPulse
                 :status="row.status"
@@ -166,13 +166,13 @@ async function handleSearch() {
               />
             </template>
           </el-table-column>
-          <el-table-column prop="chunkCount" label="Chunks" width="90" />
-          <el-table-column label="Created" width="160">
+          <el-table-column prop="chunkCount" label="切片" width="90" />
+          <el-table-column label="创建时间" width="160">
             <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
           </el-table-column>
-          <el-table-column label="Actions" width="90">
+          <el-table-column label="操作" width="90">
             <template #default="{ row }">
-              <el-button size="small" text type="primary" @click="handleViewChunks(row.id, row.title)">Chunks</el-button>
+              <el-button size="small" text type="primary" @click="handleViewChunks(row.id, row.title)">切片</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -180,10 +180,10 @@ async function handleSearch() {
         <NeonDivider tone="primary" style="margin-top:24px" />
 
         <div class="kb-search">
-          <span class="kb-search-label">RAG Search</span>
+          <span class="kb-search-label">RAG 检索</span>
           <div class="kb-search-row">
-            <el-input v-model="searchQuery" placeholder="Search knowledge..." size="small" style="width:320px" @keyup.enter="handleSearch" />
-            <el-button size="small" type="primary" :loading="searching" @click="handleSearch">Search</el-button>
+            <el-input v-model="searchQuery" placeholder="搜索知识内容..." size="small" style="width:320px" @keyup.enter="handleSearch" />
+            <el-button size="small" type="primary" :loading="searching" @click="handleSearch">搜索</el-button>
           </div>
         </div>
         <div v-if="searchResults.length > 0" class="search-results">
@@ -204,47 +204,47 @@ async function handleSearch() {
             </div>
           </div>
         </div>
-        <ErrorState v-else-if="searchError" title="Search Failed" message="RAG search encountered an error" />
-        <EmptyState v-else-if="!searching && searchQuery && searchResults.length === 0 && !searchError" description="No matching results" />
+        <ErrorState v-else-if="searchError" title="搜索失败" message="RAG 检索出现错误" />
+        <EmptyState v-else-if="!searching && searchQuery && searchResults.length === 0 && !searchError" description="暂无匹配结果" />
       </template>
     </section>
 
     <!-- Create KB Dialog -->
-    <el-dialog v-model="createKbVisible" title="Create Knowledge Base" width="450px">
+    <el-dialog v-model="createKbVisible" title="创建知识库" width="450px">
       <el-form label-position="top">
-        <el-form-item label="Name" required>
-          <el-input v-model="createKbForm.name" placeholder="Knowledge base name" />
+        <el-form-item label="名称" required>
+          <el-input v-model="createKbForm.name" placeholder="知识库名称" />
         </el-form-item>
-        <el-form-item label="Description">
+        <el-form-item label="描述">
           <el-input v-model="createKbForm.description" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createKbVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="creatingKb" @click="handleCreateKb">Create</el-button>
+        <el-button @click="createKbVisible = false">取消</el-button>
+        <el-button type="primary" :loading="creatingKb" @click="handleCreateKb">创建</el-button>
       </template>
     </el-dialog>
 
     <!-- Upload Doc Dialog -->
-    <el-dialog v-model="uploadVisible" title="Upload Document" width="550px">
+    <el-dialog v-model="uploadVisible" title="上传文档" width="550px">
       <el-form label-position="top">
-        <el-form-item label="Title" required>
-          <el-input v-model="uploadForm.title" placeholder="Document title" />
+        <el-form-item label="标题" required>
+          <el-input v-model="uploadForm.title" placeholder="文档标题" />
         </el-form-item>
-        <el-form-item label="Type">
+        <el-form-item label="类型">
           <el-select v-model="uploadForm.documentType" style="width:100%">
             <el-option label="Markdown" value="MARKDOWN" />
-            <el-option label="Text" value="TEXT" />
-            <el-option label="Code" value="CODE" />
+            <el-option label="文本" value="TEXT" />
+            <el-option label="代码" value="CODE" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Content" required>
-          <el-input v-model="uploadForm.content" type="textarea" :rows="8" placeholder="Document content..." />
+        <el-form-item label="内容" required>
+          <el-input v-model="uploadForm.content" type="textarea" :rows="8" placeholder="文档内容..." />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="uploadVisible = false">Cancel</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUpload">Upload</el-button>
+        <el-button @click="uploadVisible = false">取消</el-button>
+        <el-button type="primary" :loading="uploading" @click="handleUpload">上传</el-button>
       </template>
     </el-dialog>
 

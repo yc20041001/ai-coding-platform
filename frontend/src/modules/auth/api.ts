@@ -1,8 +1,17 @@
 import client from '@/shared/api/client'
+import type { ApiResponse } from '@/shared/api/types'
 
 export interface LoginRequest {
   email: string
   password: string
+  captchaId?: string
+  captchaCode?: string
+}
+
+export interface CaptchaResponse {
+  captchaId: string
+  imageBase64: string
+  expireSeconds: number
 }
 
 export interface LoginResponse {
@@ -39,4 +48,8 @@ export async function refreshToken(token: string) {
 
 export async function getMe() {
   return client.get('/api/auth/me')
+}
+
+export function getCaptcha() {
+  return client.get<ApiResponse<CaptchaResponse>>('/api/auth/captcha')
 }

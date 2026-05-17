@@ -10,8 +10,8 @@ defineProps<{
     <div class="empty-state__mark">
       <span class="empty-state__diamond" />
     </div>
-    <div class="empty-state__title">{{ title || 'No Data' }}</div>
-    <div class="empty-state__desc">{{ description || 'No records available' }}</div>
+    <div class="empty-state__title">{{ title || '暂无数据' }}</div>
+    <div class="empty-state__desc">{{ description || '暂无记录' }}</div>
   </div>
 </template>
 

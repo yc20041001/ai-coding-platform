@@ -27,7 +27,7 @@ function formatScore(score: number | null): string {
 
 <template>
   <div v-if="references && references.length > 0" class="ref-list" :class="{ 'ref-list--compact': compact }">
-    <div class="ref-list__title">References ({{ references.length }})</div>
+    <div class="ref-list__title">引用来源（{{ references.length }}）</div>
     <div v-for="ref in references" :key="ref.id" class="ref-item">
       <div class="ref-item__header">
         <el-tag size="small" type="info">{{ ref.referenceType }}</el-tag>

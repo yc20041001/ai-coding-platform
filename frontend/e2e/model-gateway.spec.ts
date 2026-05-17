@@ -21,7 +21,7 @@ test.describe('Model Gateway', () => {
     await expect(page).toHaveURL(/\/model-gateway/)
 
     // Page title should be visible regardless of API state
-    await expect(page.getByText('Model Gateway').first()).toBeVisible({ timeout: 8000 })
+    await expect(page.getByText('模型网关').first()).toBeVisible({ timeout: 8000 })
   })
 
   test('should show providers section', async ({ page }) => {

@@ -47,24 +47,24 @@ watch(() => props.visible, async (val) => {
 <template>
   <el-drawer
     :model-value="visible"
-    title="Agent Execution Detail"
+    title="智能体执行详情"
     size="65%"
     @close="emit('close')"
   >
     <div v-loading="loading">
       <template v-if="execution">
         <div class="exec-section">
-          <h4>Overview</h4>
+          <h4>概览</h4>
           <div class="exec-grid">
-            <div class="exec-field"><span class="exec-label">Execution ID</span><code>{{ execution.id }}</code></div>
-            <div class="exec-field"><span class="exec-label">Agent</span><span>{{ execution.agentName }}</span></div>
-            <div class="exec-field"><span class="exec-label">Type</span><span>{{ execution.executionType }}</span></div>
-            <div class="exec-field"><span class="exec-label">Status</span><StatusPulse :status="execution.status" :tone="execution.status === 'COMPLETED' ? 'success' : execution.status === 'RUNNING' ? 'warning' : 'muted'" /></div>
-            <div class="exec-field"><span class="exec-label">RAG Used</span><el-tag size="small" :type="execution.ragUsed ? 'success' : 'info'">{{ execution.ragUsed ? 'Yes' : 'No' }}</el-tag></div>
-            <div class="exec-field"><span class="exec-label">Token Usage</span><span>{{ formatNumber(execution.tokenUsage) }}</span></div>
-            <div class="exec-field"><span class="exec-label">Started</span><span>{{ formatDateTime(execution.startedAt) }}</span></div>
-            <div class="exec-field"><span class="exec-label">Finished</span><span>{{ execution.finishedAt ? formatDateTime(execution.finishedAt) : '-' }}</span></div>
-            <div class="exec-field"><span class="exec-label">Created</span><span>{{ formatDateTime(execution.createTime) }}</span></div>
+            <div class="exec-field"><span class="exec-label">执行 ID</span><code>{{ execution.id }}</code></div>
+            <div class="exec-field"><span class="exec-label">智能体</span><span>{{ execution.agentName }}</span></div>
+            <div class="exec-field"><span class="exec-label">类型</span><span>{{ execution.executionType }}</span></div>
+            <div class="exec-field"><span class="exec-label">状态</span><StatusPulse :status="execution.status" :tone="execution.status === 'COMPLETED' ? 'success' : execution.status === 'RUNNING' ? 'warning' : 'muted'" /></div>
+            <div class="exec-field"><span class="exec-label">已使用 RAG</span><el-tag size="small" :type="execution.ragUsed ? 'success' : 'info'">{{ execution.ragUsed ? '是' : '否' }}</el-tag></div>
+            <div class="exec-field"><span class="exec-label">Token 用量</span><span>{{ formatNumber(execution.tokenUsage) }}</span></div>
+            <div class="exec-field"><span class="exec-label">开始时间</span><span>{{ formatDateTime(execution.startedAt) }}</span></div>
+            <div class="exec-field"><span class="exec-label">完成时间</span><span>{{ execution.finishedAt ? formatDateTime(execution.finishedAt) : '-' }}</span></div>
+            <div class="exec-field"><span class="exec-label">创建时间</span><span>{{ formatDateTime(execution.createTime) }}</span></div>
           </div>
           <div v-if="execution.errorMessage" class="exec-error">
             <el-alert :title="execution.errorMessage" type="error" :closable="false" />
@@ -72,7 +72,7 @@ watch(() => props.visible, async (val) => {
         </div>
 
         <div class="exec-section">
-          <h4>Input Prompt</h4>
+          <h4>输入提示词</h4>
           <div class="exec-content-box">
             <MarkdownRenderer v-if="execution.inputPrompt" :content="execution.inputPrompt" />
             <span v-else class="exec-empty">(empty)</span>
@@ -80,7 +80,7 @@ watch(() => props.visible, async (val) => {
         </div>
 
         <div class="exec-section">
-          <h4>Output Content</h4>
+          <h4>输出内容</h4>
           <div class="exec-content-box">
             <MarkdownRenderer v-if="execution.outputContent" :content="execution.outputContent" />
             <span v-else class="exec-empty">(empty)</span>
@@ -88,7 +88,7 @@ watch(() => props.visible, async (val) => {
         </div>
 
         <div class="exec-section">
-          <h4>Model Logs</h4>
+          <h4>模型日志</h4>
           <div v-if="modelLogs.length > 0">
             <div v-for="log in modelLogs" :key="log.id" class="model-log-card">
               <div class="ml-header">
@@ -98,19 +98,19 @@ watch(() => props.visible, async (val) => {
                 <el-tag size="small" :type="log.success ? 'success' : 'danger'">{{ log.success ? 'OK' : 'FAIL' }}</el-tag>
               </div>
               <div class="ml-stats">
-                <span>Prompt: {{ formatNumber(log.promptTokens) }}</span>
-                <span>Completion: {{ formatNumber(log.completionTokens) }}</span>
-                <span>Total: {{ formatNumber(log.totalTokens) }}</span>
-                <span>Latency: {{ log.latencyMs }}ms</span>
+                <span>提示词：{{ formatNumber(log.promptTokens) }}</span>
+                <span>补全：{{ formatNumber(log.completionTokens) }}</span>
+                <span>总计：{{ formatNumber(log.totalTokens) }}</span>
+                <span>延迟：{{ log.latencyMs }}ms</span>
               </div>
               <div v-if="log.errorMessage" class="ml-error">{{ log.errorMessage }}</div>
               <div class="ml-time">{{ formatDateTime(log.createTime) }}</div>
             </div>
           </div>
-          <EmptyState v-else-if="!loadingLogs" description="No model logs" />
+          <EmptyState v-else-if="!loadingLogs" description="暂无模型日志" />
         </div>
       </template>
-      <ErrorState v-else-if="!loading" title="Load Failed" message="Cannot load execution details" />
+      <ErrorState v-else-if="!loading" title="加载失败" message="Cannot load execution details" />
     </div>
   </el-drawer>
 </template>

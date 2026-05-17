@@ -48,10 +48,10 @@ const executionDrawerVisible = ref(false)
 const selectedExecutionId = ref<string | null>(null)
 
 const railItems = [
-  { key: 'overview', label: 'Overview', icon: '◆' },
-  { key: 'logs', label: 'Logs', icon: '▤' },
-  { key: 'artifacts', label: 'Artifacts', icon: '◈' },
-  { key: 'executions', label: 'Executions', icon: '◎' },
+  { key: 'overview', label: '概览', icon: '◆' },
+  { key: 'logs', label: '日志', icon: '▤' },
+  { key: 'artifacts', label: '产物', icon: '◈' },
+  { key: 'executions', label: '执行记录', icon: '◎' },
 ]
 
 const statusTone = (status: string) => {
@@ -63,22 +63,22 @@ const statusTone = (status: string) => {
 
 async function loadTask() {
   loading.value = true
-  try { const res = await getTaskDetail(taskId); task.value = res.data.data } catch { ElMessage.error('Failed to load task') } finally { loading.value = false }
+  try { const res = await getTaskDetail(taskId); task.value = res.data.data } catch { ElMessage.error('加载任务失败') } finally { loading.value = false }
 }
 
 async function loadLogs() {
   loadingLogs.value = true
-  try { const res = await getTaskLogs(taskId); logs.value = res.data.data } catch { ElMessage.error('Failed to load logs') } finally { loadingLogs.value = false }
+  try { const res = await getTaskLogs(taskId); logs.value = res.data.data } catch { ElMessage.error('加载日志失败') } finally { loadingLogs.value = false }
 }
 
 async function loadArtifacts() {
   loadingArtifacts.value = true
-  try { const res = await getTaskArtifacts(taskId); artifacts.value = res.data.data; selectedArtifact.value = res.data.data[0] || null } catch { ElMessage.error('Failed to load artifacts') } finally { loadingArtifacts.value = false }
+  try { const res = await getTaskArtifacts(taskId); artifacts.value = res.data.data; selectedArtifact.value = res.data.data[0] || null } catch { ElMessage.error('加载产物失败') } finally { loadingArtifacts.value = false }
 }
 
 async function loadExecutions() {
   loadingExecutions.value = true
-  try { const res = await getTaskExecutions(taskId); executions.value = res.data.data.records } catch { ElMessage.error('Failed to load executions') } finally { loadingExecutions.value = false }
+  try { const res = await getTaskExecutions(taskId); executions.value = res.data.data.records } catch { ElMessage.error('加载执行记录失败') } finally { loadingExecutions.value = false }
 }
 
 function onRailSelect(key: string) {
@@ -90,12 +90,12 @@ function onRailSelect(key: string) {
 
 async function handleExecute() {
   executing.value = true
-  try { await executeTask(taskId, executeForm.value); ElMessage.success('Task executed'); executeVisible.value = false; loadTask(); loadExecutions() } catch { ElMessage.error('Execution failed') } finally { executing.value = false }
+  try { await executeTask(taskId, executeForm.value); ElMessage.success('任务已执行'); executeVisible.value = false; loadTask(); loadExecutions() } catch { ElMessage.error('执行失败') } finally { executing.value = false }
 }
 
-async function handleCancel() { try { await cancelTask(taskId, 'User cancelled'); ElMessage.success('Task cancelled'); loadTask() } catch { ElMessage.error('Cancel failed') } }
-async function handleRetry() { try { await retryTask(taskId); ElMessage.success('Task retrying'); loadTask(); loadExecutions() } catch { ElMessage.error('Retry failed') } }
-async function handleStart() { try { await startTask(taskId); ElMessage.success('Task started'); loadTask() } catch { ElMessage.error('Start failed') } }
+async function handleCancel() { try { await cancelTask(taskId, 'User cancelled'); ElMessage.success('任务已取消'); loadTask() } catch { ElMessage.error('取消失败') } }
+async function handleRetry() { try { await retryTask(taskId); ElMessage.success('任务重试中'); loadTask(); loadExecutions() } catch { ElMessage.error('重试失败') } }
+async function handleStart() { try { await startTask(taskId); ElMessage.success('任务已启动'); loadTask() } catch { ElMessage.error('启动失败') } }
 
 function openExecution(executionId: string) {
   selectedExecutionId.value = executionId
@@ -115,13 +115,13 @@ onMounted(() => loadTask())
     <div v-if="task">
       <DynamicWorkspace
         :title="task.title"
-        :subtitle="task.description || 'Task Execution Detail'"
-        eyebrow="Task"
+        :subtitle="task.description || '任务执行详情'"
+        eyebrow="任务"
       >
         <template #actions>
           <div style="display:flex;gap:8px;align-items:center">
             <StatusPulse :status="task.status" :tone="statusTone(task.status)" />
-            <el-button size="small" @click="goBack">Back</el-button>
+            <el-button size="small" @click="goBack">返回</el-button>
           </div>
         </template>
 
@@ -129,27 +129,27 @@ onMounted(() => loadTask())
           <div class="td-pipeline">
             <div class="td-pipe-item">
               <SignalStrip tone="muted" :active="task.status === 'PENDING'" />
-              <span class="td-pipe-label">Pending</span>
+              <span class="td-pipe-label">待处理</span>
             </div>
             <div class="td-pipe-arrow">→</div>
             <div class="td-pipe-item">
               <SignalStrip tone="warning" :active="task.status === 'RUNNING'" />
-              <span class="td-pipe-label">Running</span>
+              <span class="td-pipe-label">运行中</span>
             </div>
             <div class="td-pipe-arrow">→</div>
             <div class="td-pipe-item">
               <SignalStrip tone="primary" :active="false" />
-              <span class="td-pipe-label">Model Gateway</span>
+              <span class="td-pipe-label">模型网关</span>
             </div>
             <div class="td-pipe-arrow">→</div>
             <div class="td-pipe-item">
               <SignalStrip tone="accent" :active="false" />
-              <span class="td-pipe-label">Artifact</span>
+              <span class="td-pipe-label">产物</span>
             </div>
             <div class="td-pipe-arrow">→</div>
             <div class="td-pipe-item">
               <SignalStrip tone="success" :active="task.status === 'COMPLETED'" />
-              <span class="td-pipe-label">Completed</span>
+              <span class="td-pipe-label">已完成</span>
             </div>
           </div>
         </template>
@@ -159,16 +159,16 @@ onMounted(() => loadTask())
           <el-tag size="small" :type="task.priority === 'HIGH' ? 'danger' : task.priority === 'MEDIUM' ? 'warning' : 'info'">
             {{ task.priority }}
           </el-tag>
-          <span class="td-meta-text">Agent: {{ task.agentName || task.agentId }}</span>
-          <span v-if="task.creatorName" class="td-meta-text">Creator: {{ task.creatorName }}</span>
-          <span class="td-meta-text">Retry: {{ task.retryCount }}/{{ task.maxRetryCount }}</span>
+          <span class="td-meta-text">智能体：{{ task.agentName || task.agentId }}</span>
+          <span v-if="task.creatorName" class="td-meta-text">创建人：{{ task.creatorName }}</span>
+          <span class="td-meta-text">重试：{{ task.retryCount }}/{{ task.maxRetryCount }}</span>
         </div>
 
         <div class="td-actions">
-          <GlowButton v-if="task.status === 'PENDING'" accent="primary" size="small" @click="executeVisible = true">Execute</GlowButton>
-          <el-button v-if="task.status === 'PENDING'" size="small" @click="handleStart">Start</el-button>
-          <GlowButton v-if="task.status === 'RUNNING'" accent="danger" size="small" @click="handleCancel">Cancel</GlowButton>
-          <GlowButton v-if="task.status === 'FAILED'" accent="warning" size="small" @click="handleRetry">Retry</GlowButton>
+          <GlowButton v-if="task.status === 'PENDING'" accent="primary" size="small" @click="executeVisible = true">执行</GlowButton>
+          <el-button v-if="task.status === 'PENDING'" size="small" @click="handleStart">启动</el-button>
+          <GlowButton v-if="task.status === 'RUNNING'" accent="danger" size="small" @click="handleCancel">取消</GlowButton>
+          <GlowButton v-if="task.status === 'FAILED'" accent="warning" size="small" @click="handleRetry">重试</GlowButton>
         </div>
 
         <div v-if="task.errorMessage" style="margin-top:12px">
@@ -184,18 +184,18 @@ onMounted(() => loadTask())
           <div v-if="activeTab === 'overview'" class="td-overview">
             <div class="overview-grid">
               <div><span class="ov-label">ID</span><code>{{ task.id }}</code></div>
-              <div><span class="ov-label">Project ID</span><code>{{ task.projectId }}</code></div>
-              <div><span class="ov-label">Type</span><span>{{ task.taskType }}</span></div>
-              <div><span class="ov-label">Priority</span><span>{{ task.priority }}</span></div>
-              <div><span class="ov-label">Status</span><StatusPulse :status="task.status" :tone="statusTone(task.status)" /></div>
-              <div><span class="ov-label">Source</span><span>{{ task.sourceType || '-' }}</span></div>
-              <div v-if="task.branch"><span class="ov-label">Branch</span><code>{{ task.branch }}</code></div>
-              <div><span class="ov-label">Created</span><span>{{ formatDateTime(task.createTime) }}</span></div>
-              <div><span class="ov-label">Started</span><span>{{ task.startTime ? formatDateTime(task.startTime) : '-' }}</span></div>
-              <div><span class="ov-label">Ended</span><span>{{ task.endTime ? formatDateTime(task.endTime) : '-' }}</span></div>
+              <div><span class="ov-label">项目 ID</span><code>{{ task.projectId }}</code></div>
+              <div><span class="ov-label">类型</span><span>{{ task.taskType }}</span></div>
+              <div><span class="ov-label">优先级</span><span>{{ task.priority }}</span></div>
+              <div><span class="ov-label">状态</span><StatusPulse :status="task.status" :tone="statusTone(task.status)" /></div>
+              <div><span class="ov-label">来源</span><span>{{ task.sourceType || '-' }}</span></div>
+              <div v-if="task.branch"><span class="ov-label">分支</span><code>{{ task.branch }}</code></div>
+              <div><span class="ov-label">创建时间</span><span>{{ formatDateTime(task.createTime) }}</span></div>
+              <div><span class="ov-label">开始时间</span><span>{{ task.startTime ? formatDateTime(task.startTime) : '-' }}</span></div>
+              <div><span class="ov-label">结束时间</span><span>{{ task.endTime ? formatDateTime(task.endTime) : '-' }}</span></div>
             </div>
             <div v-if="task.description" style="margin-top:16px">
-              <h3 class="td-section-label">Description</h3>
+              <h3 class="td-section-label">描述</h3>
               <div class="td-desc-panel">
                 <MarkdownRenderer :content="task.description" />
               </div>
@@ -210,7 +210,7 @@ onMounted(() => loadTask())
               <span class="log-msg">{{ log.message }}</span>
               <span class="log-time">{{ formatDateTime(log.createTime) }}</span>
             </div>
-            <EmptyState v-if="!loadingLogs && logs.length === 0" description="No logs" />
+            <EmptyState v-if="!loadingLogs && logs.length === 0" description="暂无日志" />
           </div>
 
           <!-- Artifacts -->
@@ -229,14 +229,14 @@ onMounted(() => loadTask())
                 <MarkdownRenderer :content="selectedArtifact.content || ''" />
               </div>
             </template>
-            <EmptyState v-else-if="!loadingArtifacts" description="No artifacts" />
+            <EmptyState v-else-if="!loadingArtifacts" description="暂无产物" />
           </div>
 
           <!-- Executions -->
           <div v-if="activeTab === 'executions'" v-loading="loadingExecutions">
             <el-table :data="executions" size="small" style="width:100%">
-              <el-table-column prop="agentName" label="Agent" min-width="120" />
-              <el-table-column label="Status" width="130">
+              <el-table-column prop="agentName" label="智能体" min-width="120" />
+              <el-table-column label="状态" width="130">
                 <template #default="{ row }">
                   <StatusPulse :status="row.status" :tone="row.status === 'COMPLETED' ? 'success' : row.status === 'RUNNING' ? 'warning' : 'muted'" />
                 </template>
@@ -246,38 +246,38 @@ onMounted(() => loadTask())
                   <el-tag size="small" :type="row.ragUsed ? 'success' : 'info'">{{ row.ragUsed ? 'On' : 'Off' }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="Tokens" width="90">
+              <el-table-column label="Token" width="90">
                 <template #default="{ row }">{{ row.tokenUsage || 0 }}</template>
               </el-table-column>
-              <el-table-column label="Started" width="150">
+              <el-table-column label="开始时间" width="150">
                 <template #default="{ row }">{{ formatDateTime(row.startedAt) }}</template>
               </el-table-column>
-              <el-table-column label="Actions" width="100">
+              <el-table-column label="操作" width="100">
                 <template #default="{ row }">
-                  <el-button size="small" text type="primary" @click="openExecution(row.id)">Detail</el-button>
+                  <el-button size="small" text type="primary" @click="openExecution(row.id)">详情</el-button>
                 </template>
               </el-table-column>
             </el-table>
-            <EmptyState v-if="!loadingExecutions && executions.length === 0" description="No executions" />
+            <EmptyState v-if="!loadingExecutions && executions.length === 0" description="暂无执行记录" />
           </div>
         </div>
       </DynamicWorkspace>
 
       <!-- Execute Dialog -->
-      <el-dialog v-model="executeVisible" title="Execute Task" width="500px">
+      <el-dialog v-model="executeVisible" title="执行任务" width="500px">
         <div data-testid="dialog-execute-task-detail">
           <el-form label-position="top">
-          <el-form-item label="Instruction">
-            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="Enter execution instruction" data-testid="input-execute-instruction-detail" />
+          <el-form-item label="执行指令">
+            <el-input v-model="executeForm.instruction" type="textarea" :rows="3" placeholder="请输入执行指令" data-testid="input-execute-instruction-detail" />
           </el-form-item>
-          <el-form-item label="Use RAG">
+          <el-form-item label="使用 RAG">
             <el-switch v-model="executeForm.useRag" data-testid="switch-execute-rag-detail" />
           </el-form-item>
         </el-form>
         </div>
         <template #footer>
-          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute-detail">Cancel</el-button>
-          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute-detail">Execute</el-button>
+          <el-button @click="executeVisible = false" data-testid="btn-cancel-execute-detail">取消</el-button>
+          <el-button type="primary" :loading="executing" @click="handleExecute" data-testid="btn-submit-execute-detail">执行</el-button>
         </template>
       </el-dialog>
 
@@ -287,7 +287,7 @@ onMounted(() => loadTask())
         @close="executionDrawerVisible = false"
       />
     </div>
-    <ErrorState v-else-if="!loading" title="Task not found" message="Cannot load task details" retry-text="Retry" @retry="loadTask" />
+    <ErrorState v-else-if="!loading" title="未找到任务" message="无法加载任务详情" retry-text="重试" @retry="loadTask" />
   </div>
 </template>
 

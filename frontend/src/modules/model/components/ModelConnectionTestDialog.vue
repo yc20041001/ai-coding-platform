@@ -60,16 +60,16 @@ function providerLabel(p: string) {
 </script>
 
 <template>
-  <el-dialog :model-value="visible" :title="`Test Connection - ${providerLabel(provider)}`" width="520px" @close="emit('close')">
+  <el-dialog :model-value="visible" :title="`测试连接 - ${providerLabel(provider)}`" width="520px" @close="emit('close')">
     <el-form label-position="top">
-      <el-form-item label="Base URL (optional, override default)">
-        <el-input v-model="form.baseUrl" placeholder="Leave empty to use system default" />
+      <el-form-item label="基础地址（可选，覆盖默认值）">
+        <el-input v-model="form.baseUrl" placeholder="留空则使用系统默认值" />
       </el-form-item>
-      <el-form-item label="Model Name (optional)">
-        <el-input v-model="form.modelName" placeholder="Leave empty for default model" />
+      <el-form-item label="模型名称（可选）">
+        <el-input v-model="form.modelName" placeholder="留空则使用默认模型" />
       </el-form-item>
-      <el-form-item label="API Key (optional, uses env if empty)">
-        <el-input v-model="form.apiKey" type="password" show-password placeholder="Leave empty to use env-configured key" />
+      <el-form-item label="API 密钥（可选，留空使用环境变量）">
+        <el-input v-model="form.apiKey" type="password" show-password placeholder="留空则使用环境变量中的密钥" />
       </el-form-item>
     </el-form>
 
@@ -79,16 +79,16 @@ function providerLabel(p: string) {
         <span class="test-result-msg">{{ result.message }}</span>
       </div>
       <div class="test-result-details">
-        <div><span class="detail-label">Latency</span><span>{{ result.latencyMs }}ms</span></div>
-        <div v-if="result.modelName"><span class="detail-label">Model</span><span>{{ result.modelName }}</span></div>
-        <div v-if="result.maskedApiKey"><span class="detail-label">API Key</span><code>{{ result.maskedApiKey }}</code></div>
-        <div v-if="result.errorCode"><span class="detail-label">Error Code</span><code>{{ result.errorCode }}</code></div>
+        <div><span class="detail-label">延迟</span><span>{{ result.latencyMs }}ms</span></div>
+        <div v-if="result.modelName"><span class="detail-label">模型</span><span>{{ result.modelName }}</span></div>
+        <div v-if="result.maskedApiKey"><span class="detail-label">API 密钥</span><code>{{ result.maskedApiKey }}</code></div>
+        <div v-if="result.errorCode"><span class="detail-label">错误码</span><code>{{ result.errorCode }}</code></div>
       </div>
     </div>
 
     <template #footer>
-      <el-button @click="emit('close')">Close</el-button>
-      <el-button type="primary" :loading="testing" @click="handleTest">Test Connection</el-button>
+      <el-button @click="emit('close')">关闭</el-button>
+      <el-button type="primary" :loading="testing" @click="handleTest">测试连接</el-button>
     </template>
   </el-dialog>
 </template>
