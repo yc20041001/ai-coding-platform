@@ -27,6 +27,7 @@ const railItems = [
   { key: 'knowledge', label: '知识库', icon: '◉' },
   { key: 'repository', label: '仓库', icon: '⬡' },
   { key: 'members', label: '成员', icon: '◎' },
+  { key: 'agents', label: '智能体', icon: '◆' },
 ]
 
 onMounted(async () => {
@@ -54,6 +55,7 @@ watch(
       Repository: 'repository',
       Members: 'members',
       PrReview: 'repository',
+      ProjectAgents: 'agents',
     }
     activeTab.value = routeTabMap[String(name)] || 'overview'
   },
@@ -72,6 +74,7 @@ function onRailSelect(key: string) {
     knowledge: `/projects/${projectId}/knowledge`,
     repository: `/projects/${projectId}/repository`,
     members: `/projects/${projectId}/members`,
+    agents: `/projects/${projectId}/agents`,
   }
   router.push(tabRoutes[key] || `/projects/${projectId}`)
 }

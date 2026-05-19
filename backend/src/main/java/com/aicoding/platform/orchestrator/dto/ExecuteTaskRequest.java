@@ -3,6 +3,7 @@ package com.aicoding.platform.orchestrator.dto;
 public class ExecuteTaskRequest {
 
     private String agentId;
+    private String agentVersionId;
     private String instruction;
     private Boolean useRag;
     private String knowledgeBaseId;
@@ -10,6 +11,9 @@ public class ExecuteTaskRequest {
 
     public String getAgentId() { return agentId; }
     public void setAgentId(String agentId) { this.agentId = agentId; }
+
+    public String getAgentVersionId() { return agentVersionId; }
+    public void setAgentVersionId(String agentVersionId) { this.agentVersionId = agentVersionId; }
 
     public String getInstruction() { return instruction; }
     public void setInstruction(String instruction) { this.instruction = instruction; }

@@ -151,6 +151,34 @@ All disabled by default. Set `*_ENABLED=true` and provide `*_API_KEY` to activat
 | `TEST_GITHUB_REPO_FULL_NAME` | No | (empty) | `owner/repo` | Internal | `.env.production.example` |
 | `TEST_GITHUB_PR_NUMBER` | No | (empty) | `1` | Internal | `.env.production.example` |
 
+## 13. Redis
+
+| Variable | Required | Default | Example | Security | Source |
+|----------|----------|---------|---------|----------|--------|
+| `REDIS_HOST` | No | `localhost` | `redis.example.com` | Internal | `.env.example` |
+| `REDIS_PORT` | No | `6379` | `6379` | Internal | `.env.example` |
+| `REDIS_PASSWORD` | If auth enabled | (empty) | — | **Secret** — never commit | `.env.example` |
+| `REDIS_DB` | No | `0` | `0` | Internal | `.env.example` |
+
+## 14. Auth Captcha
+
+| Variable | Required | Default | Example | Security | Source |
+|----------|----------|---------|---------|----------|--------|
+| `AUTH_CAPTCHA_ENABLED` | No | `true` | `true` / `false` | Internal | `.env.example` |
+| `AUTH_CAPTCHA_STORE` | No | `redis` | `redis` / `memory` | Internal | `.env.example` |
+| `AUTH_CAPTCHA_EXPIRE_SECONDS` | No | `120` | `120` | Internal | `.env.example` |
+| `AUTH_CAPTCHA_MAX_ATTEMPTS` | No | `3` | `3` | Internal | `.env.example` |
+
+## 15. Auth Login Protection
+
+| Variable | Required | Default | Example | Security | Source |
+|----------|----------|---------|---------|----------|--------|
+| `AUTH_LOGIN_PROTECTION_ENABLED` | No | `true` | `true` / `false` | Internal | `.env.example` |
+| `AUTH_LOGIN_MAX_EMAIL_FAILURES` | No | `5` | `5` | Internal | `.env.example` |
+| `AUTH_LOGIN_MAX_IP_FAILURES` | No | `20` | `20` | Internal | `.env.example` |
+| `AUTH_LOGIN_FAILURE_WINDOW_SECONDS` | No | `300` | `300` | Internal | `.env.example` |
+| `AUTH_LOGIN_LOCK_SECONDS` | No | `600` | `600` | Internal | `.env.example` |
+
 ---
 
 ## Files NOT to Commit

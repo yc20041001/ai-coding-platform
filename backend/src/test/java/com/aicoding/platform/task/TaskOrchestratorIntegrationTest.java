@@ -68,6 +68,16 @@ class TaskOrchestratorIntegrationTest extends IntegrationTestBase {
         assertThat(TestJsonHelper.getString(execRoot, "data.status")).isEqualTo("COMPLETED");
         String executionId = TestJsonHelper.getString(execRoot, "data.id");
         assertThat(executionId).isNotEmpty();
+        assertThat(TestJsonHelper.getString(execRoot, "data.agentVersionId")).isNotEmpty();
+
+        // Verify the orchestrator used the Agent version runtime config in the model prompt.
+        ResponseEntity<String> executionDetailRes = get("/api/agent-executions/" + executionId);
+        assertOk(executionDetailRes);
+        JsonNode executionDetailRoot = TestJsonHelper.parse(executionDetailRes.getBody());
+        String inputPrompt = TestJsonHelper.getString(executionDetailRoot, "data.inputPrompt");
+        assertThat(inputPrompt).contains("You are a Backend Agent");
+        assertThat(inputPrompt).contains("Tool Policy:");
+        assertThat(inputPrompt).contains("Execution Policy:");
 
         // Verify task detail shows completed
         ResponseEntity<String> detailRes = get("/api/tasks/" + taskId);

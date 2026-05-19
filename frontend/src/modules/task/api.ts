@@ -40,6 +40,7 @@ export interface CreateTaskRequest {
 export interface ExecuteTaskRequest {
   instruction: string
   agentId: string
+  agentVersionId?: string
   useRag: boolean
   ragLimit: number
 }
@@ -101,6 +102,7 @@ export interface AgentExecution {
   chatSessionId: string | null
   chatMessageId: string | null
   agentId: string
+  agentVersionId: string | null
   agentName: string
   executionType: string
   status: string

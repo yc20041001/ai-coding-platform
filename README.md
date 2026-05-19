@@ -88,6 +88,13 @@ Observability & Audit spans all layers.
 
 For production deployment security, see [Security Hardening Checklist](docs/production-security-hardening-checklist.md).
 
+## Authentication & Security
+
+- **Login Captcha** — 4-character code with configurable expiry and attempt limits (Redis-backed, memory fallback)
+- **Login Attempt Protection** — Brute-force protection with email/IP-based lockout (5 failures locks for 10 minutes)
+- **JWT tokens** — Access + refresh token flow with configurable expiry
+- **RBAC** — Role-based permissions on projects and modules
+
 ---
 
 ## Feedback & Iteration

@@ -42,7 +42,9 @@
 | `ModelSecretMaskingServiceTest` | 单元 | 15 | API Key 掩码 / 日志脱敏 |
 | `ModelPricingServiceTest` | 单元 | 12 | 成本估算 / 覆盖定价 / 所有模型 |
 | `ModelGatewayIntegrationTest` | 集成 | 7 | MOCK Provider / 配置验证 |
-| `PrReviewApplicationServiceTest` | 单元 | 21 | JSON 解析 / 风险评估 / Prompt 构建 / 异常输出 |
+| `AgentProjectConfigIntegrationTest` | 集成 | 23 | 项目 Agent 配置 CRUD / 启用停用 / 版本选择 / 模型配置校验 |
+| `AgentVersionIntegrationTest` | 集成 | 10 | Agent 版本列表 / 版本详情 / 权限校验 / 版本归属校验 |
+| `PrReviewApplicationServiceTest` | 单元 | 23 | JSON 解析 / 风险评估 / Prompt 构建 / 异常输出 |
 | `GithubPropertiesTest` | 单元 | 4 | GitHub OAuth 配置检查 |
 
 ### 后端质量门
@@ -138,10 +140,12 @@ bash scripts/run-backend-checks.sh
 
 | 测试文件 | 覆盖内容 |
 |----------|----------|
-| `auth.spec.ts` | 未登录跳转登录页、admin 登录成功、登出、错误密码提示、未登录根路径跳转 /public |
+| `auth.spec.ts` | 未登录跳转登录页、admin 登录成功、登出、错误密码提示、未登录根路径跳转 /public、验证码展示 |
 | `project-task-chat.spec.ts` | 创建项目、创建+执行任务(COMPLETED)、Chat 会话创建+消息发送+SSE 流完成 |
 | `knowledge-observability.spec.ts` | Knowledge Tab 导航、RAG 搜索、可观测性页面可访问 |
 | `model-gateway.spec.ts` | 模型网关页面导航、Provider 区域可见 |
+| `project-agent-config.spec.ts` | 项目 Agent 配置表格、启用弹窗(Model Config 下拉)、启用/停用、权限错误、JS 错误检测 |
+| `agent-version.spec.ts` | Agent 版本抽屉、版本列表、systemPrompt/toolPolicy/executionPolicy 详情、启用弹窗版本选择 |
 
 ### 稳定选择器策略
 
@@ -187,6 +191,33 @@ bash scripts/run-backend-checks.sh
 - 不依赖 Demo 数据（Demo AI Workspace 等）必须存在
 - 测试前通过 admin 登录即可，不依赖预置项目/任务/会话
 
+### E2E 后端环境配置
+
+E2E 测试需要后端关闭验证码和登录保护，原因：
+
+- Playwright 登录 helper 不应依赖人工识别验证码。
+- 登录失败锁定（`AUTH_LOGIN_PROTECTION_ENABLED`）在 E2E 重试或频繁运行时可能误锁测试账号。
+- 验证码和登录保护的业务逻辑已由后端单元/集成测试覆盖，E2E 无需再测。
+
+**安全边界**：
+- 此配置仅用于本地/CI 自动化测试。
+- **生产部署配置（`deploy/prod/docker-compose.prod.yml`）保持验证码默认开启**。
+- `.env.example` 中验证码默认值为 `true`，不更改。
+- E2E 后端容器仅绑定到本地 9080 端口，不对外暴露。
+
+使用专用脚本启动 E2E 后端：
+
+```bash
+# 构建镜像并启动 E2E 后端容器
+bash scripts/start-e2e-backend.sh
+```
+
+该脚本自动配置：
+- `AUTH_CAPTCHA_ENABLED=false`
+- `AUTH_LOGIN_PROTECTION_ENABLED=false`
+- Redis / MySQL 连接指向 Docker Compose 网络中的服务容器
+- 等待 `/actuator/health` 返回 UP 后提示就绪
+
 ### 运行
 
 ```bash
@@ -195,7 +226,10 @@ cd frontend
 npm install -D @playwright/test
 npx playwright install chromium
 
-# 启动后端（另一个终端）
+# 启动 E2E 后端（使用 Docker）
+bash scripts/start-e2e-backend.sh
+
+# 或启动后端（本地开发）
 cd backend && mvn spring-boot:run
 
 # 运行 E2E 测试

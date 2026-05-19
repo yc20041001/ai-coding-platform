@@ -1,4 +1,7 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   datasource:
     url: ${TEST_DB_URL:jdbc:mysql://127.0.0.1:3306/ai_coding_platform?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${TEST_DB_USERNAME:aicoding}
@@ -10,6 +13,13 @@ spring:
     init:
       mode: always
       continue-on-error: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+      timeout: 2000ms
 
 app:
   jwt:
@@ -19,11 +29,18 @@ app:
   auth:
     captcha:
       enabled: ${AUTH_CAPTCHA_ENABLED:false}
+      store: memory
       expire-seconds: 5
       length: 4
       max-attempts: 3
       width: 120
       height: 40
+    login-protection:
+      enabled: false
+      max-email-failures: 5
+      max-ip-failures: 20
+      failure-window-seconds: 300
+      lock-seconds: 600
   model-gateway:
     default-provider: MOCK
     fallback-provider: MOCK

@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CaptchaProperties {
 
     private boolean enabled = true;
+    private String store = "redis";
     private int expireSeconds = 120;
     private int length = 4;
     private int maxAttempts = 3;
@@ -18,6 +19,14 @@ public class CaptchaProperties {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getStore() {
+        return store;
+    }
+
+    public void setStore(String store) {
+        this.store = store;
     }
 
     public int getExpireSeconds() {

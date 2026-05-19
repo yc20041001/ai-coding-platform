@@ -112,6 +112,12 @@
             <version>6.10.0.202406032230-r</version>
         </dependency>
 
+        <!-- Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- Redis / RabbitMQ starters 暂未引入，待基础设施就绪后添加 -->
     </dependencies>
 

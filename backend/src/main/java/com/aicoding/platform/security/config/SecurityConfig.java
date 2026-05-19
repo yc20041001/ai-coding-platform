@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.aicoding.platform.modelgateway.config.ModelGatewayProperties;
 import com.aicoding.platform.rag.config.RagProperties;
 import com.aicoding.platform.auth.config.CaptchaProperties;
+import com.aicoding.platform.auth.config.LoginProtectionProperties;
 import org.springframework.context.annotation.Bean;
 import com.aicoding.platform.repository.application.WorkspaceProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,7 +32,7 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties({JwtProperties.class, WorkspaceProperties.class, RagProperties.class, ModelGatewayProperties.class, CaptchaProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, WorkspaceProperties.class, RagProperties.class, ModelGatewayProperties.class, CaptchaProperties.class, LoginProtectionProperties.class})
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

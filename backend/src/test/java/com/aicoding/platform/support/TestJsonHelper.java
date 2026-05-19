@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public class TestJsonHelper {
@@ -32,6 +33,19 @@ public class TestJsonHelper {
     public static boolean getBool(JsonNode root, String jsonPath) {
         JsonNode node = navigate(root, jsonPath);
         return node != null && !node.isNull() && node.asBoolean();
+    }
+
+    public static int getInt(JsonNode root, String jsonPath) {
+        JsonNode node = navigate(root, jsonPath);
+        return node != null && !node.isNull() ? node.asInt() : 0;
+    }
+
+    public static BigDecimal getBigDecimal(JsonNode root, String jsonPath) {
+        JsonNode node = navigate(root, jsonPath);
+        if (node != null && !node.isNull()) {
+            return new BigDecimal(node.asText());
+        }
+        return BigDecimal.ZERO;
     }
 
     private static JsonNode navigate(JsonNode root, String path) {

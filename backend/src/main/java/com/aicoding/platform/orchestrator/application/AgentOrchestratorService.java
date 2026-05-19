@@ -1,7 +1,15 @@
 package com.aicoding.platform.orchestrator.application;
 
 import com.aicoding.platform.agent.domain.AiAgentEntity;
+import com.aicoding.platform.agent.domain.AgentVersionStatus;
+import com.aicoding.platform.agent.domain.AiAgentVersionEntity;
+import com.aicoding.platform.agent.domain.ProjectAgentConfigEntity;
+import com.aicoding.platform.agent.dto.ProjectAgentRuntimeConfig;
 import com.aicoding.platform.agent.infrastructure.AiAgentMapper;
+import com.aicoding.platform.agent.infrastructure.AiAgentVersionMapper;
+import com.aicoding.platform.agent.infrastructure.ProjectAgentConfigMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.aicoding.platform.audit.application.AuditLogApplicationService;
 import com.aicoding.platform.audit.domain.AuditActionType;
 import com.aicoding.platform.common.exception.BizException;
@@ -58,12 +66,15 @@ public class AgentOrchestratorService {
     private final ModelRequestLogService modelRequestLogService;
     private final AiTaskMapper aiTaskMapper;
     private final AiAgentMapper aiAgentMapper;
+    private final AiAgentVersionMapper aiAgentVersionMapper;
+    private final ProjectAgentConfigMapper projectAgentConfigMapper;
     private final AiTaskLogMapper aiTaskLogMapper;
     private final AiTaskArtifactMapper aiTaskArtifactMapper;
     private final AiTaskEventMapper aiTaskEventMapper;
     private final ProjectPermissionService projectPermissionService;
     private final RagContextService ragContextService;
     private final AuditLogApplicationService auditLogApplicationService;
+    private final ObjectMapper objectMapper;
 
     public AgentOrchestratorService(AgentExecutionMapper agentExecutionMapper,
                                     ModelRequestLogMapper modelRequestLogMapper,
@@ -71,24 +82,30 @@ public class AgentOrchestratorService {
                                     ModelRequestLogService modelRequestLogService,
                                     AiTaskMapper aiTaskMapper,
                                     AiAgentMapper aiAgentMapper,
+                                    AiAgentVersionMapper aiAgentVersionMapper,
+                                    ProjectAgentConfigMapper projectAgentConfigMapper,
                                     AiTaskLogMapper aiTaskLogMapper,
                                     AiTaskArtifactMapper aiTaskArtifactMapper,
                                     AiTaskEventMapper aiTaskEventMapper,
                                     ProjectPermissionService projectPermissionService,
                                     RagContextService ragContextService,
-                                    AuditLogApplicationService auditLogApplicationService) {
+                                    AuditLogApplicationService auditLogApplicationService,
+                                    ObjectMapper objectMapper) {
         this.agentExecutionMapper = agentExecutionMapper;
         this.modelRequestLogMapper = modelRequestLogMapper;
         this.modelGateway = modelGateway;
         this.modelRequestLogService = modelRequestLogService;
         this.aiTaskMapper = aiTaskMapper;
         this.aiAgentMapper = aiAgentMapper;
+        this.aiAgentVersionMapper = aiAgentVersionMapper;
+        this.projectAgentConfigMapper = projectAgentConfigMapper;
         this.aiTaskLogMapper = aiTaskLogMapper;
         this.aiTaskArtifactMapper = aiTaskArtifactMapper;
         this.aiTaskEventMapper = aiTaskEventMapper;
         this.projectPermissionService = projectPermissionService;
         this.ragContextService = ragContextService;
         this.auditLogApplicationService = auditLogApplicationService;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -127,8 +144,25 @@ public class AgentOrchestratorService {
         if (agent == null) {
             throw new BizException(ErrorCode.NOT_FOUND, "Agent 不存在");
         }
+        if (!"ENABLED".equals(agent.getStatus())) {
+            throw new BizException(ErrorCode.CONFLICT, "Agent 当前不可用");
+        }
 
-        // 6b. Execute RAG Search
+        AiAgentVersionEntity agentVersion = resolveAgentVersion(task, request, agentId);
+
+        // 6b. Read project agent runtime config
+        ProjectAgentRuntimeConfig runtimeConfig = findProjectAgentRuntimeConfig(task.getProjectId(), agentId);
+        String effectiveInstruction = request.getInstruction();
+        if (runtimeConfig != null && runtimeConfig.getCustomInstruction() != null
+                && !runtimeConfig.getCustomInstruction().isBlank()) {
+            if (effectiveInstruction != null && !effectiveInstruction.isBlank()) {
+                effectiveInstruction = effectiveInstruction + "\n\n" + runtimeConfig.getCustomInstruction();
+            } else {
+                effectiveInstruction = runtimeConfig.getCustomInstruction();
+            }
+        }
+
+        // 6c. Execute RAG Search
         boolean ragUsed = false;
         List<RagReference> ragReferences = new ArrayList<>();
 
@@ -138,15 +172,25 @@ public class AgentOrchestratorService {
             if (ragQueryBuilder.length() > 0) ragQueryBuilder.append(" ");
             ragQueryBuilder.append(task.getDescription());
         }
-        if (request.getInstruction() != null && !request.getInstruction().isBlank()) {
+        if (effectiveInstruction != null && !effectiveInstruction.isBlank()) {
             if (ragQueryBuilder.length() > 0) ragQueryBuilder.append(" ");
-            ragQueryBuilder.append(request.getInstruction());
+            ragQueryBuilder.append(effectiveInstruction);
         }
         String ragQuery = ragQueryBuilder.toString();
 
+        // Determine RAG params: request takes precedence, then project agent config
+        Boolean useRag = request.getUseRag();
+        String knowledgeBaseId = request.getKnowledgeBaseId();
+        if (useRag == null && runtimeConfig != null) {
+            useRag = runtimeConfig.getUseRag();
+        }
+        if ((knowledgeBaseId == null || knowledgeBaseId.isBlank()) && runtimeConfig != null) {
+            knowledgeBaseId = runtimeConfig.getKnowledgeBaseId();
+        }
+
         RagContext ragContext = ragContextService.buildContextForTask(
                 task.getProjectId(), ragQuery,
-                request.getKnowledgeBaseId(), request.getRagLimit(), request.getUseRag());
+                knowledgeBaseId, request.getRagLimit(), useRag);
 
         if (ragContext.getTotal() > 0 && !ragContext.getReferences().isEmpty()) {
             ragUsed = true;
@@ -158,6 +202,7 @@ public class AgentOrchestratorService {
         execution.setProjectId(task.getProjectId());
         execution.setTaskId(taskId);
         execution.setAgentId(agentId);
+        execution.setAgentVersionId(agentVersion.getId());
         execution.setExecutionType(AgentExecutionType.TASK.name());
         execution.setStatus(AgentExecutionStatus.RUNNING.name());
         execution.setStartedAt(LocalDateTime.now());
@@ -169,7 +214,8 @@ public class AgentOrchestratorService {
 
         // 9. Write task log: ORCHESTRATOR_START
         writeLog(taskId, task.getProjectId(), TaskLogLevel.INFO, "ORCHESTRATOR_START",
-                "Agent [" + agent.getName() + "] 开始执行任务，executionId=" + execution.getId());
+                "Agent [" + agent.getName() + "] v" + agentVersion.getVersionNo()
+                        + " 开始执行任务，executionId=" + execution.getId());
 
         // 9b. Write task log: RAG_SEARCH
         if (ragUsed) {
@@ -186,8 +232,8 @@ public class AgentOrchestratorService {
         task.setStartTime(LocalDateTime.now());
         aiTaskMapper.updateById(task);
 
-        // 11. Build Prompt (with RAG context)
-        String inputPrompt = buildPrompt(agent, task, request.getInstruction(), ragContext.getContextText());
+        // 11. Build Prompt (with RAG context and custom instruction)
+        String inputPrompt = buildPrompt(agent, agentVersion, task, effectiveInstruction, ragContext.getContextText());
 
         // 12-13. Call ModelGateway and record log
         ModelRequest modelRequest = buildModelRequest(task.getProjectId(), execution.getId(), inputPrompt);
@@ -278,6 +324,71 @@ public class AgentOrchestratorService {
         return resp;
     }
 
+    private AiAgentVersionEntity resolveAgentVersion(AiTaskEntity task, ExecuteTaskRequest request, Long agentId) {
+        Long versionId = parseLongOrNull(request.getAgentVersionId());
+        if (versionId == null) {
+            versionId = task.getAgentVersionId();
+        }
+        if (versionId == null) {
+            ProjectAgentConfigEntity projectConfig = projectAgentConfigMapper.selectOne(
+                    new LambdaQueryWrapper<ProjectAgentConfigEntity>()
+                            .eq(ProjectAgentConfigEntity::getProjectId, task.getProjectId())
+                            .eq(ProjectAgentConfigEntity::getAgentId, agentId)
+                            .eq(ProjectAgentConfigEntity::getEnabled, 1)
+                            .last("LIMIT 1"));
+            if (projectConfig != null) {
+                versionId = projectConfig.getAgentVersionId();
+            }
+        }
+
+        AiAgentVersionEntity version;
+        if (versionId != null) {
+            version = aiAgentVersionMapper.selectById(versionId);
+            if (version == null || !agentId.equals(version.getAgentId())) {
+                throw new BizException(ErrorCode.NOT_FOUND, "Agent 版本不存在");
+            }
+            if (!AgentVersionStatus.PUBLISHED.name().equals(version.getStatus())) {
+                throw new BizException(ErrorCode.CONFLICT, "Agent 版本不是 PUBLISHED 状态");
+            }
+            return version;
+        }
+
+        version = aiAgentVersionMapper.selectOne(
+                new LambdaQueryWrapper<AiAgentVersionEntity>()
+                        .eq(AiAgentVersionEntity::getAgentId, agentId)
+                        .eq(AiAgentVersionEntity::getStatus, AgentVersionStatus.PUBLISHED.name())
+                        .orderByDesc(AiAgentVersionEntity::getPublishTime)
+                        .last("LIMIT 1"));
+        if (version == null) {
+            throw new BizException(ErrorCode.NOT_FOUND, "Agent 无 PUBLISHED 版本");
+        }
+        return version;
+    }
+
+    private ProjectAgentRuntimeConfig findProjectAgentRuntimeConfig(Long projectId, Long agentId) {
+        ProjectAgentConfigEntity config = projectAgentConfigMapper.selectOne(
+                new LambdaQueryWrapper<ProjectAgentConfigEntity>()
+                        .eq(ProjectAgentConfigEntity::getProjectId, projectId)
+                        .eq(ProjectAgentConfigEntity::getAgentId, agentId)
+                        .eq(ProjectAgentConfigEntity::getEnabled, 1)
+                        .last("LIMIT 1"));
+        if (config == null || config.getConfigJson() == null || config.getConfigJson().isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(config.getConfigJson(), ProjectAgentRuntimeConfig.class);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    private Long parseLongOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return Long.valueOf(value);
+    }
+
     @Transactional(readOnly = true)
     public PageResult<AgentExecutionResponse> listExecutions(Long taskId, PageQuery pageQuery) {
         AiTaskEntity task = aiTaskMapper.selectById(taskId);
@@ -334,12 +445,29 @@ public class AgentOrchestratorService {
         return logs.stream().map(this::toModelRequestLogResponse).collect(Collectors.toList());
     }
 
-    private String buildPrompt(AiAgentEntity agent, AiTaskEntity task, String instruction, String ragContextText) {
+    private String buildPrompt(AiAgentEntity agent, AiAgentVersionEntity agentVersion,
+                               AiTaskEntity task, String instruction, String ragContextText) {
         StringBuilder sb = new StringBuilder();
-        sb.append("你是 AI Coding Platform 的 Agent。\n\n");
+        sb.append("System Prompt:\n");
+        if (agentVersion.getSystemPrompt() != null && !agentVersion.getSystemPrompt().isBlank()) {
+            sb.append(agentVersion.getSystemPrompt()).append("\n\n");
+        } else {
+            sb.append("你是 AI Coding Platform 的 Agent。\n\n");
+        }
+
         sb.append("Agent:\n");
         sb.append("- Name: ").append(agent.getName()).append("\n");
-        sb.append("- Type: ").append(agent.getType()).append("\n\n");
+        sb.append("- Type: ").append(agent.getType()).append("\n");
+        sb.append("- Version: ").append(agentVersion.getVersionNo()).append("\n");
+        sb.append("- VersionId: ").append(agentVersion.getId()).append("\n\n");
+        if (agentVersion.getToolPolicy() != null && !agentVersion.getToolPolicy().isBlank()) {
+            sb.append("Tool Policy:\n");
+            sb.append(agentVersion.getToolPolicy()).append("\n\n");
+        }
+        if (agentVersion.getExecutionPolicy() != null && !agentVersion.getExecutionPolicy().isBlank()) {
+            sb.append("Execution Policy:\n");
+            sb.append(agentVersion.getExecutionPolicy()).append("\n\n");
+        }
         sb.append("Task:\n");
         sb.append("- Title: ").append(task.getTitle()).append("\n");
         if (task.getDescription() != null) {
@@ -415,6 +543,7 @@ public class AgentOrchestratorService {
         resp.setChatSessionId(e.getChatSessionId() != null ? e.getChatSessionId().toString() : null);
         resp.setChatMessageId(e.getChatMessageId() != null ? e.getChatMessageId().toString() : null);
         resp.setAgentId(e.getAgentId().toString());
+        resp.setAgentVersionId(e.getAgentVersionId() != null ? e.getAgentVersionId().toString() : null);
         resp.setAgentName(agentName);
         resp.setExecutionType(e.getExecutionType());
         resp.setStatus(e.getStatus());

@@ -43,6 +43,7 @@ public class AuthApplicationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
     private final CaptchaService captchaService;
+    private final LoginAttemptService loginAttemptService;
 
     public AuthApplicationService(UserMapper userMapper,
                                   RoleMapper roleMapper,
@@ -52,7 +53,8 @@ public class AuthApplicationService {
                                   PasswordEncoder passwordEncoder,
                                   JwtTokenProvider jwtTokenProvider,
                                   JwtProperties jwtProperties,
-                                  CaptchaService captchaService) {
+                                  CaptchaService captchaService,
+                                  LoginAttemptService loginAttemptService) {
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
@@ -62,49 +64,64 @@ public class AuthApplicationService {
         this.jwtTokenProvider = jwtTokenProvider;
         this.jwtProperties = jwtProperties;
         this.captchaService = captchaService;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
+        String email = request.getEmail();
+        String ip = loginAttemptService.currentClientIp();
+
+        loginAttemptService.checkLocked(email, ip);
         captchaService.validate(request.getCaptchaId(), request.getCaptchaCode());
 
-        UserEntity user = userMapper.selectOne(
-                new LambdaQueryWrapper<UserEntity>()
-                        .eq(UserEntity::getEmail, request.getEmail()));
-        if (user == null) {
-            throw new BizException(ErrorCode.UNAUTHORIZED, "邮箱或密码错误");
+        try {
+            UserEntity user = userMapper.selectOne(
+                    new LambdaQueryWrapper<UserEntity>()
+                            .eq(UserEntity::getEmail, email));
+            if (user == null) {
+                throw new BizException(ErrorCode.UNAUTHORIZED, "邮箱或密码错误");
+            }
+
+            if (!UserStatus.ENABLED.name().equals(user.getStatus())) {
+                throw new BizException(ErrorCode.FORBIDDEN, "账号已被禁用或锁定");
+            }
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new BizException(ErrorCode.UNAUTHORIZED, "邮箱或密码错误");
+            }
+
+            List<String> roles = getUserRoles(user.getId());
+
+            String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getUsername(), roles);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+
+            user.setLastLoginTime(LocalDateTime.now());
+            userMapper.updateById(user);
+
+            loginAttemptService.recordSuccess(email, ip);
+
+            LoginResponse response = new LoginResponse();
+            response.setAccessToken(accessToken);
+            response.setRefreshToken(refreshToken);
+            response.setExpiresIn(jwtProperties.getAccessTokenExpireSeconds());
+
+            LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
+            userInfo.setId(user.getId());
+            userInfo.setUsername(user.getUsername());
+            userInfo.setEmail(user.getEmail());
+            userInfo.setAvatar(user.getAvatar());
+            userInfo.setRoles(roles);
+            response.setUser(userInfo);
+
+            return response;
+        } catch (BizException ex) {
+            if (ErrorCode.UNAUTHORIZED.equals(ex.getErrorCode()) ||
+                ErrorCode.FORBIDDEN.equals(ex.getErrorCode())) {
+                loginAttemptService.recordFailure(email, ip);
+            }
+            throw ex;
         }
-
-        if (!UserStatus.ENABLED.name().equals(user.getStatus())) {
-            throw new BizException(ErrorCode.FORBIDDEN, "账号已被禁用或锁定");
-        }
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BizException(ErrorCode.UNAUTHORIZED, "邮箱或密码错误");
-        }
-
-        List<String> roles = getUserRoles(user.getId());
-
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getUsername(), roles);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
-
-        user.setLastLoginTime(LocalDateTime.now());
-        userMapper.updateById(user);
-
-        LoginResponse response = new LoginResponse();
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
-        response.setExpiresIn(jwtProperties.getAccessTokenExpireSeconds());
-
-        LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo();
-        userInfo.setId(user.getId());
-        userInfo.setUsername(user.getUsername());
-        userInfo.setEmail(user.getEmail());
-        userInfo.setAvatar(user.getAvatar());
-        userInfo.setRoles(roles);
-        response.setUser(userInfo);
-
-        return response;
     }
 
     public LoginResponse refresh(RefreshTokenRequest request) {

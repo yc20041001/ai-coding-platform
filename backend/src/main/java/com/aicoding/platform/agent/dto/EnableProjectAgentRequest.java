@@ -4,7 +4,7 @@ public class EnableProjectAgentRequest {
 
     private String agentVersionId;
     private String modelConfigId;
-    private String configJson;
+    private ProjectAgentRuntimeConfig config;
 
     public String getAgentVersionId() { return agentVersionId; }
     public void setAgentVersionId(String agentVersionId) { this.agentVersionId = agentVersionId; }
@@ -12,6 +12,6 @@ public class EnableProjectAgentRequest {
     public String getModelConfigId() { return modelConfigId; }
     public void setModelConfigId(String modelConfigId) { this.modelConfigId = modelConfigId; }
 
-    public String getConfigJson() { return configJson; }
-    public void setConfigJson(String configJson) { this.configJson = configJson; }
+    public ProjectAgentRuntimeConfig getConfig() { return config; }
+    public void setConfig(ProjectAgentRuntimeConfig config) { this.config = config; }
 }

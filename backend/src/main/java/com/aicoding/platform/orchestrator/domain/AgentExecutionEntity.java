@@ -20,6 +20,7 @@ public class AgentExecutionEntity implements Serializable {
     private Long chatSessionId;
     private Long chatMessageId;
     private Long agentId;
+    private Long agentVersionId;
     private String executionType;
     private String status;
     private String inputPrompt;
@@ -51,6 +52,9 @@ public class AgentExecutionEntity implements Serializable {
 
     public Long getAgentId() { return agentId; }
     public void setAgentId(Long agentId) { this.agentId = agentId; }
+
+    public Long getAgentVersionId() { return agentVersionId; }
+    public void setAgentVersionId(Long agentVersionId) { this.agentVersionId = agentVersionId; }
 
     public String getExecutionType() { return executionType; }
     public void setExecutionType(String executionType) { this.executionType = executionType; }

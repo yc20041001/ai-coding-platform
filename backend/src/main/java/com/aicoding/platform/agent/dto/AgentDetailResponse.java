@@ -11,6 +11,7 @@ public class AgentDetailResponse {
     private String avatar;
     private AgentVersionInfo latestVersion;
     private String modelConfigId;
+    private String systemPrompt;
     private String toolPolicy;
     private String executionPolicy;
 
@@ -59,6 +60,9 @@ public class AgentDetailResponse {
 
     public String getModelConfigId() { return modelConfigId; }
     public void setModelConfigId(String modelConfigId) { this.modelConfigId = modelConfigId; }
+
+    public String getSystemPrompt() { return systemPrompt; }
+    public void setSystemPrompt(String systemPrompt) { this.systemPrompt = systemPrompt; }
 
     public String getToolPolicy() { return toolPolicy; }
     public void setToolPolicy(String toolPolicy) { this.toolPolicy = toolPolicy; }

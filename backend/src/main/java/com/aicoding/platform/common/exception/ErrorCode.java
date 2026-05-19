@@ -34,7 +34,10 @@ public enum ErrorCode {
     // 验证码错误
     CAPTCHA_REQUIRED("CAPTCHA_REQUIRED", "验证码不能为空", HttpStatus.BAD_REQUEST),
     CAPTCHA_INVALID("CAPTCHA_INVALID", "验证码错误", HttpStatus.BAD_REQUEST),
-    CAPTCHA_EXPIRED("CAPTCHA_EXPIRED", "验证码已过期", HttpStatus.BAD_REQUEST);
+    CAPTCHA_EXPIRED("CAPTCHA_EXPIRED", "验证码已过期", HttpStatus.BAD_REQUEST),
+
+    // 登录保护错误
+    AUTH_TOO_MANY_ATTEMPTS("AUTH_TOO_MANY_ATTEMPTS", "登录尝试次数过多，请稍后再试", HttpStatus.TOO_MANY_REQUESTS);
 
     private final String code;
     private final String message;

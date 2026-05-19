@@ -74,11 +74,18 @@ app:
   auth:
     captcha:
       enabled: ${AUTH_CAPTCHA_ENABLED:true}
+      store: ${AUTH_CAPTCHA_STORE:redis}
       expire-seconds: ${AUTH_CAPTCHA_EXPIRE_SECONDS:120}
       length: ${AUTH_CAPTCHA_LENGTH:4}
       max-attempts: ${AUTH_CAPTCHA_MAX_ATTEMPTS:3}
       width: ${AUTH_CAPTCHA_WIDTH:120}
       height: ${AUTH_CAPTCHA_HEIGHT:40}
+    login-protection:
+      enabled: ${AUTH_LOGIN_PROTECTION_ENABLED:true}
+      max-email-failures: ${AUTH_LOGIN_MAX_EMAIL_FAILURES:5}
+      max-ip-failures: ${AUTH_LOGIN_MAX_IP_FAILURES:20}
+      failure-window-seconds: ${AUTH_LOGIN_FAILURE_WINDOW_SECONDS:300}
+      lock-seconds: ${AUTH_LOGIN_LOCK_SECONDS:600}
   workspace:
     root-path: ${WORKSPACE_ROOT:./workspace}
   model-gateway:
@@ -130,24 +137,20 @@ app:
     max-context-chars: 4000
     max-chunk-chars: 800
 
-# ---- Redis 配置（占位，待基础设施就绪后启用） ----
-# 当前未引入 spring-boot-starter-data-redis，以下配置不会生效
-# 待 Redis 环境就绪后，取消注释并添加 Maven 依赖即可
-# spring:
-#   data:
-#     redis:
-#       host: ${REDIS_HOST:localhost}
-#       port: ${REDIS_PORT:6379}
-#       password: ${REDIS_PASSWORD:}
-#       database: ${REDIS_DB:0}
-#       timeout: 3000ms
-
 # ---- RabbitMQ 配置（占位，待基础设施就绪后启用） ----
-# 当前未引入 spring-boot-starter-amqp，以下配置不会生效
-# 待 RabbitMQ 环境就绪后，取消注释并添加 Maven 依赖即可
-# spring:
-#   rabbitmq:
-#     host: ${RABBITMQ_HOST:localhost}
-#     port: ${RABBITMQ_PORT:5672}
-#     username: ${RABBITMQ_USERNAME:guest}
-#     password: ${RABBITMQ_PASSWORD:guest}
+  # 当前未引入 spring-boot-starter-amqp，以下配置不会生效
+  # 待 RabbitMQ 环境就绪后，取消注释并添加 Maven 依赖即可
+  #   rabbitmq:
+  #     host: ${RABBITMQ_HOST:localhost}
+  #     port: ${RABBITMQ_PORT:5672}
+  #     username: ${RABBITMQ_USERNAME:guest}
+  #     password: ${RABBITMQ_PASSWORD:guest}
+
+  # ---- Redis ----
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+      timeout: 3000ms

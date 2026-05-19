@@ -73,6 +73,11 @@ const router = createRouter({
               name: 'PrReview',
               component: () => import('@/modules/github/pages/PullRequestReviewPage.vue'),
             },
+            {
+              path: 'agents',
+              name: 'ProjectAgents',
+              component: () => import('@/modules/agent/pages/ProjectAgentConfigPage.vue'),
+            },
           ],
         },
         {

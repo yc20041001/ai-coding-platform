@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { listAgents, type AgentItem } from '@/modules/agent/api'
+import AgentDetailDrawer from '@/modules/agent/components/AgentDetailDrawer.vue'
+import AgentVersionDrawer from '@/modules/agent/components/AgentVersionDrawer.vue'
 import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import StatusPulse from '@/shared/components/StatusPulse.vue'
 import NeonDivider from '@/shared/components/NeonDivider.vue'
@@ -9,6 +11,11 @@ import { formatDateTime } from '@/shared/utils/format'
 
 const agents = ref<AgentItem[]>([])
 const loading = ref(false)
+const selectedAgentId = ref<string | null>(null)
+const detailVisible = ref(false)
+const versionDrawerVisible = ref(false)
+const versionDrawerAgentId = ref<string | null>(null)
+const versionDrawerAgentName = ref('')
 
 onMounted(async () => {
   loading.value = true
@@ -19,6 +26,32 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function handleRowClick(row: AgentItem) {
+  openDetail(row.id)
+}
+
+function openDetail(agentId: string) {
+  selectedAgentId.value = agentId
+  detailVisible.value = true
+}
+
+function onDrawerClose() {
+  detailVisible.value = false
+  selectedAgentId.value = null
+}
+
+function openVersions(agent: AgentItem) {
+  versionDrawerAgentId.value = agent.id
+  versionDrawerAgentName.value = agent.name
+  versionDrawerVisible.value = true
+}
+
+function onVersionDrawerClose() {
+  versionDrawerVisible.value = false
+  versionDrawerAgentId.value = null
+  versionDrawerAgentName.value = ''
+}
 
 function typeIcon(type: string) {
   switch (type) {
@@ -56,7 +89,12 @@ function statusTone(status: string) {
       <NeonDivider tone="primary" style="margin-bottom:20px" />
 
       <div v-loading="loading">
-        <el-table v-if="agents.length > 0" :data="agents" style="width:100%">
+        <el-table
+          v-if="agents.length > 0"
+          :data="agents"
+          style="width:100%"
+          @row-click="handleRowClick"
+        >
           <el-table-column label="智能体" min-width="200">
             <template #default="{ row }">
               <div class="agent-row">
@@ -83,10 +121,36 @@ function statusTone(status: string) {
           <el-table-column label="创建时间" width="160">
             <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
           </el-table-column>
+          <el-table-column label="操作" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button
+                data-testid="btn-agent-versions"
+                type="primary"
+                size="small"
+                text
+                @click.stop="openVersions(row)"
+              >
+                版本
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
         <EmptyState v-if="!loading && agents.length === 0" description="暂无智能体" />
       </div>
     </DynamicWorkspace>
+
+    <AgentDetailDrawer
+      :agent-id="selectedAgentId"
+      :visible="detailVisible"
+      @close="onDrawerClose"
+    />
+
+    <AgentVersionDrawer
+      :agent-id="versionDrawerAgentId"
+      :agent-name="versionDrawerAgentName"
+      :visible="versionDrawerVisible"
+      @close="onVersionDrawerClose"
+    />
   </div>
 </template>
 
@@ -110,4 +174,8 @@ function statusTone(status: string) {
 }
 .agent-name { font-size: 14px; font-weight: 600; color: var(--app-text); }
 .agent-code { font-size: 11px; color: var(--app-text-muted); font-family: monospace; margin-top: 2px; }
+
+:deep(.el-table__row) {
+  cursor: pointer;
+}
 </style>
