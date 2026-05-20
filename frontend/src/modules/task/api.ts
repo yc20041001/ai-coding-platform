@@ -157,3 +157,172 @@ export async function getAgentExecution(executionId: string) {
 export async function getExecutionModelLogs(executionId: string) {
   return client.get<ApiResponse<ModelRequestLog[]>>(`/api/agent-executions/${executionId}/model-logs`)
 }
+
+// ========================
+// Multi-Agent Orchestration
+// ========================
+
+export interface MultiAgentStepResponse {
+  id: string
+  runId: string
+  phaseId: string | null
+  phaseOrder: number | null
+  laneKey: string | null
+  stepOrder: number
+  stepType: string
+  status: string
+  agentId: string | null
+  agentName: string | null
+  agentExecutionId: string | null
+  inputContext: string | null
+  outputContent: string | null
+  errorMessage: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  createTime: string
+}
+
+export interface MultiAgentPhaseResponse {
+  id: string
+  runId: string
+  phaseOrder: number
+  phaseKey: string
+  title: string
+  status: string
+  inputSummary: string | null
+  outputSummary: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  steps: MultiAgentStepResponse[]
+}
+
+export interface MultiAgentMessageResponse {
+  id: string
+  runId: string
+  fromStepId: string | null
+  toStepId: string | null
+  fromAgentId: string | null
+  toAgentId: string | null
+  messageType: string
+  content: string
+  summary: string | null
+  createTime: string
+}
+
+export interface MultiAgentApprovalGateResponse {
+  id: string
+  runId: string
+  phaseId: string | null
+  gateKey: string
+  title: string
+  description: string | null
+  status: string
+  requestedBy: string | null
+  decidedBy: string | null
+  decisionComment: string | null
+  requestedAt: string | null
+  decidedAt: string | null
+}
+
+export interface MultiAgentApprovalDecisionRequest {
+  comment?: string
+}
+
+export interface MultiAgentRunResponse {
+  id: string
+  projectId: string
+  taskId: string
+  status: string
+  strategy: string
+  strategyKey: string
+  strategyName: string
+  strategyDescription: string
+  title: string | null
+  inputSummary: string | null
+  finalSummary: string | null
+  errorMessage: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  createTime: string
+  updateTime: string
+  phases: MultiAgentPhaseResponse[]
+  steps: MultiAgentStepResponse[]
+  messages: MultiAgentMessageResponse[]
+  approvalGates?: MultiAgentApprovalGateResponse[]
+  pendingApprovalGate?: MultiAgentApprovalGateResponse | null
+}
+
+// ========================
+// Workflow Strategy Catalog
+// ========================
+
+export interface WorkflowStepTemplateResponse {
+  stepOrder: number
+  stepType: string
+  agentCode: string
+  laneKey: string
+  title: string
+}
+
+export interface WorkflowPhaseTemplateResponse {
+  phaseOrder: number
+  phaseKey: string
+  title: string
+  steps: WorkflowStepTemplateResponse[]
+}
+
+export interface WorkflowStrategyResponse {
+  strategyKey: string
+  name: string
+  description: string
+  phaseCount: number
+  stepCount: number
+  phases: WorkflowPhaseTemplateResponse[]
+}
+
+export function getMultiAgentStrategies() {
+  return client.get<ApiResponse<WorkflowStrategyResponse[]>>('/api/multi-agent-strategies')
+}
+
+export interface StartMultiAgentRunRequest {
+  strategy?: string
+  instruction?: string
+  useRag?: boolean
+  knowledgeBaseId?: string
+}
+
+export function startMultiAgentRun(taskId: string, data?: StartMultiAgentRunRequest) {
+  return client.post<ApiResponse<MultiAgentRunResponse>>(`/api/tasks/${taskId}/multi-agent-runs`, data || {})
+}
+
+export function listMultiAgentRuns(taskId: string) {
+  return client.get<ApiResponse<MultiAgentRunResponse[]>>(`/api/tasks/${taskId}/multi-agent-runs`)
+}
+
+export function getMultiAgentRun(runId: string) {
+  return client.get<ApiResponse<MultiAgentRunResponse>>(`/api/multi-agent-runs/${runId}`)
+}
+
+export function getMultiAgentRunMessages(runId: string) {
+  return client.get<ApiResponse<MultiAgentMessageResponse[]>>(`/api/multi-agent-runs/${runId}/messages`)
+}
+
+export function getMultiAgentRunPhases(runId: string) {
+  return client.get<ApiResponse<MultiAgentPhaseResponse[]>>(`/api/multi-agent-runs/${runId}/phases`)
+}
+
+// ========================
+// Multi-Agent Approval Gates
+// ========================
+
+export function getMultiAgentApprovalGates(runId: string) {
+  return client.get<ApiResponse<MultiAgentApprovalGateResponse[]>>(`/api/multi-agent-runs/${runId}/approval-gates`)
+}
+
+export function approveMultiAgentGate(runId: string, gateId: string, payload?: MultiAgentApprovalDecisionRequest) {
+  return client.post<ApiResponse<MultiAgentRunResponse>>(`/api/multi-agent-runs/${runId}/approval-gates/${gateId}/approve`, payload || {})
+}
+
+export function rejectMultiAgentGate(runId: string, gateId: string, payload?: MultiAgentApprovalDecisionRequest) {
+  return client.post<ApiResponse<MultiAgentRunResponse>>(`/api/multi-agent-runs/${runId}/approval-gates/${gateId}/reject`, payload || {})
+}

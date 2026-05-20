@@ -12,7 +12,7 @@ public class TestDataFactory {
     private TestDataFactory() {}
 
     public static String uniqueSuffix() {
-        return String.valueOf(System.currentTimeMillis());
+        return String.valueOf(System.nanoTime());
     }
 
     public static Map<String, Object> createProject(String name) {

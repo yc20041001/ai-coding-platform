@@ -35,10 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 public class AgentApplicationService {
+
+    private static final Integer DEFAULT_MAX_TOKENS = 4096;
+    private static final Integer DEFAULT_TIMEOUT_SECONDS = 60;
 
     private final AiAgentMapper aiAgentMapper;
     private final AiAgentVersionMapper aiAgentVersionMapper;
@@ -429,9 +433,9 @@ public class AgentApplicationService {
             return cfg;
         }
         cfg.setTemperature(input.getTemperature() != null ? input.getTemperature() : new BigDecimal("0.2"));
-        cfg.setMaxTokens(input.getMaxTokens() != null ? input.getMaxTokens() : Integer.valueOf(4096));
-        cfg.setTimeoutSeconds(input.getTimeoutSeconds() != null ? input.getTimeoutSeconds() : Integer.valueOf(60));
-        cfg.setUseRag(input.getUseRag() != null ? input.getUseRag() : Boolean.FALSE);
+        cfg.setMaxTokens(Objects.requireNonNullElse(input.getMaxTokens(), DEFAULT_MAX_TOKENS));
+        cfg.setTimeoutSeconds(Objects.requireNonNullElse(input.getTimeoutSeconds(), DEFAULT_TIMEOUT_SECONDS));
+        cfg.setUseRag(Objects.requireNonNullElse(input.getUseRag(), Boolean.FALSE));
         cfg.setKnowledgeBaseId(input.getKnowledgeBaseId());
         cfg.setCustomInstruction(input.getCustomInstruction() != null ? input.getCustomInstruction() : "");
         return cfg;

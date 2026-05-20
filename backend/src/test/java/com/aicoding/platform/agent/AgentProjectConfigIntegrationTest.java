@@ -28,10 +28,13 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
+
+    private static final AtomicLong TEST_COUNTER = new AtomicLong(System.nanoTime());
 
     @Autowired
     private UserMapper userMapper;
@@ -64,7 +67,8 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
             return;
         }
 
-        String suffix = String.valueOf(System.currentTimeMillis());
+        long counter = TEST_COUNTER.incrementAndGet();
+        String suffix = String.valueOf(counter);
 
         // Create a test project (admin is auto-assigned as OWNER)
         ResponseEntity<String> res = post("/api/projects", Map.of(
@@ -80,7 +84,7 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
         secondUserPasswordValue = "Test@123456";
 
         UserEntity user = new UserEntity();
-        user.setId(900000L + (System.currentTimeMillis() % 100000));
+        user.setId(900000L + (counter % 100000));
         user.setUsername("testuser" + suffix);
         user.setEmail(secondUserEmailValue);
         user.setPassword(passwordEncoder.encode(secondUserPasswordValue));
@@ -111,7 +115,7 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
     private @NonNull String secondProjectId() {
         ensureTestData();
         if (secondProjectIdValue == null) {
-            String suffix = String.valueOf(System.currentTimeMillis());
+            String suffix = String.valueOf(TEST_COUNTER.incrementAndGet());
             ResponseEntity<String> res = post("/api/projects", Map.of(
                     "name", "IT-AgentCfg-Second-" + suffix,
                     "description", "Second project for cross-project KB validation",
@@ -125,7 +129,7 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
 
     private KnowledgeBaseEntity createKnowledgeBase(Long projectId, String suffix) {
         KnowledgeBaseEntity kb = new KnowledgeBaseEntity();
-        kb.setId(700000L + (System.currentTimeMillis() % 100000));
+        kb.setId(700000L + (TEST_COUNTER.incrementAndGet() % 100000));
         kb.setProjectId(projectId);
         kb.setName("KB-" + suffix);
         kb.setDescription("Test KB " + suffix);
@@ -473,7 +477,7 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
 
     private ModelConfigEntity createModelConfig(String suffix, String status) {
         ModelConfigEntity mc = new ModelConfigEntity();
-        mc.setId(800000L + (System.currentTimeMillis() % 100000));
+        mc.setId(800000L + (TEST_COUNTER.incrementAndGet() % 100000));
         mc.setProvider("OPENAI");
         mc.setModelName("gpt-4.1-mini-" + suffix);
         mc.setModelType("CHAT");

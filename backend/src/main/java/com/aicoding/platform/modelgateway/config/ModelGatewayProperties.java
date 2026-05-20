@@ -1,12 +1,15 @@
 package com.aicoding.platform.modelgateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
+import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @ConfigurationProperties(prefix = "app.model-gateway")
-public class ModelGatewayProperties {
+public class ModelGatewayProperties implements EnvironmentAware {
 
     private String defaultProvider = "MOCK";
     private String fallbackProvider = "MOCK";
@@ -15,6 +18,7 @@ public class ModelGatewayProperties {
     private int retryTimes = 1;
     private boolean promptSafetyEnabled = true;
     private Map<String, ProviderProperties> providers = new HashMap<>();
+    private Environment environment;
 
     public String getDefaultProvider() { return defaultProvider; }
     public void setDefaultProvider(String defaultProvider) { this.defaultProvider = defaultProvider; }
@@ -42,7 +46,50 @@ public class ModelGatewayProperties {
             return new ProviderProperties();
         }
         ProviderProperties config = providers.get(name.toLowerCase());
-        return config != null ? config : new ProviderProperties();
+        ProviderProperties resolved = config != null ? copy(config) : new ProviderProperties();
+        applyEnvironmentOverrides(name, resolved);
+        return resolved;
+    }
+
+    @Override
+    public void setEnvironment(@NonNull Environment environment) {
+        this.environment = environment;
+    }
+
+    private ProviderProperties copy(ProviderProperties source) {
+        ProviderProperties copy = new ProviderProperties();
+        copy.setEnabled(source.isEnabled());
+        copy.setBaseUrl(source.getBaseUrl());
+        copy.setApiKey(source.getApiKey());
+        copy.setModelName(source.getModelName());
+        return copy;
+    }
+
+    private void applyEnvironmentOverrides(String providerName, ProviderProperties config) {
+        if (environment == null || providerName == null || providerName.isBlank()) {
+            return;
+        }
+
+        String prefix = providerName.toUpperCase().replace('-', '_');
+        String enabled = environment.getProperty(prefix + "_ENABLED");
+        if (enabled != null && !enabled.isBlank()) {
+            config.setEnabled(Boolean.parseBoolean(enabled));
+        }
+
+        String baseUrl = environment.getProperty(prefix + "_BASE_URL");
+        if (baseUrl != null && !baseUrl.isBlank()) {
+            config.setBaseUrl(baseUrl);
+        }
+
+        String apiKey = environment.getProperty(prefix + "_API_KEY");
+        if (apiKey != null && !apiKey.isBlank()) {
+            config.setApiKey(apiKey);
+        }
+
+        String modelName = environment.getProperty(prefix + "_MODEL");
+        if (modelName != null && !modelName.isBlank()) {
+            config.setModelName(modelName);
+        }
     }
 
     public static class ProviderProperties {

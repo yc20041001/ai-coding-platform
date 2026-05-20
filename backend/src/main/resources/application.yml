@@ -26,6 +26,15 @@ spring:
     time-zone: Asia/Shanghai
     default-property-inclusion: non_null
 
+  # ---- Redis ----
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+      timeout: 3000ms
+
 # ---- MyBatis-Plus ----
 mybatis-plus:
   configuration:
@@ -138,19 +147,11 @@ app:
     max-chunk-chars: 800
 
 # ---- RabbitMQ 配置（占位，待基础设施就绪后启用） ----
-  # 当前未引入 spring-boot-starter-amqp，以下配置不会生效
-  # 待 RabbitMQ 环境就绪后，取消注释并添加 Maven 依赖即可
-  #   rabbitmq:
-  #     host: ${RABBITMQ_HOST:localhost}
-  #     port: ${RABBITMQ_PORT:5672}
-  #     username: ${RABBITMQ_USERNAME:guest}
-  #     password: ${RABBITMQ_PASSWORD:guest}
-
-  # ---- Redis ----
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DB:0}
-      timeout: 3000ms
+# 当前未引入 spring-boot-starter-amqp，以下配置不会生效
+# 待 RabbitMQ 环境就绪后，取消注释并添加 Maven 依赖即可
+# spring:
+#   rabbitmq:
+#     host: ${RABBITMQ_HOST:localhost}
+#     port: ${RABBITMQ_PORT:5672}
+#     username: ${RABBITMQ_USERNAME:guest}
+#     password: ${RABBITMQ_PASSWORD:guest}

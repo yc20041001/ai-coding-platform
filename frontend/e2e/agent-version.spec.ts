@@ -26,7 +26,15 @@ test.describe('Agent Version Management', () => {
     // Click the version button on the first agent row
     const versionBtn = page.getByTestId('btn-agent-versions').first()
     await expect(versionBtn).toBeVisible({ timeout: 8000 })
-    await versionBtn.click()
+
+    // Wait for API response when clicking version button
+    await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/agents/') && resp.url().includes('/versions') && resp.status() === 200,
+        { timeout: 15000 },
+      ),
+      versionBtn.click(),
+    ])
 
     // Drawer should open
     const drawer = page.getByTestId('agent-version-drawer')
@@ -37,6 +45,7 @@ test.describe('Agent Version Management', () => {
     await expect(versionList).toBeVisible({ timeout: 5000 })
 
     // At least one version item should be present
+    await expect(page.getByTestId('agent-version-item').first()).toBeVisible({ timeout: 8000 })
     const items = page.getByTestId('agent-version-item')
     const count = await items.count()
     expect(count).toBeGreaterThanOrEqual(1)
@@ -50,19 +59,29 @@ test.describe('Agent Version Management', () => {
     // Open version drawer
     const versionBtn = page.getByTestId('btn-agent-versions').first()
     await expect(versionBtn).toBeVisible({ timeout: 8000 })
-    await versionBtn.click()
+
+    await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/agents/') && resp.url().includes('/versions') && resp.status() === 200,
+        { timeout: 15000 },
+      ),
+      versionBtn.click(),
+    ])
 
     const drawer = page.getByTestId('agent-version-drawer')
     await expect(drawer).toBeVisible({ timeout: 5000 })
 
     // Click the first version item
     const firstItem = page.getByTestId('agent-version-item').first()
-    await expect(firstItem).toBeVisible({ timeout: 5000 })
+    await expect(firstItem).toBeVisible({ timeout: 8000 })
     await firstItem.click()
 
     // Version detail panel should be visible
     const detail = page.getByTestId('agent-version-detail')
     await expect(detail).toBeVisible({ timeout: 5000 })
+
+    // Wait for content to render
+    await page.waitForTimeout(500)
 
     // Detail section should contain systemPrompt, toolPolicy, executionPolicy sections
     // Headers are rendered with CSS text-transform:uppercase
@@ -113,18 +132,25 @@ test.describe('Agent Version Management', () => {
     const dialog = page.getByTestId('agent-enable-dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
 
-    // Version select should be visible with options
+    // Version select should be visible
     const versionSelect = page.getByTestId('select-agent-version')
     await expect(versionSelect).toBeVisible({ timeout: 5000 })
 
-    // Click the select to open dropdown and verify options exist
-    await versionSelect.click()
-    const options = page.locator('.el-select-dropdown__item')
+    // Click the select to open dropdown
+    await versionSelect.locator('.el-select__wrapper').click()
+
+    // Wait for dropdown options to be visible
+    const dropdown = page.locator('.el-select-dropdown:visible')
+    await expect(dropdown).toBeVisible({ timeout: 5000 })
+
+    // Verify options exist
+    const options = dropdown.locator('.el-select-dropdown__item')
     const optionCount = await options.count()
     expect(optionCount).toBeGreaterThanOrEqual(1)
 
-    // Close dropdown by clicking outside
-    await page.locator('.el-dialog__title').click()
+    // Close dropdown by pressing Escape
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
 
     // Confirm enable
     await page.getByTestId('btn-confirm-enable-agent').click()
@@ -145,15 +171,25 @@ test.describe('Agent Version Management', () => {
 
     const versionBtn = page.getByTestId('btn-agent-versions').first()
     await expect(versionBtn).toBeVisible({ timeout: 8000 })
-    await versionBtn.click()
+
+    await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('/api/agents/') && resp.url().includes('/versions') && resp.status() === 200,
+        { timeout: 15000 },
+      ),
+      versionBtn.click(),
+    ])
 
     const drawer = page.getByTestId('agent-version-drawer')
     await expect(drawer).toBeVisible({ timeout: 5000 })
 
     // Click version item
     const firstItem = page.getByTestId('agent-version-item').first()
-    await expect(firstItem).toBeVisible({ timeout: 5000 })
+    await expect(firstItem).toBeVisible({ timeout: 8000 })
     await firstItem.click()
+
+    // Wait for detail content to render
+    await expect(page.getByTestId('agent-version-detail')).toBeVisible({ timeout: 5000 })
 
     // No JS errors
     expect(jsErrors).toEqual([])

@@ -1,5 +1,6 @@
 package com.aicoding.platform.task;
 
+import com.aicoding.platform.common.exception.BizException;
 import com.aicoding.platform.task.application.TaskApplicationService;
 import org.junit.jupiter.api.Test;
 
@@ -59,76 +60,88 @@ class TaskStateMachineTest {
 
     @Test
     void shouldRejectCanceledToRunning() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("CANCELED", "RUNNING"));
+        assertEquals("不允许的状态流转: CANCELED -> RUNNING", ex.getMessage());
     }
 
     @Test
     void shouldRejectCompletedToRunning() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("COMPLETED", "RUNNING"));
+        assertEquals("不允许的状态流转: COMPLETED -> RUNNING", ex.getMessage());
     }
 
     @Test
     void shouldRejectCompletedToFailed() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("COMPLETED", "FAILED"));
+        assertEquals("不允许的状态流转: COMPLETED -> FAILED", ex.getMessage());
     }
 
     @Test
     void shouldRejectFailedToRunning() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("FAILED", "RUNNING"));
+        assertEquals("不允许的状态流转: FAILED -> RUNNING", ex.getMessage());
     }
 
     @Test
     void shouldRejectFailedToCompleted() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("FAILED", "COMPLETED"));
+        assertEquals("不允许的状态流转: FAILED -> COMPLETED", ex.getMessage());
     }
 
     @Test
     void shouldRejectReviewingToRunning() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("REVIEWING", "RUNNING"));
+        assertEquals("不允许的状态流转: REVIEWING -> RUNNING", ex.getMessage());
     }
 
     @Test
     void shouldRejectPendingToCompleted() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("PENDING", "COMPLETED"));
+        assertEquals("不允许的状态流转: PENDING -> COMPLETED", ex.getMessage());
     }
 
     @Test
     void shouldRejectCanceledToPending() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("CANCELED", "PENDING"));
+        assertEquals("不允许的状态流转: CANCELED -> PENDING", ex.getMessage());
     }
 
     @Test
     void shouldRejectNonexistentStatus() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("NONEXISTENT", "RUNNING"));
+        assertEquals("不允许的状态流转: NONEXISTENT -> RUNNING", ex.getMessage());
     }
 
     // === Edge cases ===
 
     @Test
     void shouldRejectTransitionToSameStatus() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("PENDING", "PENDING"));
+        assertEquals("不允许的状态流转: PENDING -> PENDING", ex.getMessage());
     }
 
     @Test
     void shouldRejectTransitionFromNull() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition(null, "RUNNING"));
+        assertEquals("不允许的状态流转: null -> RUNNING", ex.getMessage());
     }
 
     @Test
     void shouldRejectTransitionToNull() {
-        assertThrows(RuntimeException.class, () ->
+        BizException ex = assertThrows(BizException.class, () ->
                 service.validateTransition("PENDING", null));
+        assertEquals("不允许的状态流转: PENDING -> null", ex.getMessage());
     }
 
     /**

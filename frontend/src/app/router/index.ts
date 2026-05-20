@@ -100,6 +100,11 @@ const router = createRouter({
           name: 'ModelGateway',
           component: () => import('@/modules/model/pages/ModelConfigPage.vue'),
         },
+        {
+          path: 'workflow-templates',
+          name: 'WorkflowTemplates',
+          component: () => import('@/modules/workflow/pages/WorkflowTemplatePage.vue'),
+        },
       ],
     },
   ],

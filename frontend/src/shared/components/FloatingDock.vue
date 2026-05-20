@@ -63,6 +63,16 @@ const isActive = (path: string) => {
           <span class="fdock-label">模型</span>
           <span v-if="route.path.startsWith('/model-gateway')" class="fdock-bar" />
         </router-link>
+        <router-link
+          to="/workflow-templates"
+          class="fdock-item"
+          :class="{ active: route.path.startsWith('/workflow-templates') }"
+          data-testid="nav-workflow-templates"
+        >
+          <span class="fdock-icon">⧩</span>
+          <span class="fdock-label">工作流</span>
+          <span v-if="route.path.startsWith('/workflow-templates')" class="fdock-bar" />
+        </router-link>
       </template>
     </div>
   </nav>

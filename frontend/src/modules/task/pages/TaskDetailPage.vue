@@ -16,6 +16,7 @@ import EmptyState from '@/shared/components/EmptyState.vue'
 import ErrorState from '@/shared/components/ErrorState.vue'
 import GlowButton from '@/shared/components/GlowButton.vue'
 import AgentExecutionDrawer from '@/modules/task/components/AgentExecutionDrawer.vue'
+import MultiAgentRunPanel from '@/modules/task/components/MultiAgentRunPanel.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
 const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
@@ -52,6 +53,7 @@ const railItems = [
   { key: 'logs', label: '日志', icon: '▤' },
   { key: 'artifacts', label: '产物', icon: '◈' },
   { key: 'executions', label: '执行记录', icon: '◎' },
+  { key: 'multi-agent', label: '多智能体', icon: '◇' },
 ]
 
 const statusTone = (status: string) => {
@@ -259,6 +261,11 @@ onMounted(() => loadTask())
               </el-table-column>
             </el-table>
             <EmptyState v-if="!loadingExecutions && executions.length === 0" description="暂无执行记录" />
+          </div>
+
+          <!-- Multi-Agent -->
+          <div v-if="activeTab === 'multi-agent'" data-testid="multi-agent-tab">
+            <MultiAgentRunPanel :task-id="taskId" />
           </div>
         </div>
       </DynamicWorkspace>
