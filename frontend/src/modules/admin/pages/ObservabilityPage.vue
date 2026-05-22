@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import client from '@/shared/api/client'
 import type { ApiResponse, PageResult } from '@/shared/api/types'
 import { getOverview, getModelUsageSummary, type SystemOverview, type ModelUsageSummary, type AuditLogItem } from '@/modules/admin/api'
+import ToolExecutionMetricsPanel from '@/modules/admin/components/ToolExecutionMetricsPanel.vue'
+import ToolExecutionTraceDrawer from '@/modules/task/components/ToolExecutionTraceDrawer.vue'
 import AuditLogFilters, { type AuditLogFilterValues } from '@/modules/admin/components/AuditLogFilters.vue'
 import DynamicWorkspace from '@/shared/components/DynamicWorkspace.vue'
 import TechPanel from '@/shared/components/TechPanel.vue'
@@ -24,6 +26,17 @@ const loadingAudit = ref(false)
 const auditPage = ref(1)
 const auditTotal = ref(0)
 const auditFilters = ref<AuditLogFilterValues>({})
+
+// Trace drawer
+const traceDrawerExecId = ref<string | undefined>(undefined)
+const traceDrawerVisible = ref(false)
+
+function openTraceDrawer(executionId?: string | null) {
+  if (executionId) {
+    traceDrawerExecId.value = executionId
+    traceDrawerVisible.value = true
+  }
+}
 
 async function loadOverview() {
   loadingOverview.value = true
@@ -124,6 +137,10 @@ onMounted(() => {
         </div>
       </TechPanel>
 
+      <TechPanel v-if="!overviewError" glow style="margin-bottom:20px">
+        <ToolExecutionMetricsPanel />
+      </TechPanel>
+
       <TechPanel v-loading="loadingAudit" title="审计日志">
         <AuditLogFilters @search="handleAuditSearch" @reset="handleAuditReset" />
         <el-table :data="auditLogs" size="small" style="width:100%">
@@ -153,4 +170,10 @@ onMounted(() => {
       </TechPanel>
     </DynamicWorkspace>
   </div>
+
+  <!-- Tool Execution Trace Drawer -->
+  <ToolExecutionTraceDrawer
+    v-model="traceDrawerVisible"
+    :execution-id="traceDrawerExecId"
+  />
 </template>

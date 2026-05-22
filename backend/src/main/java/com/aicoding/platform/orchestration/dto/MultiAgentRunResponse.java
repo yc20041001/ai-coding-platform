@@ -25,6 +25,7 @@ public class MultiAgentRunResponse {
     private List<MultiAgentMessageResponse> messages;
     private List<MultiAgentApprovalGateResponse> approvalGates;
     private MultiAgentApprovalGateResponse pendingApprovalGate;
+    private List<ToolSandboxExecutionResponse> toolExecutions;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -88,4 +89,7 @@ public class MultiAgentRunResponse {
 
     public MultiAgentApprovalGateResponse getPendingApprovalGate() { return pendingApprovalGate; }
     public void setPendingApprovalGate(MultiAgentApprovalGateResponse pendingApprovalGate) { this.pendingApprovalGate = pendingApprovalGate; }
+
+    public List<ToolSandboxExecutionResponse> getToolExecutions() { return toolExecutions; }
+    public void setToolExecutions(List<ToolSandboxExecutionResponse> toolExecutions) { this.toolExecutions = toolExecutions; }
 }

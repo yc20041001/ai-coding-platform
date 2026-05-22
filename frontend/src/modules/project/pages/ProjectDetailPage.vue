@@ -28,6 +28,8 @@ const railItems = [
   { key: 'repository', label: '仓库', icon: '⬡' },
   { key: 'members', label: '成员', icon: '◎' },
   { key: 'agents', label: '智能体', icon: '◆' },
+  { key: 'tools', label: '工具', icon: '⬢' },
+  { key: 'code-index', label: '代码索引', icon: '◈' },
 ]
 
 onMounted(async () => {
@@ -56,6 +58,8 @@ watch(
       Members: 'members',
       PrReview: 'repository',
       ProjectAgents: 'agents',
+      ProjectTools: 'tools',
+      CodeIndex: 'code-index',
     }
     activeTab.value = routeTabMap[String(name)] || 'overview'
   },
@@ -75,6 +79,8 @@ function onRailSelect(key: string) {
     repository: `/projects/${projectId}/repository`,
     members: `/projects/${projectId}/members`,
     agents: `/projects/${projectId}/agents`,
+    tools: `/projects/${projectId}/tools`,
+    'code-index': `/projects/${projectId}/code-index`,
   }
   router.push(tabRoutes[key] || `/projects/${projectId}`)
 }

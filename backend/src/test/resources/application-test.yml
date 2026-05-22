@@ -57,6 +57,10 @@ app:
     default-limit: 5
     max-context-chars: 4000
     max-chunk-chars: 800
+  tool-worker:
+    mode: SYNC_MOCK
+    queue-enabled: false
+    worker-enabled: false
 
 mybatis-plus:
   configuration:

@@ -1,5 +1,7 @@
 package com.aicoding.platform.orchestration.dto;
 
+import java.util.List;
+
 public class MultiAgentStepResponse {
 
     private String id;
@@ -19,6 +21,7 @@ public class MultiAgentStepResponse {
     private String startedAt;
     private String finishedAt;
     private String createTime;
+    private List<ToolSandboxExecutionResponse> toolExecutions;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -70,4 +73,7 @@ public class MultiAgentStepResponse {
 
     public String getCreateTime() { return createTime; }
     public void setCreateTime(String createTime) { this.createTime = createTime; }
+
+    public List<ToolSandboxExecutionResponse> getToolExecutions() { return toolExecutions; }
+    public void setToolExecutions(List<ToolSandboxExecutionResponse> toolExecutions) { this.toolExecutions = toolExecutions; }
 }

@@ -110,7 +110,7 @@ public class SystemOverviewApplicationService {
                 modelWrapper.clone().ge(ModelRequestLogEntity::getCreateTime, todayStart)));
         resp.setTodayTokenUsage(modelRequestLogMapper.selectList(
                         modelWrapper.clone().ge(ModelRequestLogEntity::getCreateTime, todayStart)).stream()
-                .mapToLong(e -> e.getTotalTokens() != null ? e.getTotalTokens() : 0L)
+                .mapToLong(e -> { Long t = e.getTotalTokens(); return t != null ? t : 0L; })
                 .sum());
 
         return resp;

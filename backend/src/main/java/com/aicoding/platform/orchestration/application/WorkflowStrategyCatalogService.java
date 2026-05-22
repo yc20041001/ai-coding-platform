@@ -302,7 +302,7 @@ public class WorkflowStrategyCatalogService {
     private List<WorkflowTemplateEntity> queryEnabledTemplates() {
         LambdaQueryWrapper<WorkflowTemplateEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkflowTemplateEntity::getStatus, "ENABLED");
-        wrapper.orderByAsc(WorkflowTemplateEntity::getTemplateKey);
+        wrapper.orderByAsc(WorkflowTemplateEntity::getId);
         return workflowTemplateMapper.selectList(wrapper);
     }
 

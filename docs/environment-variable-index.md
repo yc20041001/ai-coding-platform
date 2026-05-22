@@ -179,6 +179,34 @@ All disabled by default. Set `*_ENABLED=true` and provide `*_API_KEY` to activat
 | `AUTH_LOGIN_FAILURE_WINDOW_SECONDS` | No | `300` | `300` | Internal | `.env.example` |
 | `AUTH_LOGIN_LOCK_SECONDS` | No | `600` | `600` | Internal | `.env.example` |
 
+## 16. Tool Worker (Async Queue / DLQ / Retry)
+
+| Variable | Required | Default | Example | Security | Source |
+|----------|----------|---------|---------|----------|--------|
+| `TOOL_WORKER_MODE` | No | `SYNC_MOCK` | `SYNC_MOCK` / `ASYNC_RABBITMQ` | Internal | `.env.example` |
+| `TOOL_WORKER_QUEUE_ENABLED` | No | `false` | `true` / `false` | Internal | `.env.example` |
+| `TOOL_WORKER_WORKER_ENABLED` | No | `false` | `true` / `false` | Internal | `.env.example` |
+| `TOOL_WORKER_EXCHANGE` | No | `tool.execution.exchange` | — | Internal | `.env.example` |
+| `TOOL_WORKER_QUEUE` | No | `tool.execution.queue` | — | Internal | `.env.example` |
+| `TOOL_WORKER_ROUTING_KEY` | No | `tool.execution.run` | — | Internal | `.env.example` |
+| `TOOL_WORKER_DEAD_LETTER_EXCHANGE` | No | `tool.execution.dlx` | — | Internal | `.env.example` |
+| `TOOL_WORKER_DEAD_LETTER_QUEUE` | No | `tool.execution.dlq` | — | Internal | `.env.example` |
+| `TOOL_WORKER_DEAD_LETTER_ROUTING_KEY` | No | `tool.execution.dead` | — | Internal | `.env.example` |
+| `TOOL_WORKER_MAX_RETRY_COUNT` | No | `2` | `3` | Internal | `.env.example` |
+| `TOOL_WORKER_RETRY_DELAYS_SECONDS` | No | `5,30,120` | `10,60,300` | Internal | `.env.example` |
+| `TOOL_WORKER_RUNNING_TIMEOUT_SECONDS` | No | `300` | `600` | Internal | `.env.example` |
+| `TOOL_WORKER_POLL_INTERVAL_MS` | No | `1500` | `3000` | Internal | `.env.example` |
+
+## 17. Read-Only Tools
+
+| Variable | Required | Default | Example | Security | Source |
+|----------|----------|---------|---------|----------|--------|
+| `READ_ONLY_TOOL_MAX_FILE_BYTES` | No | `131072` | `262144` | Internal | `application.yml` |
+| `READ_ONLY_TOOL_MAX_OUTPUT_BYTES` | No | `262144` | `524288` | Internal | `application.yml` |
+| `READ_ONLY_TOOL_MAX_FILES` | No | `200` | `100` | Internal | `application.yml` |
+| `READ_ONLY_TOOL_REDACTION_ENABLED` | No | `true` | `true` / `false` | Internal | `application.yml` |
+| `READ_ONLY_TOOL_ALLOW_PREFIXES` | No | `backend/src,frontend/src,...` | `backend/src,frontend/src,docs,scripts,deploy,.github/workflows` | Internal | `application.yml` |
+
 ---
 
 ## Files NOT to Commit

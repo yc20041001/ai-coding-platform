@@ -35,6 +35,14 @@ spring:
       database: ${REDIS_DB:0}
       timeout: 3000ms
 
+  # ---- RabbitMQ ----
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:${RABBITMQ_HOST:localhost}}
+    port: ${SPRING_RABBITMQ_PORT:${RABBITMQ_PORT:5672}}
+    username: ${SPRING_RABBITMQ_USERNAME:${RABBITMQ_USERNAME:guest}}
+    password: ${SPRING_RABBITMQ_PASSWORD:${RABBITMQ_PASSWORD:guest}}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:${RABBITMQ_VIRTUAL_HOST:/}}
+
 # ---- MyBatis-Plus ----
 mybatis-plus:
   configuration:
@@ -97,6 +105,12 @@ app:
       lock-seconds: ${AUTH_LOGIN_LOCK_SECONDS:600}
   workspace:
     root-path: ${WORKSPACE_ROOT:./workspace}
+  read-only-tools:
+    max-file-bytes: ${READ_ONLY_TOOL_MAX_FILE_BYTES:131072}
+    max-output-bytes: ${READ_ONLY_TOOL_MAX_OUTPUT_BYTES:262144}
+    max-files: ${READ_ONLY_TOOL_MAX_FILES:200}
+    redaction-enabled: ${READ_ONLY_TOOL_REDACTION_ENABLED:true}
+    allow-prefixes: ${READ_ONLY_TOOL_ALLOW_PREFIXES:backend/src,frontend/src,docs,scripts,deploy,.github/workflows}
   model-gateway:
     default-provider: ${MODEL_GATEWAY_PROVIDER:MOCK}
     fallback-provider: MOCK
@@ -145,13 +159,18 @@ app:
     default-limit: 5
     max-context-chars: 4000
     max-chunk-chars: 800
+  tool-worker:
+    mode: ${TOOL_WORKER_MODE:SYNC_MOCK}
+    queue-enabled: ${TOOL_WORKER_QUEUE_ENABLED:false}
+    worker-enabled: ${TOOL_WORKER_ENABLED:false}
+    exchange: ${TOOL_WORKER_EXCHANGE:tool.execution.exchange}
+    queue: ${TOOL_WORKER_QUEUE:tool.execution.queue}
+    routing-key: ${TOOL_WORKER_ROUTING_KEY:tool.execution.run}
+    max-retry-count: ${TOOL_WORKER_MAX_RETRY_COUNT:2}
+    dead-letter-exchange: ${TOOL_WORKER_DEAD_LETTER_EXCHANGE:tool.execution.dlx}
+    dead-letter-queue: ${TOOL_WORKER_DEAD_LETTER_QUEUE:tool.execution.dlq}
+    dead-letter-routing-key: ${TOOL_WORKER_DEAD_LETTER_ROUTING_KEY:tool.execution.dead}
+    retry-delays-seconds: ${TOOL_WORKER_RETRY_DELAYS_SECONDS:5,30,120}
+    running-timeout-seconds: ${TOOL_WORKER_RUNNING_TIMEOUT_SECONDS:300}
+    poll-interval-ms: ${TOOL_WORKER_POLL_INTERVAL_MS:1500}
 
-# ---- RabbitMQ 配置（占位，待基础设施就绪后启用） ----
-# 当前未引入 spring-boot-starter-amqp，以下配置不会生效
-# 待 RabbitMQ 环境就绪后，取消注释并添加 Maven 依赖即可
-# spring:
-#   rabbitmq:
-#     host: ${RABBITMQ_HOST:localhost}
-#     port: ${RABBITMQ_PORT:5672}
-#     username: ${RABBITMQ_USERNAME:guest}
-#     password: ${RABBITMQ_PASSWORD:guest}

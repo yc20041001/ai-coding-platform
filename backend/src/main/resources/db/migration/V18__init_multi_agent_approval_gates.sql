@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS multi_agent_approval_gate (
+    id BIGINT PRIMARY KEY,
+    run_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    phase_id BIGINT NULL,
+    gate_key VARCHAR(64) NOT NULL,
+    title VARCHAR(128) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(32) NOT NULL,
+    requested_by BIGINT NULL,
+    decided_by BIGINT NULL,
+    decision_comment TEXT NULL,
+    requested_at DATETIME NULL,
+    decided_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_multi_agent_approval_run (run_id),
+    INDEX idx_multi_agent_approval_task (task_id),
+    INDEX idx_multi_agent_approval_project_status (project_id, status),
+    INDEX idx_multi_agent_approval_decider (decided_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='多 Agent 人工审批闸门';

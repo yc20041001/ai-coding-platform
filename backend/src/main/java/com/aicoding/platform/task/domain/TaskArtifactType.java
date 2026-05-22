@@ -6,5 +6,6 @@ public enum TaskArtifactType {
     FILE,
     REPORT,
     TEST_RESULT,
-    PR
+    PR,
+    PATCH_PROPOSAL
 }

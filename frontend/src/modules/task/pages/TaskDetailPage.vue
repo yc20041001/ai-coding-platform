@@ -20,6 +20,7 @@ import MultiAgentRunPanel from '@/modules/task/components/MultiAgentRunPanel.vue
 import { formatDateTime } from '@/shared/utils/format'
 
 const MarkdownRenderer = defineAsyncComponent(() => import('@/shared/components/MarkdownRenderer.vue'))
+const PatchProposalReviewPanel = defineAsyncComponent(() => import('@/modules/task/components/PatchProposalReviewPanel.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -227,8 +228,27 @@ onMounted(() => loadTask())
                 >{{ a.name || a.artifactType }}</el-button>
               </div>
               <div v-if="selectedArtifact" class="artifact-content">
-                <el-tag size="small" style="margin-bottom:12px">{{ selectedArtifact.artifactType }}</el-tag>
-                <MarkdownRenderer :content="selectedArtifact.content || ''" />
+                <template v-if="selectedArtifact.artifactType === 'PATCH_PROPOSAL'">
+                  <div class="artifact-meta">
+                    <el-tag
+                      size="small"
+                      type="warning"
+                      effect="dark"
+                      data-testid="patch-proposal-artifact"
+                    >补丁提案</el-tag>
+                    <span
+                      class="patch-proposal-safety-note"
+                      data-testid="patch-proposal-safety-note"
+                    >仅提案，未应用</span>
+                  </div>
+                  <PatchProposalReviewPanel :artifact="selectedArtifact" />
+                </template>
+                <template v-else>
+                  <div class="artifact-meta">
+                    <el-tag size="small" style="margin-bottom:12px">{{ selectedArtifact.artifactType }}</el-tag>
+                  </div>
+                  <MarkdownRenderer :content="selectedArtifact.content || ''" />
+                </template>
               </div>
             </template>
             <EmptyState v-else-if="!loadingArtifacts" description="暂无产物" />
@@ -349,6 +369,9 @@ onMounted(() => loadTask())
   border-radius: var(--app-radius);
   padding: 20px;
 }
+.artifact-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.patch-proposal-safety-note { font-size: 11px; color: var(--el-color-warning, #e6a23c); background: rgba(230,162,60,0.12); padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.patch-proposal-banner { background: rgba(230,162,60,0.08); border: 1px solid rgba(230,162,60,0.2); border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--el-color-warning, #e6a23c); }
 
 .log-line { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--app-border); font-size: 13px; }
 .log-stage { font-weight: 600; color: var(--app-text-soft); min-width: 120px; }

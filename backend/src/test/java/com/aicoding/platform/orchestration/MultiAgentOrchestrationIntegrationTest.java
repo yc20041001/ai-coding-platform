@@ -1346,4 +1346,255 @@ class MultiAgentOrchestrationIntegrationTest extends IntegrationTestBase {
         }
         assertThat(hasRequest).isTrue();
     }
+
+    // ========================
+    // 8. Tool sandbox tests (36A)
+    // ========================
+
+    @Test
+    void shouldCompletedStepsGenerateToolExecutions() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId);
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        JsonNode toolExecs = data.get("toolExecutions");
+        assertThat(toolExecs).isNotNull();
+        assertThat(toolExecs.isArray()).isTrue();
+        // All 4 completed steps (Phase 1: 1 + Phase 2: 3) should have tool executions
+        assertThat(toolExecs.size()).isEqualTo(4);
+    }
+
+    @Test
+    void shouldSkippedStepsNotGenerateToolExecutions() {
+        // Use a fresh run with only architect + review agents enabled
+        // backend/frontend/test agents will be skipped
+        String suffix = String.valueOf(System.currentTimeMillis()) + "-TS";
+        ResponseEntity<String> prj = post("/api/projects", Map.of(
+                "name", "IT-TS-" + suffix,
+                "description", "Tool sandbox skip test",
+                "techStack", List.of("Java")
+        ));
+        assertOk(prj);
+        String pid = TestJsonHelper.getString(TestJsonHelper.parse(prj.getBody()), "data.id");
+
+        // Only enable architect and review agents (300001, 300005)
+        for (long agentId : new long[]{300001L, 300005L}) {
+            post("/api/projects/" + pid + "/agents/" + agentId + "/enable", Map.of());
+        }
+
+        ResponseEntity<String> taskRes = post("/api/projects/" + pid + "/tasks", Map.of(
+                "title", "IT-TS-Task-" + suffix,
+                "description", "Tool sandbox skip test",
+                "taskType", "FEATURE",
+                "priority", "MEDIUM",
+                "agentId", AGENT_ID
+        ));
+        assertOk(taskRes);
+        String tid = TestJsonHelper.getString(TestJsonHelper.parse(taskRes.getBody()), "data.id");
+
+        ResponseEntity<String> startRes = post("/api/tasks/" + tid + "/multi-agent-runs", Map.of(
+                "strategy", "STANDARD_DELIVERY"));
+        assertOk(startRes);
+        JsonNode data = TestJsonHelper.parse(startRes.getBody()).get("data");
+
+        JsonNode steps = data.get("steps");
+        long skippedCount = 0;
+        long completedCount = 0;
+        for (JsonNode step : steps) {
+            String status = TestJsonHelper.getString(step, "status");
+            if ("SKIPPED".equals(status)) skippedCount++;
+            if ("COMPLETED".equals(status)) completedCount++;
+        }
+
+        JsonNode toolExecs = data.get("toolExecutions");
+        // Tool executions should only exist for COMPLETED steps (not SKIPPED)
+        assertThat(toolExecs.size()).isEqualTo((int) completedCount);
+        assertThat(skippedCount).isGreaterThan(0);
+    }
+
+    @Test
+    void shouldRunDetailReturnToolExecutions() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId);
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        JsonNode toolExecs = data.get("toolExecutions");
+        assertThat(toolExecs).isNotNull();
+        assertThat(toolExecs.isArray()).isTrue();
+        assertThat(toolExecs.size()).isGreaterThanOrEqualTo(1);
+
+        JsonNode first = toolExecs.get(0);
+        assertThat(TestJsonHelper.getString(first, "id")).isNotEmpty();
+        assertThat(TestJsonHelper.getString(first, "toolName")).isNotEmpty();
+        assertThat(TestJsonHelper.getString(first, "executionMode")).isEqualTo("MOCK_EXECUTE");
+        assertThat(TestJsonHelper.getString(first, "status")).isEqualTo("COMPLETED");
+    }
+
+    @Test
+    void shouldStepResponseIncludeToolExecutions() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId);
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        JsonNode steps = data.get("steps");
+
+        boolean foundWithToolExecs = false;
+        for (JsonNode step : steps) {
+            if ("COMPLETED".equals(TestJsonHelper.getString(step, "status"))) {
+                JsonNode stepToolExecs = step.get("toolExecutions");
+                if (stepToolExecs != null && stepToolExecs.isArray() && stepToolExecs.size() > 0) {
+                    foundWithToolExecs = true;
+                    JsonNode te = stepToolExecs.get(0);
+                    assertThat(TestJsonHelper.getString(te, "stepId")).isEqualTo(TestJsonHelper.getString(step, "id"));
+                }
+            }
+        }
+        assertThat(foundWithToolExecs).isTrue();
+    }
+
+    @Test
+    void shouldGetRunToolExecutionsEndpoint() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId + "/tool-executions");
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        assertThat(data.isArray()).isTrue();
+        assertThat(data.size()).isGreaterThanOrEqualTo(1);
+
+        JsonNode first = data.get(0);
+        assertThat(TestJsonHelper.getString(first, "id")).isNotEmpty();
+        assertThat(TestJsonHelper.getString(first, "runId")).isEqualTo(runId);
+    }
+
+    @Test
+    void shouldGetStepToolExecutionsEndpoint() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId);
+        assertOk(res);
+        JsonNode steps = TestJsonHelper.parse(res.getBody()).get("data").get("steps");
+
+        // Find a completed step
+        String stepId = null;
+        for (JsonNode step : steps) {
+            if ("COMPLETED".equals(TestJsonHelper.getString(step, "status"))) {
+                stepId = TestJsonHelper.getString(step, "id");
+                break;
+            }
+        }
+        assertThat(stepId).isNotNull();
+
+        ResponseEntity<String> teRes = get("/api/multi-agent-steps/" + stepId + "/tool-executions");
+        assertOk(teRes);
+        JsonNode data = TestJsonHelper.parse(teRes.getBody()).get("data");
+        assertThat(data.isArray()).isTrue();
+        assertThat(data.size()).isEqualTo(1);
+        assertThat(TestJsonHelper.getString(data.get(0), "stepId")).isEqualTo(stepId);
+    }
+
+    @Test
+    void shouldGetSingleToolExecutionEndpoint() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId + "/tool-executions");
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        assertThat(data.size()).isGreaterThanOrEqualTo(1);
+        String execId = TestJsonHelper.getString(data.get(0), "id");
+
+        ResponseEntity<String> teRes = get("/api/tool-sandbox-executions/" + execId);
+        assertOk(teRes);
+        JsonNode teData = TestJsonHelper.parse(teRes.getBody()).get("data");
+        assertThat(TestJsonHelper.getString(teData, "id")).isEqualTo(execId);
+        assertThat(TestJsonHelper.getString(teData, "toolName")).isNotEmpty();
+        assertThat(TestJsonHelper.getString(teData, "executionMode")).isEqualTo("MOCK_EXECUTE");
+    }
+
+    @Test
+    void shouldToolExecutionOutputDeclareMockSafety() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId + "/tool-executions");
+        assertOk(res);
+        JsonNode data = TestJsonHelper.parse(res.getBody()).get("data");
+        assertThat(data.size()).isGreaterThanOrEqualTo(1);
+
+        for (JsonNode te : data) {
+            String outputPayload = TestJsonHelper.getString(te, "outputPayload");
+            assertThat(outputPayload).isNotEmpty();
+            assertThat(outputPayload).contains("\"mock\":true");
+            assertThat(outputPayload).contains("\"readOnly\":true");
+            assertThat(outputPayload).contains("\"filesTouched\":[]");
+            assertThat(outputPayload).contains("\"gitOperations\":[]");
+        }
+    }
+
+    @Test
+    void shouldTaskLogsContainToolSandboxExecuted() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> runRes = get("/api/multi-agent-runs/" + runId);
+        assertOk(runRes);
+        String taskId = TestJsonHelper.getString(
+                TestJsonHelper.parse(runRes.getBody()), "data.taskId");
+
+        ResponseEntity<String> logRes = get("/api/tasks/" + taskId + "/logs");
+        assertOk(logRes);
+        JsonNode logs = TestJsonHelper.parse(logRes.getBody()).get("data");
+
+        boolean hasToolSandboxLog = false;
+        for (JsonNode log : logs) {
+            if ("TOOL_SANDBOX_EXECUTED".equals(TestJsonHelper.getString(log, "stage"))) {
+                hasToolSandboxLog = true;
+                assertThat(TestJsonHelper.getString(log, "message")).contains("MOCK_EXECUTE");
+            }
+        }
+        assertThat(hasToolSandboxLog).isTrue();
+    }
+
+    @Test
+    void shouldRejectUnauthenticatedForToolExecutionApis() {
+        String runId = freshApprovalRunId();
+
+        // Run tool-executions
+        try {
+            ResponseEntity<String> res = getNoAuth("/api/multi-agent-runs/" + runId + "/tool-executions");
+            assertCode(res, "UNAUTHORIZED");
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            // Expected on 401
+        }
+    }
+
+    @Test
+    void shouldReturnNotFoundForInvalidToolExecutionId() {
+        ResponseEntity<String> res = get("/api/tool-sandbox-executions/99999999");
+        assertCode(res, "NOT_FOUND");
+    }
+
+    @Test
+    void shouldPhasesIncludeStepsWithToolExecutions() {
+        String runId = freshApprovalRunId();
+
+        ResponseEntity<String> res = get("/api/multi-agent-runs/" + runId + "/phases");
+        assertOk(res);
+        JsonNode phases = TestJsonHelper.parse(res.getBody()).get("data");
+
+        boolean foundToolExecs = false;
+        for (JsonNode phase : phases) {
+            JsonNode steps = phase.get("steps");
+            for (JsonNode step : steps) {
+                if ("COMPLETED".equals(TestJsonHelper.getString(step, "status"))) {
+                    JsonNode toolExecs = step.get("toolExecutions");
+                    if (toolExecs != null && toolExecs.isArray() && toolExecs.size() > 0) {
+                        foundToolExecs = true;
+                    }
+                }
+            }
+        }
+        assertThat(foundToolExecs).isTrue();
+    }
 }

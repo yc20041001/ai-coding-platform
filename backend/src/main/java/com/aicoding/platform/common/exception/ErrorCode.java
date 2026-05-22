@@ -37,7 +37,22 @@ public enum ErrorCode {
     CAPTCHA_EXPIRED("CAPTCHA_EXPIRED", "验证码已过期", HttpStatus.BAD_REQUEST),
 
     // 登录保护错误
-    AUTH_TOO_MANY_ATTEMPTS("AUTH_TOO_MANY_ATTEMPTS", "登录尝试次数过多，请稍后再试", HttpStatus.TOO_MANY_REQUESTS);
+    AUTH_TOO_MANY_ATTEMPTS("AUTH_TOO_MANY_ATTEMPTS", "登录尝试次数过多，请稍后再试", HttpStatus.TOO_MANY_REQUESTS),
+
+    // 工具审批错误
+    TOOL_APPROVAL_CONFLICT("TOOL_APPROVAL_CONFLICT", "工具审批状态冲突", HttpStatus.CONFLICT),
+    TOOL_APPROVAL_NOT_FOUND("TOOL_APPROVAL_NOT_FOUND", "工具审批记录不存在", HttpStatus.NOT_FOUND),
+
+    // 高级参数校验错误
+    PARAM_SCHEMA_VERSION_UNSUPPORTED("PARAM_SCHEMA_VERSION_UNSUPPORTED", "参数 schema 版本不支持", HttpStatus.BAD_REQUEST),
+    PARAM_GROUP_FIELD_NOT_FOUND("PARAM_GROUP_FIELD_NOT_FOUND", "参数分组引用了不存在的字段", HttpStatus.BAD_REQUEST),
+    PARAM_DEPENDS_ON_FIELD_NOT_FOUND("PARAM_DEPENDS_ON_FIELD_NOT_FOUND", "参数条件依赖的字段不存在", HttpStatus.BAD_REQUEST),
+    PARAM_ARRAY_ITEM_TYPE_INVALID("PARAM_ARRAY_ITEM_TYPE_INVALID", "数组参数仅支持 text item 类型", HttpStatus.BAD_REQUEST),
+    PARAM_ARRAY_MAX_ITEMS_EXCEEDED("PARAM_ARRAY_MAX_ITEMS_EXCEEDED", "数组参数超过最大项数", HttpStatus.BAD_REQUEST),
+    PARAM_ARRAY_ITEM_TOO_LONG("PARAM_ARRAY_ITEM_TOO_LONG", "数组参数项超出最大长度", HttpStatus.BAD_REQUEST),
+    PARAM_PATH_DENIED("PARAM_PATH_DENIED", "路径被禁止访问", HttpStatus.BAD_REQUEST),
+    PARAM_PATH_NOT_ALLOWED("PARAM_PATH_NOT_ALLOWED", "路径不在允许前缀范围内", HttpStatus.BAD_REQUEST),
+    PARAM_PATH_INVALID("PARAM_PATH_INVALID", "路径格式无效（禁止绝对路径/../~/空字符）", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

@@ -28,6 +28,7 @@ import com.aicoding.platform.orchestration.dto.MultiAgentPhaseResponse;
 import com.aicoding.platform.orchestration.dto.MultiAgentRunResponse;
 import com.aicoding.platform.orchestration.dto.MultiAgentStepResponse;
 import com.aicoding.platform.orchestration.dto.StartMultiAgentRunRequest;
+import com.aicoding.platform.orchestration.dto.ToolSandboxExecutionResponse;
 import com.aicoding.platform.orchestration.infrastructure.MultiAgentApprovalGateMapper;
 import com.aicoding.platform.orchestration.infrastructure.MultiAgentMessageMapper;
 import com.aicoding.platform.orchestration.infrastructure.MultiAgentPhaseMapper;
@@ -80,6 +81,7 @@ public class MultiAgentOrchestrationService {
     private final WorkflowStrategyCatalogService workflowStrategyCatalogService;
     private final MultiAgentApprovalGateMapper multiAgentApprovalGateMapper;
     private final AuditLogApplicationService auditLogApplicationService;
+    private final ToolSandboxExecutionService toolSandboxExecutionService;
 
     public MultiAgentOrchestrationService(MultiAgentRunMapper multiAgentRunMapper,
                                            MultiAgentStepMapper multiAgentStepMapper,
@@ -95,7 +97,8 @@ public class MultiAgentOrchestrationService {
                                            MultiAgentPhaseMapper multiAgentPhaseMapper,
                                            WorkflowStrategyCatalogService workflowStrategyCatalogService,
                                            MultiAgentApprovalGateMapper multiAgentApprovalGateMapper,
-                                           AuditLogApplicationService auditLogApplicationService) {
+                                           AuditLogApplicationService auditLogApplicationService,
+                                           ToolSandboxExecutionService toolSandboxExecutionService) {
         this.multiAgentRunMapper = multiAgentRunMapper;
         this.multiAgentStepMapper = multiAgentStepMapper;
         this.aiTaskMapper = aiTaskMapper;
@@ -111,6 +114,7 @@ public class MultiAgentOrchestrationService {
         this.workflowStrategyCatalogService = workflowStrategyCatalogService;
         this.multiAgentApprovalGateMapper = multiAgentApprovalGateMapper;
         this.auditLogApplicationService = auditLogApplicationService;
+        this.toolSandboxExecutionService = toolSandboxExecutionService;
     }
 
     @Transactional
@@ -456,6 +460,19 @@ public class MultiAgentOrchestrationService {
             step.setStatus(MultiAgentStepStatus.COMPLETED.name());
             step.setFinishedAt(LocalDateTime.now());
             multiAgentStepMapper.updateById(step);
+
+            // Create tool sandbox execution for completed step
+            com.aicoding.platform.orchestration.domain.ToolSandboxExecutionEntity toolExec =
+                    toolSandboxExecutionService.mockExecuteForStep(projectId, taskId, run.getId(),
+                            phase.getId(), step.getId(), agent.getId(), sst.getStepType(), inputContext);
+
+            if ("WAITING_APPROVAL".equals(toolExec.getStatus())) {
+                writeLog(taskId, projectId, TaskLogLevel.INFO.name(), "TOOL_SANDBOX_WAITING_APPROVAL",
+                        "工具 " + sst.getStepType() + " 需要人工审批后执行。");
+            } else {
+                writeLog(taskId, projectId, TaskLogLevel.INFO.name(), "TOOL_SANDBOX_EXECUTED",
+                        "工具 " + sst.getStepType() + " 已在 MOCK_EXECUTE 模式完成，只读模拟，无文件写入。");
+            }
 
             // STEP_OUTPUT message
             String stepSummary = generateStepSummary(stepType);
@@ -842,12 +859,27 @@ public class MultiAgentOrchestrationService {
                         .eq(MultiAgentPhaseEntity::getRunId, runId)
                         .orderByAsc(MultiAgentPhaseEntity::getPhaseOrder));
 
+        // Load tool executions for all steps in this run
+        List<MultiAgentStepEntity> allSteps = multiAgentStepMapper.selectList(
+                new LambdaQueryWrapper<MultiAgentStepEntity>()
+                        .eq(MultiAgentStepEntity::getRunId, runId)
+                        .orderByAsc(MultiAgentStepEntity::getStepOrder));
+        Map<Long, List<ToolSandboxExecutionResponse>> toolExecsByStepId =
+                toolSandboxExecutionService.listByStepIds(
+                        allSteps.stream().map(MultiAgentStepEntity::getId).collect(Collectors.toList()))
+                        .stream()
+                        .filter(te -> te.getStepId() != null)
+                        .collect(Collectors.groupingBy(
+                                te -> Long.valueOf(te.getStepId()),
+                                LinkedHashMap::new,
+                                Collectors.toList()));
+
         return phases.stream().map(phase -> {
             List<MultiAgentStepEntity> steps = multiAgentStepMapper.selectList(
                     new LambdaQueryWrapper<MultiAgentStepEntity>()
                             .eq(MultiAgentStepEntity::getPhaseId, phase.getId())
                             .orderByAsc(MultiAgentStepEntity::getStepOrder));
-            return toPhaseResponse(phase, steps);
+            return toPhaseResponse(phase, steps, toolExecsByStepId);
         }).collect(Collectors.toList());
     }
 
@@ -1299,6 +1331,20 @@ public class MultiAgentOrchestrationService {
         resp.setCreateTime(run.getCreateTime() != null ? run.getCreateTime().toString() : null);
         resp.setUpdateTime(run.getUpdateTime() != null ? run.getUpdateTime().toString() : null);
 
+        // Load tool executions for this run
+        List<com.aicoding.platform.orchestration.dto.ToolSandboxExecutionResponse> allToolExecs =
+                toolSandboxExecutionService.listByStepIds(
+                        steps.stream().map(MultiAgentStepEntity::getId).collect(Collectors.toList()));
+        resp.setToolExecutions(allToolExecs);
+
+        Map<Long, List<com.aicoding.platform.orchestration.dto.ToolSandboxExecutionResponse>> toolExecsByStepId =
+                allToolExecs.stream()
+                        .filter(te -> te.getStepId() != null)
+                        .collect(Collectors.groupingBy(
+                                te -> Long.valueOf(te.getStepId()),
+                                LinkedHashMap::new,
+                                Collectors.toList()));
+
         // Phases with their steps
         Map<Long, List<MultiAgentStepEntity>> stepsByPhase = steps.stream()
                 .filter(s -> s.getPhaseId() != null)
@@ -1306,12 +1352,14 @@ public class MultiAgentOrchestrationService {
 
         List<MultiAgentPhaseResponse> phaseResponses = phases.stream().map(phase -> {
             List<MultiAgentStepEntity> phaseSteps = stepsByPhase.getOrDefault(phase.getId(), List.of());
-            return toPhaseResponse(phase, phaseSteps);
+            return toPhaseResponse(phase, phaseSteps, toolExecsByStepId);
         }).collect(Collectors.toList());
         resp.setPhases(phaseResponses);
 
         // All steps flat
-        List<MultiAgentStepResponse> stepResponses = steps.stream().map(this::toStepResponse).collect(Collectors.toList());
+        List<MultiAgentStepResponse> stepResponses = steps.stream()
+                .map(step -> toStepResponse(step, toolExecsByStepId))
+                .collect(Collectors.toList());
         resp.setSteps(stepResponses);
 
         // Messages
@@ -1333,7 +1381,8 @@ public class MultiAgentOrchestrationService {
         return resp;
     }
 
-    private MultiAgentPhaseResponse toPhaseResponse(MultiAgentPhaseEntity phase, List<MultiAgentStepEntity> steps) {
+    private MultiAgentPhaseResponse toPhaseResponse(MultiAgentPhaseEntity phase, List<MultiAgentStepEntity> steps,
+                                                      Map<Long, List<ToolSandboxExecutionResponse>> toolExecsByStepId) {
         MultiAgentPhaseResponse pr = new MultiAgentPhaseResponse();
         pr.setId(phase.getId().toString());
         pr.setRunId(phase.getRunId().toString());
@@ -1345,11 +1394,12 @@ public class MultiAgentOrchestrationService {
         pr.setOutputSummary(phase.getOutputSummary());
         pr.setStartedAt(phase.getStartedAt() != null ? phase.getStartedAt().toString() : null);
         pr.setFinishedAt(phase.getFinishedAt() != null ? phase.getFinishedAt().toString() : null);
-        pr.setSteps(steps.stream().map(this::toStepResponse).collect(Collectors.toList()));
+        pr.setSteps(steps.stream().map(step -> toStepResponse(step, toolExecsByStepId)).collect(Collectors.toList()));
         return pr;
     }
 
-    private MultiAgentStepResponse toStepResponse(MultiAgentStepEntity step) {
+    private MultiAgentStepResponse toStepResponse(MultiAgentStepEntity step,
+                                                    Map<Long, List<ToolSandboxExecutionResponse>> toolExecsByStepId) {
         MultiAgentStepResponse sr = new MultiAgentStepResponse();
         sr.setId(step.getId().toString());
         sr.setRunId(step.getRunId().toString());
@@ -1373,6 +1423,11 @@ public class MultiAgentOrchestrationService {
             if (agent != null) {
                 sr.setAgentName(agent.getName());
             }
+        }
+
+        // Populate tool executions for this step
+        if (toolExecsByStepId != null) {
+            sr.setToolExecutions(toolExecsByStepId.getOrDefault(step.getId(), List.of()));
         }
         return sr;
     }

@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS multi_agent_run (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    strategy VARCHAR(64) NOT NULL,
+    title VARCHAR(255) NULL,
+    input_summary TEXT NULL,
+    final_summary MEDIUMTEXT NULL,
+    error_message TEXT NULL,
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_multi_agent_run_project_time (project_id, create_time),
+    INDEX idx_multi_agent_run_task (task_id),
+    INDEX idx_multi_agent_run_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='多 Agent 编排运行记录';
+
+CREATE TABLE IF NOT EXISTS multi_agent_step (
+    id BIGINT PRIMARY KEY,
+    run_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    agent_id BIGINT NOT NULL,
+    agent_execution_id BIGINT NULL,
+    step_order INT NOT NULL,
+    step_type VARCHAR(64) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    input_context MEDIUMTEXT NULL,
+    output_content MEDIUMTEXT NULL,
+    error_message TEXT NULL,
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_multi_agent_step_run_order (run_id, step_order),
+    INDEX idx_multi_agent_step_task (task_id),
+    INDEX idx_multi_agent_step_agent (agent_id),
+    INDEX idx_multi_agent_step_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='多 Agent 编排步骤';

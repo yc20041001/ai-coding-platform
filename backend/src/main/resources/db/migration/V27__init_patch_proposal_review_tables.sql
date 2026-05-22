@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS patch_proposal_review (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    task_id BIGINT NOT NULL,
+    artifact_id BIGINT NOT NULL,
+    tool_execution_id BIGINT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    decision VARCHAR(32) NULL,
+    reviewer_id BIGINT NULL,
+    review_comment TEXT NULL,
+    reviewed_at DATETIME NULL,
+    safety_confirmed TINYINT NOT NULL DEFAULT 0,
+    checklist_json JSON NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_patch_review_artifact(artifact_id),
+    INDEX idx_patch_review_project_status(project_id, status),
+    INDEX idx_patch_review_task(task_id),
+    INDEX idx_patch_review_decision(decision),
+    INDEX idx_patch_review_reviewer(reviewer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='补丁提案审阅表';

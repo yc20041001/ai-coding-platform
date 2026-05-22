@@ -32,7 +32,7 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties({JwtProperties.class, WorkspaceProperties.class, RagProperties.class, ModelGatewayProperties.class, CaptchaProperties.class, LoginProtectionProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, WorkspaceProperties.class, RagProperties.class, ModelGatewayProperties.class, CaptchaProperties.class, LoginProtectionProperties.class, com.aicoding.platform.orchestration.worker.ToolWorkerProperties.class})
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

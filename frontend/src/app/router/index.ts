@@ -78,6 +78,16 @@ const router = createRouter({
               name: 'ProjectAgents',
               component: () => import('@/modules/agent/pages/ProjectAgentConfigPage.vue'),
             },
+            {
+              path: 'tools',
+              name: 'ProjectTools',
+              component: () => import('@/modules/tool/pages/ProjectToolConfigPage.vue'),
+            },
+            {
+              path: 'code-index',
+              name: 'CodeIndex',
+              component: () => import('@/modules/code-index/pages/CodeIndexPage.vue'),
+            },
           ],
         },
         {
