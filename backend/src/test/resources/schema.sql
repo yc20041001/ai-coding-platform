@@ -476,3 +476,232 @@ CREATE TABLE IF NOT EXISTS tool_operator_review (
     INDEX idx_tool_operator_review_assignee (assignee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Test database schema sync: V34 tool incident, alert rule, alert delivery
+CREATE TABLE IF NOT EXISTS tool_incident (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    task_id BIGINT NULL,
+    run_id BIGINT NULL,
+    tool_execution_id BIGINT NULL,
+    tool_job_id BIGINT NULL,
+    operator_review_id BIGINT NULL,
+    source_type VARCHAR(32) NOT NULL,
+    source_id BIGINT NULL,
+    severity VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    summary TEXT NULL,
+    resolution TEXT NULL,
+    assignee_id BIGINT NULL,
+    created_by BIGINT NULL,
+    acknowledged_by BIGINT NULL,
+    resolved_by BIGINT NULL,
+    first_seen_at DATETIME NOT NULL,
+    last_seen_at DATETIME NOT NULL,
+    acknowledged_at DATETIME NULL,
+    resolved_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_tool_incident_project_time(project_id, create_time),
+    INDEX idx_tool_incident_status(status),
+    INDEX idx_tool_incident_severity(severity),
+    INDEX idx_tool_incident_execution(tool_execution_id),
+    INDEX idx_tool_incident_job(tool_job_id),
+    INDEX idx_tool_incident_review(operator_review_id),
+    INDEX idx_tool_incident_source(source_type, source_id),
+    INDEX idx_tool_incident_assignee(assignee_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具执行事件表';
+
+CREATE TABLE IF NOT EXISTS tool_alert_rule (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    name VARCHAR(128) NOT NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    source_type VARCHAR(32) NOT NULL,
+    min_severity VARCHAR(32) NOT NULL,
+    channel VARCHAR(32) NOT NULL,
+    route_target VARCHAR(255) NULL,
+    config_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_tool_alert_rule_project(project_id),
+    INDEX idx_tool_alert_rule_enabled(enabled),
+    INDEX idx_tool_alert_rule_source(source_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具告警规则表';
+
+CREATE TABLE IF NOT EXISTS tool_alert_delivery (
+    id BIGINT PRIMARY KEY,
+    incident_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    rule_id BIGINT NULL,
+    channel VARCHAR(32) NOT NULL,
+    route_target VARCHAR(255) NULL,
+    status VARCHAR(32) NOT NULL,
+    payload TEXT NULL,
+    error_message TEXT NULL,
+    delivered_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_tool_alert_delivery_incident(incident_id),
+    INDEX idx_tool_alert_delivery_project_time(project_id, create_time),
+    INDEX idx_tool_alert_delivery_status(status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具告警投递记录表';
+
+-- Test database schema sync: V35 SLA, escalation policy, escalation event
+ALTER TABLE tool_incident
+  ADD COLUMN sla_minutes INT NULL,
+  ADD COLUMN due_at DATETIME NULL,
+  ADD COLUMN breached_at DATETIME NULL,
+  ADD COLUMN sla_status VARCHAR(32) NULL,
+  ADD COLUMN escalation_level INT NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_tool_incident_sla_status ON tool_incident(sla_status);
+CREATE INDEX IF NOT EXISTS idx_tool_incident_due_at ON tool_incident(due_at);
+
+CREATE TABLE IF NOT EXISTS tool_escalation_policy (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    name VARCHAR(128) NOT NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    severity VARCHAR(32) NOT NULL,
+    sla_minutes INT NULL,
+    escalation_after_minutes INT NULL,
+    max_escalation_level INT NOT NULL DEFAULT 3,
+    channel VARCHAR(32) NOT NULL,
+    route_target VARCHAR(255) NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_tool_escalation_policy_project(project_id),
+    INDEX idx_tool_escalation_policy_enabled(enabled),
+    INDEX idx_tool_escalation_policy_severity(severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具升级策略表';
+
+CREATE TABLE IF NOT EXISTS tool_escalation_event (
+    id BIGINT PRIMARY KEY,
+    incident_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    policy_id BIGINT NULL,
+    escalation_level INT NOT NULL,
+    severity VARCHAR(32) NOT NULL,
+    channel VARCHAR(32) NOT NULL,
+    route_target VARCHAR(255) NULL,
+    status VARCHAR(32) NOT NULL,
+    reason TEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_tool_escalation_event_incident(incident_id),
+    INDEX idx_tool_escalation_event_project_time(project_id, create_time),
+    INDEX idx_tool_escalation_event_status(status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具升级事件表';
+
+-- Test database schema sync: V36 incident knowledge base tables
+CREATE TABLE IF NOT EXISTS tool_incident_root_cause_note (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    incident_id BIGINT NOT NULL,
+    root_cause TEXT NULL,
+    impact TEXT NULL,
+    resolution TEXT NULL,
+    prevention TEXT NULL,
+    follow_up_actions TEXT NULL,
+    tags VARCHAR(512) NULL,
+    confidence VARCHAR(32) NOT NULL DEFAULT 'MEDIUM',
+    status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+    author_id BIGINT NOT NULL,
+    last_editor_id BIGINT NULL,
+    published_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_incident_rca_project_time(project_id, create_time),
+    INDEX idx_incident_rca_incident(incident_id),
+    INDEX idx_incident_rca_status(status),
+    INDEX idx_incident_rca_author(author_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='事件根因分析记录表';
+
+CREATE TABLE IF NOT EXISTS tool_known_issue_template (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(64) NULL,
+    severity VARCHAR(32) NULL,
+    root_cause_template TEXT NULL,
+    impact_template TEXT NULL,
+    resolution_template TEXT NULL,
+    prevention_template TEXT NULL,
+    tags VARCHAR(512) NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_known_issue_template_project(project_id),
+    INDEX idx_known_issue_template_category(category),
+    INDEX idx_known_issue_template_enabled(enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='已知问题模板表';
+
+CREATE TABLE IF NOT EXISTS tool_incident_knowledge_link (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    incident_id BIGINT NOT NULL,
+    root_cause_note_id BIGINT NULL,
+    knowledge_base_id BIGINT NULL,
+    knowledge_document_id BIGINT NULL,
+    link_type VARCHAR(32) NOT NULL,
+    title VARCHAR(255) NULL,
+    create_time DATETIME NOT NULL,
+    INDEX idx_knowledge_link_incident(incident_id),
+    INDEX idx_knowledge_link_project_time(project_id, create_time),
+    INDEX idx_knowledge_link_type(link_type),
+    INDEX idx_knowledge_link_document(knowledge_document_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='事件知识关联表';
+
+-- Test database schema sync: V37 incident retrospective + knowledge quality review
+CREATE TABLE IF NOT EXISTS tool_incident_retrospective (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    incident_id BIGINT NOT NULL,
+    root_cause_note_id BIGINT NULL,
+    title VARCHAR(255) NOT NULL,
+    summary TEXT NULL,
+    what_happened TEXT NULL,
+    impact_summary TEXT NULL,
+    response_summary TEXT NULL,
+    lessons_learned TEXT NULL,
+    prevention_plan TEXT NULL,
+    action_items TEXT NULL,
+    owner_id BIGINT NULL,
+    due_at DATETIME NULL,
+    regression_risk VARCHAR(32) NOT NULL DEFAULT 'LOW',
+    repeated_incident TINYINT NOT NULL DEFAULT 0,
+    status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+    published_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_retrospective_project_time(project_id, create_time),
+    INDEX idx_retrospective_incident(incident_id),
+    INDEX idx_retrospective_status(status),
+    INDEX idx_retrospective_owner(owner_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='事件事后回顾报告表';
+
+CREATE TABLE IF NOT EXISTS tool_knowledge_quality_review (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    incident_id BIGINT NOT NULL,
+    knowledge_document_id BIGINT NULL,
+    retrospective_id BIGINT NULL,
+    completeness_score TINYINT NOT NULL DEFAULT 0,
+    accuracy_score TINYINT NOT NULL DEFAULT 0,
+    actionability_score TINYINT NOT NULL DEFAULT 0,
+    relevance_score TINYINT NOT NULL DEFAULT 0,
+    review_status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    overall_status VARCHAR(32) NOT NULL DEFAULT 'NEEDS_WORK',
+    checklist_json TEXT NULL,
+    review_comment TEXT NULL,
+    reviewer_id BIGINT NULL,
+    reviewed_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    INDEX idx_quality_review_project_time(project_id, create_time),
+    INDEX idx_quality_review_incident(incident_id),
+    INDEX idx_quality_review_status(review_status),
+    INDEX idx_quality_review_overall(overall_status),
+    INDEX idx_quality_review_reviewer(reviewer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识质量审查表';

@@ -249,26 +249,17 @@ public class ToolOperatorReviewService {
     }
 
     private Long resolveProjectId(String targetType, Long targetId) {
-        switch (targetType) {
-            case "TOOL_EXECUTION":
-                return resolveNullableProjectId(
-                        toolSandboxExecutionMapper.selectById(targetId),
-                        "Tool execution");
-            case "TOOL_JOB":
-                return resolveNullableProjectId(
-                        toolExecutionJobMapper.selectById(targetId),
-                        "Tool job");
-            case "MULTI_AGENT_RUN":
-                return resolveNullableProjectId(
-                        multiAgentRunMapper.selectById(targetId),
-                        "Multi-agent run");
-            case "TASK":
-                return resolveNullableProjectId(
-                        aiTaskMapper.selectById(targetId),
-                        "Task");
-            default:
-                throw new BizException(ErrorCode.VALIDATION_ERROR, "不支持的审查目标类型: " + targetType);
-        }
+        return switch (targetType) {
+            case "TOOL_EXECUTION" -> resolveNullableProjectId(
+                    toolSandboxExecutionMapper.selectById(targetId), "Tool execution");
+            case "TOOL_JOB" -> resolveNullableProjectId(
+                    toolExecutionJobMapper.selectById(targetId), "Tool job");
+            case "MULTI_AGENT_RUN" -> resolveNullableProjectId(
+                    multiAgentRunMapper.selectById(targetId), "Multi-agent run");
+            case "TASK" -> resolveNullableProjectId(
+                    aiTaskMapper.selectById(targetId), "Task");
+            default -> throw new BizException(ErrorCode.VALIDATION_ERROR, "不支持的审查目标类型: " + targetType);
+        };
     }
 
     private Long resolveNullableProjectId(Object entity, String label) {
@@ -302,26 +293,25 @@ public class ToolOperatorReviewService {
         boolean asc = "asc".equalsIgnoreCase(dir);
 
         switch (field) {
-            case "createTime":
+            case "createTime" -> {
                 if (asc) wrapper.orderByAsc(ToolOperatorReviewEntity.GET_CREATE_TIME);
                 else wrapper.orderByDesc(ToolOperatorReviewEntity.GET_CREATE_TIME);
-                break;
-            case "severity":
+            }
+            case "severity" -> {
                 if (asc) wrapper.orderByAsc(ToolOperatorReviewEntity.GET_SEVERITY);
                 else wrapper.orderByDesc(ToolOperatorReviewEntity.GET_SEVERITY);
-                break;
-            case "status":
+            }
+            case "status" -> {
                 if (asc) wrapper.orderByAsc(ToolOperatorReviewEntity.GET_STATUS);
                 else wrapper.orderByDesc(ToolOperatorReviewEntity.GET_STATUS);
-                break;
-            default:
-                wrapper.orderByDesc(ToolOperatorReviewEntity.GET_CREATE_TIME);
+            }
+            default -> wrapper.orderByDesc(ToolOperatorReviewEntity.GET_CREATE_TIME);
         }
     }
 
     private static Long parseLongId(String id, String fieldName) {
         try {
-            return Long.parseLong(id);
+            return Long.valueOf(id);
         } catch (NumberFormatException e) {
             throw new BizException(ErrorCode.VALIDATION_ERROR, fieldName + " 格式无效");
         }

@@ -32,7 +32,8 @@ async function createProject(page: ReturnType<typeof test['info']>['page']): Pro
   ])
   await expect(projectForm).not.toBeVisible({ timeout: 8000 })
 
-  // Navigate to project detail, get project ID from URL
+  // Project creation keeps the user on the list page; open the newly-created row.
+  await page.getByTestId('project-table-area').getByText(projectName).first().click()
   await page.waitForURL(/\/projects\/\d+/, { timeout: 10000 })
   const url = page.url()
   const match = url.match(/\/projects\/(\d+)/)
@@ -51,7 +52,7 @@ test.describe('Code Index Page', () => {
     await expect(page).toHaveURL(/\/projects\/\d+/)
 
     // The "代码索引" tab should be visible in the rail
-    const codeIndexTab = page.locator('.section-rail').getByText('代码索引')
+    const codeIndexTab = page.getByRole('button', { name: /代码索引/ })
     await expect(codeIndexTab).toBeVisible({ timeout: 5000 })
   })
 
@@ -90,7 +91,7 @@ test.describe('Code Index Page', () => {
     await expect(page.getByTestId('code-index-mock-badge')).toBeVisible()
 
     // Verify counts are displayed
-    const fileCount = await page.getByTestId('code-index-file-count').textContent()
+    const fileCount = await page.getByTestId('code-index-file-count').locator('.ci-summary-value').textContent()
     expect(Number(fileCount)).toBeGreaterThan(0)
   })
 

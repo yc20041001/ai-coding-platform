@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { ElDialog, ElForm, ElFormItem, ElSelect, ElOption, ElInput, ElButton, ElMessage } from 'element-plus'
 import { createOperatorReview, updateOperatorReview, listTargetOperatorReviews } from '@/modules/task/api'
 import type { ToolOperatorReview } from '@/modules/task/api'
+import ToolIncidentDialog from '@/modules/admin/components/ToolIncidentDialog.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -20,6 +21,17 @@ const emit = defineEmits<{
 const loading = ref(false)
 const existingReviews = ref<ToolOperatorReview[]>([])
 const isEditMode = ref(false)
+
+// Incident dialog
+const incidentDialogVisible = ref(false)
+
+function openIncidentDialog() {
+  incidentDialogVisible.value = true
+}
+
+function onIncidentSaved() {
+  incidentDialogVisible.value = false
+}
 
 const form = ref({
   severity: 'MEDIUM',
@@ -119,6 +131,9 @@ function severityBadge(severity: string): string {
     <!-- Existing reviews -->
     <div v-if="!isEditMode && existingReviews.length > 0" class="tor-existing">
       <div class="tor-existing-title">已有审查记录</div>
+      <div style="margin-bottom:8px">
+        <ElButton size="small" type="danger" @click="openIncidentDialog" data-testid="tor-incident-btn">创建事件</ElButton>
+      </div>
       <div v-for="r in existingReviews" :key="r.id" class="tor-existing-item" data-testid="tor-existing-review-item">
         <ElTag :type="severityBadge(r.severity)" size="small" effect="dark">{{ r.severity }}</ElTag>
         <span class="tor-existing-status" :class="`tor-existing-status--${r.status.toLowerCase()}`">{{ r.status }}</span>
@@ -162,6 +177,13 @@ function severityBadge(severity: string): string {
       </ElButton>
     </template>
   </ElDialog>
+
+  <!-- Incident Dialog -->
+  <ToolIncidentDialog
+    v-model="incidentDialogVisible"
+    :project-id="props.projectId"
+    @saved="onIncidentSaved"
+  />
 </template>
 
 <style scoped>

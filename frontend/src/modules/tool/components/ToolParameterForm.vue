@@ -37,29 +37,24 @@ const schemaVersion = computed(() => {
 const hasSchema = computed(() => fields.value.length > 0)
 const hasGroups = computed(() => groups.value.length > 0)
 
-const localValues = ref<Record<string, unknown>>({ ...props.modelValue })
-
-// Initialize defaults from schema
-if (hasSchema.value && Object.keys(localValues.value).length === 0) {
+function buildValues(source: Record<string, unknown>): Record<string, unknown> {
+  const values: Record<string, unknown> = { ...source }
+  if (!hasSchema.value) return values
   for (const field of fields.value) {
-    if (props.modelValue[field.key] !== undefined) {
-      localValues.value[field.key] = props.modelValue[field.key]
-    } else if (field.defaultValue !== undefined) {
-      localValues.value[field.key] = field.defaultValue
-    } else if (field.type === 'boolean') {
-      localValues.value[field.key] = false
-    } else if (field.type === 'number') {
-      localValues.value[field.key] = field.min || 0
-    } else if (field.type === 'array') {
-      localValues.value[field.key] = []
-    } else {
-      localValues.value[field.key] = ''
-    }
+    if (values[field.key] !== undefined) continue
+    if (field.defaultValue !== undefined) values[field.key] = field.defaultValue
+    else if (field.type === 'boolean') values[field.key] = false
+    else if (field.type === 'number') values[field.key] = field.min || 0
+    else if (field.type === 'array') values[field.key] = []
+    else values[field.key] = ''
   }
+  return values
 }
 
+const localValues = ref<Record<string, unknown>>(buildValues(props.modelValue))
+
 watch(() => props.modelValue, (nv) => {
-  localValues.value = { ...nv }
+  localValues.value = buildValues(nv)
 }, { deep: true })
 
 function emitUpdate() {
@@ -140,7 +135,7 @@ const schemaVersionLabel = computed(() => {
       {{ schemaVersionLabel }}
     </div>
 
-    <div v-else class="tpf-fields">
+    <div v-if="hasSchema" class="tpf-fields">
       <!-- Render by groups -->
       <div v-for="group in groups" :key="group.key" class="tpf-group" data-testid="tool-param-group">
         <div class="tpf-group-header">

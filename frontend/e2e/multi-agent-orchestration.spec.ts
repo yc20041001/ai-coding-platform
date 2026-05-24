@@ -1217,6 +1217,9 @@ test.describe('Multi-Agent Orchestration', () => {
   })
 
   test('should display DLQ info fields when present on tool job', async ({ page }) => {
+    const jsErrors: string[] = []
+    page.on('pageerror', (err) => jsErrors.push(err.message))
+
     await createProjectAndTask(page)
 
     // Click multi-agent tab
@@ -1252,6 +1255,9 @@ test.describe('Multi-Agent Orchestration', () => {
   })
 
   test('should display job status texts including RETRY_PENDING and DEAD_LETTERED', async ({ page }) => {
+    const jsErrors: string[] = []
+    page.on('pageerror', (err) => jsErrors.push(err.message))
+
     await createProjectAndTask(page)
     await page.getByText('多智能体').click()
     await expect(page.getByTestId('multi-agent-tab')).toBeVisible({ timeout: 8000 })
@@ -1409,13 +1415,7 @@ test.describe('Multi-Agent Orchestration', () => {
     await expect(page.getByTestId('tool-trace-drawer')).toBeVisible({ timeout: 8000 })
 
     // Close drawer via close button
-    const closeBtn = page.getByTestId('tool-trace-drawer').locator('.el-drawer__close-btn')
-    if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await closeBtn.click()
-    } else {
-      // Fallback: press Escape
-      await page.keyboard.press('Escape')
-    }
+    await page.keyboard.press('Escape')
 
     // Wait for drawer to close
     await page.waitForTimeout(500)

@@ -4,6 +4,7 @@ import { ElDrawer, ElTag, ElCollapse, ElCollapseItem, ElButton, ElMessage, ElDro
 import { getToolExecutionTrace, exportExecutionAudit, exportRunEvidence, exportTaskToolAudit } from '@/modules/task/api'
 import type { ToolExecutionTrace, ToolExecutionTraceEvent, ToolAuditExport } from '@/modules/task/api'
 import ToolOperatorReviewDialog from '@/modules/task/components/ToolOperatorReviewDialog.vue'
+import ToolIncidentDialog from '@/modules/admin/components/ToolIncidentDialog.vue'
 import StatusPulse from '@/shared/components/StatusPulse.vue'
 import { formatDateTime } from '@/shared/utils/format'
 
@@ -26,6 +27,17 @@ const exporting = ref(false)
 
 // Review dialog
 const reviewDialogVisible = ref(false)
+
+// Incident dialog
+const incidentDialogVisible = ref(false)
+
+function openIncidentDialog() {
+  incidentDialogVisible.value = true
+}
+
+function onIncidentSaved(incident: any) {
+  ElMessage.success('事件已创建')
+}
 
 watch(() => props.modelValue, async (val) => {
   if (val && props.executionId) {
@@ -281,6 +293,9 @@ function onReviewSaved(review: any) {
             <ElButton size="small" type="warning" @click="openReviewDialog" data-testid="tet-review-btn">
               创建审查
             </ElButton>
+            <ElButton size="small" type="danger" @click="openIncidentDialog" data-testid="tet-incident-btn">
+              创建事件
+            </ElButton>
           </div>
         </div>
 
@@ -524,6 +539,13 @@ function onReviewSaved(review: any) {
     :target-id="props.executionId || ''"
     :project-id="trace?.projectId || ''"
     @saved="onReviewSaved"
+  />
+
+  <!-- Incident Dialog -->
+  <ToolIncidentDialog
+    v-model="incidentDialogVisible"
+    :project-id="trace?.projectId || '1'"
+    @saved="onIncidentSaved"
   />
 </template>
 

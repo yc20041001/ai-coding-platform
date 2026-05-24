@@ -159,6 +159,13 @@ function barHeight(count: number, all: { totalJobs: number }[]): number {
             <el-table-column prop="latestTime" label="最近时间" min-width="160" />
           </el-table>
         </div>
+        <div
+          v-if="metrics.errorCodes.length === 0 && metrics.failureStages.length === 0"
+          class="metrics-half"
+          data-testid="tool-metrics-failures-empty"
+        >
+          <EmptyState description="暂无失败或问题 Job" />
+        </div>
       </div>
     </template>
   </TechPanel>

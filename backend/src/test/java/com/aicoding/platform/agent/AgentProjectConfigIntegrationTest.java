@@ -84,7 +84,6 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
         secondUserPasswordValue = "Test@123456";
 
         UserEntity user = new UserEntity();
-        user.setId(900000L + (counter % 100000));
         user.setUsername("testuser" + suffix);
         user.setEmail(secondUserEmailValue);
         user.setPassword(passwordEncoder.encode(secondUserPasswordValue));
@@ -129,7 +128,6 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
 
     private KnowledgeBaseEntity createKnowledgeBase(Long projectId, String suffix) {
         KnowledgeBaseEntity kb = new KnowledgeBaseEntity();
-        kb.setId(700000L + (TEST_COUNTER.incrementAndGet() % 100000));
         kb.setProjectId(projectId);
         kb.setName("KB-" + suffix);
         kb.setDescription("Test KB " + suffix);
@@ -477,7 +475,6 @@ class AgentProjectConfigIntegrationTest extends IntegrationTestBase {
 
     private ModelConfigEntity createModelConfig(String suffix, String status) {
         ModelConfigEntity mc = new ModelConfigEntity();
-        mc.setId(800000L + (TEST_COUNTER.incrementAndGet() % 100000));
         mc.setProvider("OPENAI");
         mc.setModelName("gpt-4.1-mini-" + suffix);
         mc.setModelType("CHAT");

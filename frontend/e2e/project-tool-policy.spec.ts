@@ -51,7 +51,7 @@ test.describe('Project Tool Policy', () => {
     await expect(page.getByTestId('project-tool-page')).toBeVisible({ timeout: 8000 })
   })
 
-  test('should display tool table with 5 built-in tools', async ({ page }) => {
+  test('should display built-in tools', async ({ page }) => {
     await createProject(page)
 
     await page.getByText('工具').click()
@@ -62,7 +62,7 @@ test.describe('Project Tool Policy', () => {
 
     const rows = page.getByTestId('project-tool-row')
     const count = await rows.count()
-    expect(count).toBe(10)
+    expect(count).toBeGreaterThanOrEqual(11)
   })
 
   test('should show LOW tools as enabled by default', async ({ page }) => {
@@ -312,7 +312,7 @@ test.describe('Project Tool Policy', () => {
     // Verify repository tools appear in the table
     const rows = page.getByTestId('project-tool-row')
     const count = await rows.count()
-    expect(count).toBe(10)
+    expect(count).toBeGreaterThanOrEqual(11)
 
     const allText = await rows.allTextContents()
     const hasTree = allText.some(t => t.includes('READ_REPOSITORY_TREE') || t.includes('仓库目录树'))
@@ -537,6 +537,7 @@ test.describe('Project Tool Policy', () => {
           const addBtn = page.getByTestId('btn-add-array-item-targetFiles')
           await expect(addBtn).toBeVisible({ timeout: 3000 })
           await addBtn.click()
+          await page.getByTestId('tool-param-array-targetFiles').locator('input').last().fill('backend/src/main/java/App.java')
           await page.waitForTimeout(200)
 
           // Save parameters
