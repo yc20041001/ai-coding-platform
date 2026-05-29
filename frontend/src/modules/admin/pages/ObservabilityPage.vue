@@ -9,6 +9,40 @@ import ToolIncidentPanel from '@/modules/admin/components/ToolIncidentPanel.vue'
 import ToolAlertRulePanel from '@/modules/admin/components/ToolAlertRulePanel.vue'
 import ToolEscalationPolicyPanel from '@/modules/admin/components/ToolEscalationPolicyPanel.vue'
 import KnownIssueTemplatePanel from '@/modules/admin/components/KnownIssueTemplatePanel.vue'
+import BetaTrialSessionPanel from '@/modules/admin/components/BetaTrialSessionPanel.vue'
+import BetaTrialFeedbackPanel from '@/modules/admin/components/BetaTrialFeedbackPanel.vue'
+import BetaEnvironmentReadinessPanel from '@/modules/admin/components/BetaEnvironmentReadinessPanel.vue'
+import ModelCostDashboardPanel from '@/modules/admin/components/ModelCostDashboardPanel.vue'
+import PrReviewQualityPanel from '@/modules/admin/components/PrReviewQualityPanel.vue'
+import BetaReleaseGateDashboardPanel from '@/modules/admin/components/BetaReleaseGateDashboardPanel.vue'
+import BetaReleaseDecisionPanel from '@/modules/admin/components/BetaReleaseDecisionPanel.vue'
+import ReleaseReadinessDashboardPanel from '@/modules/admin/components/ReleaseReadinessDashboardPanel.vue'
+import ReleaseRolloutPlanPanel from '@/modules/admin/components/ReleaseRolloutPlanPanel.vue'
+import ReleaseVerificationPanel from '@/modules/admin/components/ReleaseVerificationPanel.vue'
+import ReleaseRollbackDrillPanel from '@/modules/admin/components/ReleaseRollbackDrillPanel.vue'
+import ReleaseAuditTimelinePanel from '@/modules/admin/components/ReleaseAuditTimelinePanel.vue'
+import ReleasePostmortemReviewPanel from '@/modules/admin/components/ReleasePostmortemReviewPanel.vue'
+import ReleaseEvidenceCenterPanel from '@/modules/admin/components/ReleaseEvidenceCenterPanel.vue'
+import ReleaseSignoffPanel from '@/modules/admin/components/ReleaseSignoffPanel.vue'
+import ReleaseExecutiveSummaryPanel from '@/modules/admin/components/ReleaseExecutiveSummaryPanel.vue'
+import ReleasePortfolioDashboardPanel from '@/modules/admin/components/ReleasePortfolioDashboardPanel.vue'
+import ReleaseGovernanceBaselinePanel from '@/modules/admin/components/ReleaseGovernanceBaselinePanel.vue'
+import ReleaseRiskHeatmapPanel from '@/modules/admin/components/ReleaseRiskHeatmapPanel.vue'
+import OrganizationTrialPolicyPanel from '@/modules/admin/components/OrganizationTrialPolicyPanel.vue'
+import ReleaseGuardrailDashboardPanel from '@/modules/admin/components/ReleaseGuardrailDashboardPanel.vue'
+import PortfolioDriftDashboardPanel from '@/modules/admin/components/PortfolioDriftDashboardPanel.vue'
+import GovernanceRecommendationWorkflowPanel from '@/modules/admin/components/GovernanceRecommendationWorkflowPanel.vue'
+import GovernanceWaiverPanel from '@/modules/admin/components/GovernanceWaiverPanel.vue'
+import GovernanceWorkflowSummaryPanel from '@/modules/admin/components/GovernanceWorkflowSummaryPanel.vue'
+import GovernanceSlaPolicyPanel from '@/modules/admin/components/GovernanceSlaPolicyPanel.vue'
+import GovernanceEscalationPanel from '@/modules/admin/components/GovernanceEscalationPanel.vue'
+import GovernanceOwnershipHealthPanel from '@/modules/admin/components/GovernanceOwnershipHealthPanel.vue'
+import GovernanceCapacityForecastPanel from '@/modules/admin/components/GovernanceCapacityForecastPanel.vue'
+import PredictiveRiskSignalPanel from '@/modules/admin/components/PredictiveRiskSignalPanel.vue'
+import GovernanceBacklogHealthPanel from '@/modules/admin/components/GovernanceBacklogHealthPanel.vue'
+import GovernanceSimulationScenarioPanel from '@/modules/admin/components/GovernanceSimulationScenarioPanel.vue'
+import GovernanceSimulationComparisonPanel from '@/modules/admin/components/GovernanceSimulationComparisonPanel.vue'
+import PolicyTuningSuggestionPanel from '@/modules/admin/components/PolicyTuningSuggestionPanel.vue'
 import IncidentRootCauseEditor from '@/modules/admin/components/IncidentRootCauseEditor.vue'
 import SimilarIncidentList from '@/modules/admin/components/SimilarIncidentList.vue'
 import IncidentRetrospectiveEditor from '@/modules/admin/components/IncidentRetrospectiveEditor.vue'
@@ -58,6 +92,17 @@ const incidentDetailLoading = ref(false)
 const incidentRetrying = ref<string | null>(null)
 const incidentKnowledgeLinks = ref<IncidentKnowledgeLinkItem[]>([])
 const rcaRefreshKey = ref(0)
+
+// Beta trial state
+const betaSelectedSessionId = ref<string | null>(null)
+const betaPanelRefreshKey = ref(0)
+
+// Rollout state
+const selectedRolloutPlanId = ref<string | null>(null)
+const rolloutPanelRefreshKey = ref(0)
+
+// Rollout Audit state (39B)
+const rolloutAuditRefreshKey = ref(0)
 
 async function viewIncident(id: string) {
   selectedIncidentId.value = id
@@ -266,6 +311,335 @@ onMounted(() => {
         <EmptyState v-else description="暂无可用于知识质量审查的项目" />
       </TechPanel>
 
+      <!-- Beta Trial Sections -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">⚡ Beta 外部试用反馈循环</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="beta-session-section">
+            <BetaTrialSessionPanel
+              :key="'session-' + betaPanelRefreshKey"
+              :project-id="opsProjectId"
+              @dashboard-refresh="betaPanelRefreshKey++"
+              @select-session="betaSelectedSessionId = $event"
+            />
+          </TechPanel>
+
+          <TechPanel v-if="betaSelectedSessionId" glow style="margin-bottom:20px" data-testid="beta-feedback-section">
+            <BetaTrialFeedbackPanel
+              :key="'fb-' + betaPanelRefreshKey"
+              :session-id="betaSelectedSessionId"
+              @dashboard-refresh="betaPanelRefreshKey++"
+            />
+          </TechPanel>
+          <EmptyState v-else description="请选择一个 Beta 试用会话来查看反馈" />
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="beta-readiness-section">
+            <BetaEnvironmentReadinessPanel
+              :key="'readiness-' + betaPanelRefreshKey"
+              :project-id="opsProjectId"
+              :session-id="betaSelectedSessionId"
+              @dashboard-refresh="betaPanelRefreshKey++"
+            />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Model Cost & PR Review Quality Sections -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">模型成本与 PR 评审质量</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="model-cost-section">
+            <ModelCostDashboardPanel :project-id="opsProjectId" />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="pr-quality-section">
+            <PrReviewQualityPanel :project-id="opsProjectId" />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Beta Release Gate Sections -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">Beta 发布门禁与 Go/No-Go 决策</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="beta-release-gate-section">
+            <BetaReleaseGateDashboardPanel :project-id="opsProjectId" />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="beta-release-decision-section">
+            <BetaReleaseDecisionPanel :project-id="opsProjectId" />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Release Rollout Sections (39A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">Beta → Production 发布 rollout</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="rollout-dashboard-section">
+            <ReleaseReadinessDashboardPanel
+              :key="'rd-' + rolloutPanelRefreshKey"
+              :project-id="opsProjectId"
+            />
+          </TechPanel>
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="rollout-plan-section">
+            <ReleaseRolloutPlanPanel
+              :key="'rp-' + rolloutPanelRefreshKey"
+              :project-id="opsProjectId"
+              @plan-selected="selectedRolloutPlanId = $event"
+              @dashboard-refresh="rolloutPanelRefreshKey++"
+            />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="rollout-verification-section">
+            <ReleaseVerificationPanel
+              :key="'rv-' + rolloutPanelRefreshKey"
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+              @dashboard-refresh="rolloutPanelRefreshKey++"
+            />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Release Rollback & Audit Sections (39B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">回滚演练 & 发布审计</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="rollback-drill-section">
+            <ReleaseRollbackDrillPanel
+              :key="'rdrill-' + rolloutAuditRefreshKey"
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+              @dashboard-refresh="rolloutAuditRefreshKey++"
+            />
+          </TechPanel>
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="postmortem-review-section">
+            <ReleasePostmortemReviewPanel
+              :key="'pm-' + rolloutAuditRefreshKey"
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+              @dashboard-refresh="rolloutAuditRefreshKey++"
+            />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="audit-timeline-section">
+            <ReleaseAuditTimelinePanel
+              :key="'at-' + rolloutAuditRefreshKey"
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+            />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Release Evidence & Summary Sections (39C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">发布证据中心与执行摘要</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="evidence-center-section">
+            <ReleaseEvidenceCenterPanel
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+            />
+          </TechPanel>
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="signoff-section">
+            <ReleaseSignoffPanel
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+            />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel v-if="opsProjectId" glow style="margin-bottom:20px" data-testid="executive-summary-section">
+            <ReleaseExecutiveSummaryPanel
+              :project-id="opsProjectId"
+              :plan-id="selectedRolloutPlanId"
+            />
+          </TechPanel>
+        </div>
+      </div>
+
+      <!-- Multi-Project Release Governance Sections (40A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">多项目发布治理</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="portfolio-dashboard-section">
+            <ReleasePortfolioDashboardPanel :project-id="opsProjectId" />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="governance-baseline-section">
+            <ReleaseGovernanceBaselinePanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="risk-heatmap-section">
+          <ReleaseRiskHeatmapPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Organization Governance Sections (40B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">组织级治理</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="org-policy-section">
+            <OrganizationTrialPolicyPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="guardrail-dashboard-section">
+            <ReleaseGuardrailDashboardPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="drift-dashboard-section">
+          <PortfolioDriftDashboardPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Workflow Sections (40C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理工作流</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="workflow-summary-section">
+            <GovernanceWorkflowSummaryPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="recommendation-workflow-section">
+            <GovernanceRecommendationWorkflowPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="waiver-section">
+          <GovernanceWaiverPanel />
+        </TechPanel>
+      </div>
+
+
+      <!-- Governance Operations Sections (41A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理运营</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="sla-policy-section">
+            <GovernanceSlaPolicyPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="escalation-section">
+            <GovernanceEscalationPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="ownership-health-section">
+          <GovernanceOwnershipHealthPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Forecast Sections (41B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理预测</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="capacity-forecast-section">
+            <GovernanceCapacityForecastPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="risk-signal-section">
+            <PredictiveRiskSignalPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="backlog-health-section">
+          <GovernanceBacklogHealthPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Simulation Sections (41C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理模拟</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="simulation-scenario-section">
+            <GovernanceSimulationScenarioPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="simulation-comparison-section">
+            <GovernanceSimulationComparisonPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="tuning-suggestion-section">
+          <PolicyTuningSuggestionPanel />
+        </TechPanel>
+      </div>
+
       <TechPanel v-loading="loadingAudit" title="审计日志">
         <AuditLogFilters @search="handleAuditSearch" @reset="handleAuditReset" />
         <el-table :data="auditLogs" size="small" style="width:100%">
@@ -467,5 +841,30 @@ onMounted(() => {
   font-size: 11px;
   color: var(--el-color-danger);
   margin-top: 4px;
+}
+
+.beta-section-header {
+  display: flex;
+  align-items: center;
+}
+.beta-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--app-accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.beta-panels-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.beta-panel-col {
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 1200px) {
+  .beta-panels-row { grid-template-columns: 1fr; }
 }
 </style>

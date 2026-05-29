@@ -705,3 +705,724 @@ CREATE TABLE IF NOT EXISTS tool_knowledge_quality_review (
     INDEX idx_quality_review_overall(overall_status),
     INDEX idx_quality_review_reviewer(reviewer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='知识质量审查表';
+
+-- Test database schema sync: V38 beta trial feedback loop tables
+CREATE TABLE IF NOT EXISTS beta_trial_session (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  project_id BIGINT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  participant_role VARCHAR(64) NULL,
+  environment_type VARCHAR(64) NULL,
+  provider_mode VARCHAR(64) NULL,
+  github_oauth_status VARCHAR(64) NULL,
+  session_status VARCHAR(32) NOT NULL DEFAULT 'PLANNED',
+  started_at DATETIME NULL,
+  ended_at DATETIME NULL,
+  completed_path_json TEXT NULL,
+  blocked_at_step VARCHAR(255) NULL,
+  blocker_summary TEXT NULL,
+  satisfaction_score INT NULL,
+  continue_intent VARCHAR(32) NULL,
+  summary TEXT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_beta_session_project (project_id),
+  INDEX idx_beta_session_status (session_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS beta_trial_feedback (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  session_id BIGINT NOT NULL,
+  project_id BIGINT NOT NULL,
+  category VARCHAR(64) NULL,
+  subcategory VARCHAR(64) NULL,
+  severity VARCHAR(16) NOT NULL,
+  source_type VARCHAR(32) NOT NULL DEFAULT 'MANUAL',
+  title VARCHAR(255) NOT NULL,
+  detail TEXT NULL,
+  expected_behavior TEXT NULL,
+  actual_behavior TEXT NULL,
+  suggested_action TEXT NULL,
+  triage_status VARCHAR(32) NOT NULL DEFAULT 'NEW',
+  mapped_incident_id BIGINT NULL,
+  mapped_known_issue_id BIGINT NULL,
+  release_blocking TINYINT NOT NULL DEFAULT 0,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_beta_feedback_session (session_id),
+  INDEX idx_beta_feedback_project (project_id),
+  INDEX idx_beta_feedback_severity (severity),
+  INDEX idx_beta_feedback_triage (triage_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS beta_environment_readiness (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  project_id BIGINT NOT NULL,
+  session_id BIGINT NULL,
+  target_name VARCHAR(128) NOT NULL,
+  target_type VARCHAR(64) NOT NULL,
+  check_status VARCHAR(32) NOT NULL,
+  summary TEXT NULL,
+  detail_json TEXT NULL,
+  checked_at DATETIME NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_beta_readiness_project (project_id),
+  INDEX idx_beta_readiness_session (session_id),
+  INDEX idx_beta_readiness_status (check_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Test database schema sync: V39 model cost & PR review quality tables
+CREATE TABLE IF NOT EXISTS model_cost_summary (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    provider VARCHAR(32) NOT NULL,
+    model_name VARCHAR(128) NOT NULL,
+    request_type VARCHAR(64) NOT NULL,
+    stat_date DATE NOT NULL,
+    request_count BIGINT NOT NULL DEFAULT 0,
+    success_count BIGINT NOT NULL DEFAULT 0,
+    failure_count BIGINT NOT NULL DEFAULT 0,
+    fallback_count BIGINT NOT NULL DEFAULT 0,
+    prompt_tokens BIGINT NOT NULL DEFAULT 0,
+    completion_tokens BIGINT NOT NULL DEFAULT 0,
+    total_tokens BIGINT NOT NULL DEFAULT 0,
+    estimated_cost DECIMAL(18,6) NOT NULL DEFAULT 0,
+    avg_latency_ms BIGINT NOT NULL DEFAULT 0,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_model_cost_project_date (project_id, stat_date),
+    INDEX idx_model_cost_provider_model (provider, model_name),
+    INDEX idx_model_cost_request_type (request_type),
+    UNIQUE KEY uk_model_cost_daily (project_id, provider, model_name, request_type, stat_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS model_cost_alert (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    provider VARCHAR(32) NOT NULL,
+    model_name VARCHAR(128) NOT NULL,
+    alert_type VARCHAR(64) NOT NULL,
+    severity VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'OPEN',
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    stat_date DATE NOT NULL,
+    threshold_value DECIMAL(18,6) NULL,
+    actual_value DECIMAL(18,6) NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_model_cost_alert_project (project_id, stat_date),
+    INDEX idx_model_cost_alert_status (status, severity),
+    INDEX idx_model_cost_alert_provider (provider, model_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pr_review_quality_record (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NOT NULL,
+    review_job_id BIGINT NOT NULL,
+    github_binding_id BIGINT NULL,
+    repository_full_name VARCHAR(255) NOT NULL,
+    pull_request_number BIGINT NOT NULL,
+    strategy_key VARCHAR(64) NULL,
+    model_provider VARCHAR(32) NULL,
+    model_name VARCHAR(128) NULL,
+    findings_total INT NOT NULL DEFAULT 0,
+    high_risk_findings INT NOT NULL DEFAULT 0,
+    medium_risk_findings INT NOT NULL DEFAULT 0,
+    low_risk_findings INT NOT NULL DEFAULT 0,
+    review_status VARCHAR(32) NOT NULL DEFAULT 'COMPLETED',
+    human_feedback_status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    adoption_status VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
+    usefulness_score INT NULL,
+    false_positive_score INT NULL,
+    review_comment TEXT NULL,
+    reviewed_by BIGINT NULL,
+    reviewed_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_pr_quality_project_time (project_id, create_time),
+    INDEX idx_pr_quality_repo_pr (repository_full_name, pull_request_number),
+    INDEX idx_pr_quality_status (review_status, human_feedback_status, adoption_status),
+    UNIQUE KEY uk_pr_quality_job (review_job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Test database schema sync: V40 beta release gate tables
+CREATE TABLE IF NOT EXISTS beta_release_gate_rule (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    rule_key VARCHAR(64) NOT NULL,
+    category VARCHAR(64) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    threshold_operator VARCHAR(16) NOT NULL,
+    threshold_value DECIMAL(18,6) NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    blocking TINYINT NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 0,
+    description TEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_beta_gate_rule_project (project_id),
+    INDEX idx_beta_gate_rule_category (category, enabled),
+    UNIQUE KEY uk_beta_gate_rule (project_id, rule_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS beta_release_gate_evaluation (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    evaluation_target VARCHAR(128) NOT NULL,
+    evaluation_type VARCHAR(32) NOT NULL,
+    rule_key VARCHAR(64) NOT NULL,
+    category VARCHAR(64) NOT NULL,
+    gate_status VARCHAR(32) NOT NULL,
+    actual_value DECIMAL(18,6) NULL,
+    threshold_value DECIMAL(18,6) NULL,
+    blocking TINYINT NOT NULL DEFAULT 1,
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    evidence_json JSON NULL,
+    evaluated_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_beta_gate_eval_project (project_id, evaluated_at),
+    INDEX idx_beta_gate_eval_target (evaluation_target, evaluation_type),
+    INDEX idx_beta_gate_eval_status (gate_status, category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS beta_release_decision (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    decision_status VARCHAR(32) NOT NULL,
+    decision_reason TEXT NULL,
+    blocking_issue_count INT NOT NULL DEFAULT 0,
+    warning_issue_count INT NOT NULL DEFAULT 0,
+    approver_id BIGINT NULL,
+    approved_at DATETIME NULL,
+    report_markdown MEDIUMTEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    INDEX idx_beta_release_decision_project (project_id, create_time),
+    INDEX idx_beta_release_decision_status (decision_status),
+    UNIQUE KEY uk_beta_release_label (project_id, release_label)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed built-in gate rules (test compatible IDs)
+INSERT IGNORE INTO beta_release_gate_rule (id, project_id, rule_key, category, display_name, threshold_operator, threshold_value, enabled, blocking, sort_order, description, create_time, update_time) VALUES
+(920001, NULL, 'P0_FEEDBACK_COUNT', 'TRIAL_FEEDBACK', 'P0 反馈数', 'EQ', 0, 1, 1, 1, 'P0 反馈数量必须为 0', NOW(), NOW()),
+(920002, NULL, 'P1_FEEDBACK_COUNT', 'TRIAL_FEEDBACK', 'P1 反馈数', 'LTE', 3, 1, 1, 2, 'P1 反馈数量不超过 3 个', NOW(), NOW()),
+(920003, NULL, 'RELEASE_BLOCKING_FEEDBACK_COUNT', 'TRIAL_FEEDBACK', '阻塞性反馈数', 'EQ', 0, 1, 1, 3, '阻塞性反馈数量必须为 0', NOW(), NOW()),
+(920004, NULL, 'READINESS_FAIL_COUNT', 'ENVIRONMENT_READINESS', '环境检查失败数', 'EQ', 0, 1, 1, 4, '环境就绪检查失败数量必须为 0', NOW(), NOW()),
+(920005, NULL, 'MODEL_COST_ALERT_HIGH_COUNT', 'MODEL_COST', '成本告警数 (HIGH+)', 'EQ', 0, 1, 0, 5, '高级别成本告警数量必须为 0', NOW(), NOW()),
+(920006, NULL, 'PR_REVIEW_FAILURE_RATIO', 'PR_REVIEW_QUALITY', 'PR 评审失败率', 'LTE', 0.20, 1, 0, 6, 'PR 评审失败率不超过 20%', NOW(), NOW()),
+(920007, NULL, 'PR_REVIEW_ADOPTION_RATIO', 'PR_REVIEW_QUALITY', 'PR 评审采纳率', 'GTE', 0.30, 1, 0, 7, 'PR 评审建议采纳率不低于 30%', NOW(), NOW()),
+(920008, NULL, 'OPEN_CRITICAL_INCIDENT_COUNT', 'INCIDENT_RISK', '未关闭严重事故数', 'EQ', 0, 1, 1, 8, '未关闭的严重事故数量必须为 0', NOW(), NOW()),
+(920009, NULL, 'KNOWLEDGE_QUALITY_REJECTED_COUNT', 'KNOWLEDGE_QUALITY', '知识质量被拒数', 'EQ', 0, 1, 0, 9, '知识质量审查被拒数量必须为 0', NOW(), NOW());
+
+-- Test database schema sync: V41
+CREATE TABLE IF NOT EXISTS release_rollout_plan (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    source_decision_id BIGINT NULL,
+    rollout_status VARCHAR(32) NOT NULL,
+    rollout_strategy VARCHAR(32) NOT NULL,
+    target_environment VARCHAR(64) NOT NULL,
+    owner_id BIGINT NULL,
+    approver_id BIGINT NULL,
+    planned_start_at DATETIME NULL,
+    planned_end_at DATETIME NULL,
+    observation_window_minutes INT NOT NULL DEFAULT 60,
+    rollback_trigger_summary TEXT NULL,
+    success_criteria_summary TEXT NULL,
+    readiness_summary TEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_rollout_plan_project (project_id, create_time),
+    KEY idx_release_rollout_plan_status (rollout_status),
+    UNIQUE KEY uk_release_rollout_label (project_id, release_label)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS release_rollout_step (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    plan_id BIGINT NOT NULL,
+    project_id BIGINT NULL,
+    step_order INT NOT NULL,
+    step_key VARCHAR(64) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    step_status VARCHAR(32) NOT NULL,
+    verification_scope VARCHAR(32) NOT NULL,
+    required TINYINT NOT NULL DEFAULT 1,
+    blocking TINYINT NOT NULL DEFAULT 1,
+    instructions TEXT NULL,
+    expected_result TEXT NULL,
+    actual_result TEXT NULL,
+    evidence_json JSON NULL,
+    operator_id BIGINT NULL,
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_rollout_step_plan (plan_id, step_order),
+    KEY idx_release_rollout_step_status (step_status),
+    UNIQUE KEY uk_release_rollout_step (plan_id, step_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS release_verification_record (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    plan_id BIGINT NOT NULL,
+    project_id BIGINT NULL,
+    verification_phase VARCHAR(32) NOT NULL,
+    verification_key VARCHAR(64) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    verification_status VARCHAR(32) NOT NULL,
+    severity VARCHAR(32) NOT NULL,
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    evidence_json JSON NULL,
+    related_incident_id BIGINT NULL,
+    related_alert_id BIGINT NULL,
+    recorded_by BIGINT NULL,
+    recorded_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_verification_plan (plan_id, verification_phase, recorded_at),
+    KEY idx_release_verification_status (verification_status, severity),
+    KEY idx_release_verification_project (project_id, recorded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS release_rollback_drill (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    plan_id BIGINT NOT NULL,
+    project_id BIGINT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    drill_status VARCHAR(32) NOT NULL,
+    drill_scope VARCHAR(64) NOT NULL,
+    environment_name VARCHAR(64) NOT NULL,
+    owner_id BIGINT NULL,
+    executor_id BIGINT NULL,
+    planned_at DATETIME NULL,
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+    duration_seconds BIGINT NULL,
+    success_criteria TEXT NULL,
+    rollback_steps_summary TEXT NULL,
+    blockers_summary TEXT NULL,
+    result_summary TEXT NULL,
+    evidence_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_rollback_drill_plan (plan_id),
+    KEY idx_release_rollback_drill_project (project_id, create_time),
+    KEY idx_release_rollback_drill_status (drill_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS release_audit_event (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    project_id BIGINT NULL,
+    plan_id BIGINT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    event_type VARCHAR(64) NOT NULL,
+    actor_id BIGINT NULL,
+    actor_name VARCHAR(128) NULL,
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    related_step_id BIGINT NULL,
+    related_verification_id BIGINT NULL,
+    related_incident_id BIGINT NULL,
+    related_alert_id BIGINT NULL,
+    evidence_json JSON NULL,
+    event_time DATETIME NOT NULL,
+    create_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_audit_event_plan (plan_id, event_time),
+    KEY idx_release_audit_event_project (project_id, event_time),
+    KEY idx_release_audit_event_type (event_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS release_postmortem_review (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    plan_id BIGINT NOT NULL,
+    project_id BIGINT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    review_status VARCHAR(32) NOT NULL,
+    overall_outcome VARCHAR(32) NOT NULL,
+    summary TEXT NULL,
+    what_went_well TEXT NULL,
+    what_went_wrong TEXT NULL,
+    customer_impact TEXT NULL,
+    follow_up_actions TEXT NULL,
+    reviewer_id BIGINT NULL,
+    reviewed_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_release_postmortem_plan (plan_id),
+    KEY idx_release_postmortem_project (project_id, create_time),
+    KEY idx_release_postmortem_status (review_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Test database schema sync: V43
+CREATE TABLE IF NOT EXISTS release_evidence_bundle (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    plan_id BIGINT NOT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    bundle_status VARCHAR(32) NOT NULL,
+    summary_markdown MEDIUMTEXT NULL,
+    evidence_json JSON NULL,
+    generated_by BIGINT NULL,
+    generated_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_release_evidence_bundle_project(project_id, create_time),
+    KEY idx_release_evidence_bundle_plan(plan_id),
+    KEY idx_release_evidence_bundle_status(bundle_status),
+    UNIQUE KEY uk_release_evidence_bundle(plan_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发布证据包';
+
+CREATE TABLE IF NOT EXISTS release_signoff_record (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    plan_id BIGINT NOT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    signoff_role VARCHAR(64) NOT NULL,
+    signoff_status VARCHAR(32) NOT NULL,
+    signer_id BIGINT NULL,
+    signer_name VARCHAR(128) NULL,
+    comment_text TEXT NULL,
+    signed_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_release_signoff_project(project_id, create_time),
+    KEY idx_release_signoff_plan(plan_id, signoff_role),
+    KEY idx_release_signoff_status(signoff_status),
+    UNIQUE KEY uk_release_signoff(plan_id, signoff_role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发布签字记录';
+
+CREATE TABLE IF NOT EXISTS release_confidence_snapshot (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    plan_id BIGINT NOT NULL,
+    release_label VARCHAR(128) NOT NULL,
+    confidence_score DECIMAL(8,2) NOT NULL,
+    confidence_level VARCHAR(32) NOT NULL,
+    blocking_issue_count INT NOT NULL DEFAULT 0,
+    warning_issue_count INT NOT NULL DEFAULT 0,
+    open_incident_count INT NOT NULL DEFAULT 0,
+    active_alert_count INT NOT NULL DEFAULT 0,
+    failed_verification_count INT NOT NULL DEFAULT 0,
+    rollback_ready TINYINT NOT NULL DEFAULT 0,
+    signoff_completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    snapshot_summary VARCHAR(255) NOT NULL,
+    snapshot_time DATETIME NOT NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_release_confidence_project(project_id, snapshot_time),
+    KEY idx_release_confidence_plan(plan_id),
+    KEY idx_release_confidence_level(confidence_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发布信心快照';
+
+-- V44: Multi-project release governance tables
+CREATE TABLE IF NOT EXISTS release_portfolio_snapshot (
+    id BIGINT PRIMARY KEY,
+    snapshot_date DATE NOT NULL,
+    project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
+    latest_release_label VARCHAR(128) NULL,
+    confidence_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    confidence_level VARCHAR(32) NOT NULL,
+    rollout_status VARCHAR(32) NULL,
+    decision_status VARCHAR(32) NULL,
+    blocking_issue_count INT NOT NULL DEFAULT 0,
+    warning_issue_count INT NOT NULL DEFAULT 0,
+    open_incident_count INT NOT NULL DEFAULT 0,
+    active_alert_count INT NOT NULL DEFAULT 0,
+    failed_verification_count INT NOT NULL DEFAULT 0,
+    rollback_ready TINYINT NOT NULL DEFAULT 0,
+    signoff_completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    portfolio_rank INT NULL,
+    expansion_recommendation VARCHAR(32) NOT NULL,
+    summary_text VARCHAR(255) NOT NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_release_portfolio_snapshot_date(snapshot_date, confidence_score),
+    KEY idx_release_portfolio_snapshot_project(project_id, snapshot_date),
+    KEY idx_release_portfolio_snapshot_rank(snapshot_date, portfolio_rank)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Release portfolio snapshot';
+
+CREATE TABLE IF NOT EXISTS governance_baseline_template (
+    id BIGINT PRIMARY KEY,
+    template_key VARCHAR(64) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    template_scope VARCHAR(32) NOT NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    default_signoff_roles_json JSON NULL,
+    default_verification_rules_json JSON NULL,
+    default_rollback_requirements_json JSON NULL,
+    default_confidence_policy_json JSON NULL,
+    notes TEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_governance_baseline_template(template_key),
+    KEY idx_governance_baseline_template_scope(template_scope, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance baseline template';
+
+CREATE TABLE IF NOT EXISTS release_risk_heatmap_snapshot (
+    id BIGINT PRIMARY KEY,
+    snapshot_date DATE NOT NULL,
+    project_id BIGINT NOT NULL,
+    risk_category VARCHAR(64) NOT NULL,
+    risk_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    risk_level VARCHAR(32) NOT NULL,
+    source_count INT NOT NULL DEFAULT 0,
+    detail_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_release_risk_heatmap_date(snapshot_date, risk_category),
+    KEY idx_release_risk_heatmap_project(project_id, snapshot_date),
+    KEY idx_release_risk_heatmap_level(snapshot_date, risk_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Release risk heatmap snapshot';
+
+-- V45: Organization governance tables (40B)
+CREATE TABLE IF NOT EXISTS organization_trial_policy (
+    id BIGINT PRIMARY KEY,
+    policy_key VARCHAR(64) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    policy_scope VARCHAR(32) NOT NULL,
+    enabled TINYINT NOT NULL DEFAULT 1,
+    threshold_json JSON NULL,
+    signoff_policy_json JSON NULL,
+    rollback_policy_json JSON NULL,
+    verification_policy_json JSON NULL,
+    recommendation_policy_json JSON NULL,
+    notes TEXT NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_organization_trial_policy(policy_key),
+    KEY idx_organization_trial_policy_scope(policy_scope, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Organization trial policy';
+
+CREATE TABLE IF NOT EXISTS release_guardrail_evaluation (
+    id BIGINT PRIMARY KEY,
+    snapshot_date DATE NOT NULL,
+    project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
+    policy_key VARCHAR(64) NOT NULL,
+    guardrail_key VARCHAR(64) NOT NULL,
+    guardrail_category VARCHAR(64) NOT NULL,
+    evaluation_status VARCHAR(32) NOT NULL,
+    severity VARCHAR(32) NOT NULL,
+    actual_value DECIMAL(18,6) NULL,
+    threshold_value DECIMAL(18,6) NULL,
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    recommendation_text TEXT NULL,
+    evidence_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_release_guardrail_eval_date(snapshot_date, project_id),
+    KEY idx_release_guardrail_eval_policy(policy_key, evaluation_status),
+    KEY idx_release_guardrail_eval_severity(snapshot_date, severity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Release guardrail evaluation';
+
+CREATE TABLE IF NOT EXISTS portfolio_drift_snapshot (
+    id BIGINT PRIMARY KEY,
+    snapshot_date DATE NOT NULL,
+    project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
+    drift_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    drift_level VARCHAR(32) NOT NULL,
+    baseline_template_key VARCHAR(64) NULL,
+    confidence_delta DECIMAL(8,2) NOT NULL DEFAULT 0,
+    signoff_delta DECIMAL(8,2) NOT NULL DEFAULT 0,
+    verification_delta DECIMAL(8,2) NOT NULL DEFAULT 0,
+    rollback_readiness_changed TINYINT NOT NULL DEFAULT 0,
+    summary_text VARCHAR(255) NOT NULL,
+    detail_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_portfolio_drift_snapshot_date(snapshot_date, drift_score),
+    KEY idx_portfolio_drift_snapshot_project(project_id, snapshot_date),
+    KEY idx_portfolio_drift_snapshot_level(snapshot_date, drift_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Portfolio drift snapshot';
+
+-- V46: Governance workflow and waiver tables (40C)
+CREATE TABLE IF NOT EXISTS governance_recommendation_item (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
+    source_snapshot_date DATE NOT NULL,
+    policy_key VARCHAR(64) NOT NULL,
+    guardrail_key VARCHAR(64) NOT NULL,
+    category VARCHAR(64) NOT NULL,
+    priority VARCHAR(32) NOT NULL,
+    workflow_status VARCHAR(32) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    summary TEXT NULL,
+    owner_id BIGINT NULL,
+    owner_name VARCHAR(128) NULL,
+    due_at DATETIME NULL,
+    resolved_at DATETIME NULL,
+    resolution_note TEXT NULL,
+    source_evidence_json JSON NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_governance_recommendation_project(project_id, workflow_status),
+    KEY idx_governance_recommendation_priority(priority, workflow_status),
+    KEY idx_governance_recommendation_due(due_at, workflow_status),
+    UNIQUE KEY uk_governance_recommendation_source(project_id, source_snapshot_date, policy_key, guardrail_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance recommendation item';
+
+CREATE TABLE IF NOT EXISTS governance_waiver_request (
+    id BIGINT PRIMARY KEY,
+    recommendation_id BIGINT NOT NULL,
+    project_id BIGINT NOT NULL,
+    waiver_status VARCHAR(32) NOT NULL,
+    waiver_scope VARCHAR(64) NOT NULL,
+    requested_by BIGINT NULL,
+    requested_by_name VARCHAR(128) NULL,
+    approved_by BIGINT NULL,
+    approved_by_name VARCHAR(128) NULL,
+    reason_text TEXT NOT NULL,
+    approval_note TEXT NULL,
+    expires_at DATETIME NULL,
+    revoked_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_governance_waiver_project(project_id, waiver_status),
+    KEY idx_governance_waiver_recommendation(recommendation_id),
+    KEY idx_governance_waiver_expiry(expires_at, waiver_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance waiver request';
+
+CREATE TABLE IF NOT EXISTS governance_workflow_snapshot (
+    id BIGINT PRIMARY KEY,
+    snapshot_date DATE NOT NULL,
+    total_recommendation_count INT NOT NULL DEFAULT 0,
+    open_recommendation_count INT NOT NULL DEFAULT 0,
+    in_progress_count INT NOT NULL DEFAULT 0,
+    completed_count INT NOT NULL DEFAULT 0,
+    blocked_count INT NOT NULL DEFAULT 0,
+    overdue_count INT NOT NULL DEFAULT 0,
+    active_waiver_count INT NOT NULL DEFAULT 0,
+    expired_waiver_count INT NOT NULL DEFAULT 0,
+    completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    overdue_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    summary_text VARCHAR(255) NOT NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_governance_workflow_snapshot_date(snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance workflow snapshot';
+
+-- V47: Governance SLA, escalation and ownership tables (41A)
+CREATE TABLE IF NOT EXISTS governance_sla_policy (
+    id BIGINT PRIMARY KEY, policy_key VARCHAR(64) NOT NULL, display_name VARCHAR(255) NOT NULL,
+    priority VARCHAR(32) NOT NULL, category VARCHAR(64) NULL, sla_hours INT NOT NULL,
+    warning_hours INT NOT NULL, enabled TINYINT NOT NULL DEFAULT 1, notes TEXT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_governance_sla_policy(policy_key),
+    KEY idx_governance_sla_policy_priority(priority, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance SLA policy';
+
+CREATE TABLE IF NOT EXISTS governance_escalation_event (
+    id BIGINT PRIMARY KEY, recommendation_id BIGINT NOT NULL, project_id BIGINT NOT NULL,
+    escalation_type VARCHAR(64) NOT NULL, escalation_level VARCHAR(32) NOT NULL,
+    event_status VARCHAR(32) NOT NULL, summary VARCHAR(255) NOT NULL, detail TEXT NULL,
+    owner_id BIGINT NULL, owner_name VARCHAR(128) NULL, triggered_at DATETIME NOT NULL,
+    acknowledged_at DATETIME NULL, resolved_at DATETIME NULL, create_time DATETIME NOT NULL,
+    KEY idx_governance_escalation_recommendation(recommendation_id, triggered_at),
+    KEY idx_governance_escalation_project(project_id, triggered_at),
+    KEY idx_governance_escalation_status(event_status, escalation_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance escalation event';
+
+CREATE TABLE IF NOT EXISTS governance_ownership_snapshot (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, owner_id BIGINT NOT NULL,
+    owner_name VARCHAR(128) NOT NULL, total_assigned_count INT NOT NULL DEFAULT 0,
+    open_count INT NOT NULL DEFAULT 0, in_progress_count INT NOT NULL DEFAULT 0,
+    overdue_count INT NOT NULL DEFAULT 0, completed_7d_count INT NOT NULL DEFAULT 0,
+    active_waiver_count INT NOT NULL DEFAULT 0,
+    owner_health_score DECIMAL(8,2) NOT NULL DEFAULT 0, owner_health_level VARCHAR(32) NOT NULL,
+    summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_governance_ownership_snapshot_date(snapshot_date, owner_health_score),
+    KEY idx_governance_ownership_snapshot_owner(owner_id, snapshot_date),
+    KEY idx_governance_ownership_snapshot_level(snapshot_date, owner_health_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance ownership snapshot';
+
+-- V48: Governance forecast and risk tables (41B)
+CREATE TABLE IF NOT EXISTS governance_capacity_forecast (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, forecast_horizon_days INT NOT NULL,
+    owner_id BIGINT NOT NULL, owner_name VARCHAR(128) NOT NULL,
+    current_open_count INT NOT NULL DEFAULT 0, current_overdue_count INT NOT NULL DEFAULT 0,
+    avg_completed_per_day DECIMAL(8,2) NOT NULL DEFAULT 0, projected_new_items INT NOT NULL DEFAULT 0,
+    projected_completed_items INT NOT NULL DEFAULT 0, projected_backlog_count INT NOT NULL DEFAULT 0,
+    projected_overdue_count INT NOT NULL DEFAULT 0, capacity_risk_level VARCHAR(32) NOT NULL,
+    summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_capacity_forecast_date(snapshot_date, forecast_horizon_days),
+    KEY idx_gov_capacity_forecast_owner(owner_id, snapshot_date),
+    KEY idx_gov_capacity_forecast_level(snapshot_date, capacity_risk_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance capacity forecast';
+
+CREATE TABLE IF NOT EXISTS predictive_risk_signal (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, target_type VARCHAR(32) NOT NULL,
+    target_id BIGINT NULL, target_name VARCHAR(255) NOT NULL, signal_type VARCHAR(64) NOT NULL,
+    risk_level VARCHAR(32) NOT NULL, risk_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    probability_score DECIMAL(8,2) NOT NULL DEFAULT 0, time_horizon_days INT NOT NULL DEFAULT 7,
+    summary VARCHAR(255) NOT NULL, detail TEXT NULL, evidence_json JSON NULL, create_time DATETIME NOT NULL,
+    KEY idx_predictive_risk_signal_date(snapshot_date, risk_level),
+    KEY idx_predictive_risk_signal_target(target_type, target_id, snapshot_date),
+    KEY idx_predictive_risk_signal_type(signal_type, snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Predictive risk signal';
+
+CREATE TABLE IF NOT EXISTS governance_backlog_snapshot (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL, open_count INT NOT NULL DEFAULT 0,
+    in_progress_count INT NOT NULL DEFAULT 0, blocked_count INT NOT NULL DEFAULT 0,
+    overdue_count INT NOT NULL DEFAULT 0, waiver_active_count INT NOT NULL DEFAULT 0,
+    incoming_7d_count INT NOT NULL DEFAULT 0, completed_7d_count INT NOT NULL DEFAULT 0,
+    backlog_growth_rate DECIMAL(8,2) NOT NULL DEFAULT 0, backlog_health_level VARCHAR(32) NOT NULL,
+    summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_backlog_snapshot_date(snapshot_date, backlog_growth_rate),
+    KEY idx_gov_backlog_snapshot_project(project_id, snapshot_date),
+    KEY idx_gov_backlog_snapshot_level(snapshot_date, backlog_health_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance backlog snapshot';
+
+-- V49: Governance simulation and tuning tables (41C)
+CREATE TABLE IF NOT EXISTS governance_simulation_scenario (
+    id BIGINT PRIMARY KEY, scenario_name VARCHAR(255) NOT NULL, scenario_type VARCHAR(64) NOT NULL,
+    baseline_snapshot_date DATE NULL, scenario_status VARCHAR(32) NOT NULL,
+    input_json JSON NOT NULL, notes TEXT NULL, created_by BIGINT NULL,
+    created_by_name VARCHAR(128) NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_sim_scenario_type(scenario_type, scenario_status),
+    KEY idx_gov_sim_scenario_date(baseline_snapshot_date, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance simulation scenario';
+
+CREATE TABLE IF NOT EXISTS governance_simulation_result (
+    id BIGINT PRIMARY KEY, scenario_id BIGINT NOT NULL, result_status VARCHAR(32) NOT NULL,
+    impacted_owner_count INT NOT NULL DEFAULT 0, impacted_project_count INT NOT NULL DEFAULT 0,
+    projected_backlog_delta DECIMAL(10,2) NOT NULL DEFAULT 0,
+    projected_overdue_delta DECIMAL(10,2) NOT NULL DEFAULT 0,
+    projected_risk_delta DECIMAL(10,2) NOT NULL DEFAULT 0,
+    projected_capacity_delta DECIMAL(10,2) NOT NULL DEFAULT 0,
+    summary_text VARCHAR(255) NOT NULL, detail_json JSON NULL,
+    report_markdown MEDIUMTEXT NULL, calculated_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_sim_result_scenario(scenario_id),
+    KEY idx_gov_sim_result_status(result_status, calculated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance simulation result';
+
+CREATE TABLE IF NOT EXISTS policy_tuning_suggestion (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, suggestion_type VARCHAR(64) NOT NULL,
+    priority VARCHAR(32) NOT NULL, target_scope VARCHAR(32) NOT NULL,
+    target_key VARCHAR(128) NULL, current_value VARCHAR(255) NULL,
+    suggested_value VARCHAR(255) NULL, expected_impact_text VARCHAR(255) NOT NULL,
+    rationale_text TEXT NULL, evidence_json JSON NULL, create_time DATETIME NOT NULL,
+    KEY idx_policy_tuning_suggestion_date(snapshot_date, priority),
+    KEY idx_policy_tuning_suggestion_type(suggestion_type, target_scope)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Policy tuning suggestion';

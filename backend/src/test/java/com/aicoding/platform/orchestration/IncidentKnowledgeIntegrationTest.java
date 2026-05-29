@@ -367,10 +367,9 @@ class IncidentKnowledgeIntegrationTest extends IntegrationTestBase {
     @Test
     void shouldGetKnownIssueTemplate() {
         String pid = createProject("KitGet");
-        ResponseEntity<String> createRes = post("/api/projects/" + pid + "/known-issue-templates", Map.of(
+        post("/api/projects/" + pid + "/known-issue-templates", Map.of(
                 "title", "GetTest", "category", "REDIS"
         ));
-        String tid = TestJsonHelper.getString(TestJsonHelper.parse(createRes.getBody()), "data.id");
 
         ResponseEntity<String> res = get("/api/projects/" + pid + "/known-issue-templates");
         assertOk(res);
@@ -551,7 +550,7 @@ class IncidentKnowledgeIntegrationTest extends IntegrationTestBase {
         String kbId = createKnowledgeBase(pid, "Delete KB");
 
         post("/api/orchestration/incidents/" + iid + "/root-cause-note", Map.of("rootCause", "test"));
-        ResponseEntity<String> genRes = post("/api/orchestration/incidents/" + iid + "/knowledge-document", Map.of(
+        post("/api/orchestration/incidents/" + iid + "/knowledge-document", Map.of(
                 "knowledgeBaseId", kbId,
                 "title", "Delete Doc",
                 "includeTimeline", false,

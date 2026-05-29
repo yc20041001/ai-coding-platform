@@ -45,6 +45,7 @@ public class DefaultModelGateway implements ModelGateway {
 
         // 2. Resolve provider config
         ResolvedModelConfig config = configResolver.resolve(request);
+        ModelRequest resolvedRequest = applyResolvedConfig(request, config);
         log.info("Resolved provider={} model={} enabled={}", config.getProvider(), config.getModelName(), config.isEnabled());
 
         if (!config.isEnabled()) {
@@ -62,7 +63,7 @@ public class DefaultModelGateway implements ModelGateway {
         }
 
         // 4. Call provider with retry
-        ModelResponse response = callWithRetry(request, provider, config);
+        ModelResponse response = callWithRetry(resolvedRequest, provider, config);
         if (response.getSuccess()) {
             return response;
         }
@@ -158,11 +159,12 @@ public class DefaultModelGateway implements ModelGateway {
 
         // 2. Resolve provider config
         ResolvedModelConfig config = configResolver.resolve(request);
+        ModelRequest resolvedRequest = applyResolvedConfig(request, config);
         log.info("Stream resolved provider={} model={} enabled={}", config.getProvider(), config.getModelName(), config.isEnabled());
 
         if (!config.isEnabled()) {
             log.warn("Provider {} is not enabled for stream, attempting fallback", config.getProvider());
-            streamFallbackToMock(request, callback, startTime,
+            streamFallbackToMock(resolvedRequest, callback, startTime,
                     ModelGatewayErrorType.CONFIG_ERROR, "Provider " + config.getProvider() + " is not enabled");
             return;
         }
@@ -171,7 +173,7 @@ public class DefaultModelGateway implements ModelGateway {
         ModelProvider provider = providerRegistry.getProvider(config.getProvider());
         if (provider == null) {
             log.warn("No provider found for {} stream, attempting fallback", config.getProvider());
-            streamFallbackToMock(request, callback, startTime,
+            streamFallbackToMock(resolvedRequest, callback, startTime,
                     ModelGatewayErrorType.CONFIG_ERROR, "No provider found for " + config.getProvider());
             return;
         }
@@ -212,7 +214,7 @@ public class DefaultModelGateway implements ModelGateway {
 
                 if (retryable && properties.getRetryTimes() > 0) {
                     log.info("Stream error is retryable ({}), starting retry/fallback", errorType);
-                    streamWithRetry(request, callback, config, 0);
+                    streamWithRetry(resolvedRequest, callback, config, 0);
                     return;
                 }
 
@@ -221,7 +223,7 @@ public class DefaultModelGateway implements ModelGateway {
                     log.warn("Stream failed ({}), falling back to Mock. Original error: {}",
                             errorType, errorResponse.getErrorMessage());
                     String originalError = errorResponse.getErrorMessage();
-                    doStreamFallbackToMock(request, callback, startTime, originalError);
+                    doStreamFallbackToMock(resolvedRequest, callback, startTime, originalError);
                     return;
                 }
 
@@ -231,9 +233,9 @@ public class DefaultModelGateway implements ModelGateway {
 
         // 5. Call provider stream
         if (provider.supportsStream()) {
-            provider.stream(request, wrappedCallback);
+            provider.stream(resolvedRequest, wrappedCallback);
         } else {
-            provider.stream(request, wrappedCallback); // Uses default one-shot fallback
+            provider.stream(resolvedRequest, wrappedCallback); // Uses default one-shot fallback
         }
     }
 
@@ -355,5 +357,22 @@ public class DefaultModelGateway implements ModelGateway {
         response.setErrorType(errorType.name());
         response.setErrorMessage(message);
         return response;
+    }
+
+    private ModelRequest applyResolvedConfig(ModelRequest request, ResolvedModelConfig config) {
+        ModelRequest resolvedRequest = new ModelRequest();
+        resolvedRequest.setProjectId(request.getProjectId());
+        resolvedRequest.setExecutionId(request.getExecutionId());
+        resolvedRequest.setProvider(config.getProvider());
+        resolvedRequest.setModelName(config.getModelName());
+        resolvedRequest.setRequestType(request.getRequestType());
+        resolvedRequest.setSystemPrompt(request.getSystemPrompt());
+        resolvedRequest.setUserPrompt(request.getUserPrompt());
+        resolvedRequest.setContext(request.getContext());
+        resolvedRequest.setTemperature(request.getTemperature());
+        resolvedRequest.setMaxTokens(request.getMaxTokens());
+        resolvedRequest.setFallbackEnabled(request.getFallbackEnabled());
+        resolvedRequest.setMetadata(request.getMetadata());
+        return resolvedRequest;
     }
 }

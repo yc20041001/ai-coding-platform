@@ -267,8 +267,13 @@ public class AgentOrchestratorService {
             execution.setFinishedAt(LocalDateTime.now());
             agentExecutionMapper.updateById(execution);
 
+            String resolvedProvider = modelResponse.getProvider() != null
+                    ? modelResponse.getProvider() : modelRequest.getProvider();
+            String resolvedModelName = modelResponse.getModelName() != null
+                    ? modelResponse.getModelName() : modelRequest.getModelName();
+
             writeLog(taskId, task.getProjectId(), TaskLogLevel.INFO, "MODEL_GATEWAY_REQUEST",
-                    "Model [" + modelRequest.getProvider() + "/" + modelRequest.getModelName()
+                    "Model [" + resolvedProvider + "/" + resolvedModelName
                             + "] returned, totalTokens=" + modelResponse.getTotalTokens()
                             + ", latencyMs=" + modelResponse.getLatencyMs());
             writeLog(taskId, task.getProjectId(), TaskLogLevel.INFO, "ORCHESTRATOR_DONE",
@@ -278,7 +283,7 @@ public class AgentOrchestratorService {
             artifact.setTaskId(taskId);
             artifact.setProjectId(task.getProjectId());
             artifact.setArtifactType("MARKDOWN");
-            artifact.setName("Mock Agent Execution Result");
+            artifact.setName("Agent Execution Result");
             artifact.setContent(modelResponse.getContent());
             aiTaskArtifactMapper.insert(artifact);
 

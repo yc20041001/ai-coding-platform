@@ -1,5 +1,7 @@
 package com.aicoding.platform.modelgateway.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -20,7 +22,10 @@ public class OpenAiChatCompletionRequest {
     public BigDecimal getTemperature() { return temperature; }
     public void setTemperature(BigDecimal temperature) { this.temperature = temperature; }
 
+    @JsonProperty("max_tokens")
     public Integer getMaxTokens() { return maxTokens; }
+
+    @JsonProperty("max_tokens")
     public void setMaxTokens(Integer maxTokens) { this.maxTokens = maxTokens; }
 
     public Boolean getStream() { return stream; }

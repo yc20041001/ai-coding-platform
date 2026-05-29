@@ -1,0 +1,76 @@
+-- V39: Real Model Cost & PR Review Quality Hardening
+-- Creates 3 tables for model cost analytics and PR review quality tracking
+
+CREATE TABLE model_cost_summary (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    provider VARCHAR(32) NOT NULL,
+    model_name VARCHAR(128) NOT NULL,
+    request_type VARCHAR(64) NOT NULL,
+    stat_date DATE NOT NULL,
+    request_count BIGINT NOT NULL DEFAULT 0,
+    success_count BIGINT NOT NULL DEFAULT 0,
+    failure_count BIGINT NOT NULL DEFAULT 0,
+    fallback_count BIGINT NOT NULL DEFAULT 0,
+    prompt_tokens BIGINT NOT NULL DEFAULT 0,
+    completion_tokens BIGINT NOT NULL DEFAULT 0,
+    total_tokens BIGINT NOT NULL DEFAULT 0,
+    estimated_cost DECIMAL(18,6) NOT NULL DEFAULT 0,
+    avg_latency_ms BIGINT NOT NULL DEFAULT 0,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_model_cost_project_date (project_id, stat_date),
+    KEY idx_model_cost_provider_model (provider, model_name),
+    KEY idx_model_cost_request_type (request_type),
+    UNIQUE KEY uk_model_cost_daily (project_id, provider, model_name, request_type, stat_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE model_cost_alert (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NULL,
+    provider VARCHAR(32) NOT NULL,
+    model_name VARCHAR(128) NOT NULL,
+    alert_type VARCHAR(64) NOT NULL,
+    severity VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'OPEN',
+    summary VARCHAR(255) NOT NULL,
+    detail TEXT NULL,
+    stat_date DATE NOT NULL,
+    threshold_value DECIMAL(18,6) NULL,
+    actual_value DECIMAL(18,6) NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_model_cost_alert_project (project_id, stat_date),
+    KEY idx_model_cost_alert_status (status, severity),
+    KEY idx_model_cost_alert_provider (provider, model_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE pr_review_quality_record (
+    id BIGINT PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    review_job_id BIGINT NOT NULL,
+    github_binding_id BIGINT NULL,
+    repository_full_name VARCHAR(255) NOT NULL,
+    pull_request_number BIGINT NOT NULL,
+    strategy_key VARCHAR(64) NULL,
+    model_provider VARCHAR(32) NULL,
+    model_name VARCHAR(128) NULL,
+    findings_total INT NOT NULL DEFAULT 0,
+    high_risk_findings INT NOT NULL DEFAULT 0,
+    medium_risk_findings INT NOT NULL DEFAULT 0,
+    low_risk_findings INT NOT NULL DEFAULT 0,
+    review_status VARCHAR(32) NOT NULL DEFAULT 'COMPLETED',
+    human_feedback_status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    adoption_status VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
+    usefulness_score INT NULL,
+    false_positive_score INT NULL,
+    review_comment TEXT NULL,
+    reviewed_by BIGINT NULL,
+    reviewed_at DATETIME NULL,
+    create_time DATETIME NOT NULL,
+    update_time DATETIME NOT NULL,
+    KEY idx_pr_quality_project_time (project_id, create_time),
+    KEY idx_pr_quality_repo_pr (repository_full_name, pull_request_number),
+    KEY idx_pr_quality_status (review_status, human_feedback_status, adoption_status),
+    UNIQUE KEY uk_pr_quality_job (review_job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
