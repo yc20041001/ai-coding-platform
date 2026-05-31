@@ -40,6 +40,36 @@ import GovernanceOwnershipHealthPanel from '@/modules/admin/components/Governanc
 import GovernanceCapacityForecastPanel from '@/modules/admin/components/GovernanceCapacityForecastPanel.vue'
 import PredictiveRiskSignalPanel from '@/modules/admin/components/PredictiveRiskSignalPanel.vue'
 import GovernanceBacklogHealthPanel from '@/modules/admin/components/GovernanceBacklogHealthPanel.vue'
+import GovernancePlaybookTemplatePanel from '@/modules/admin/components/GovernancePlaybookTemplatePanel.vue'
+import GovernanceExecutionPlanPanel from '@/modules/admin/components/GovernanceExecutionPlanPanel.vue'
+import GovernanceHandoffChecklistPanel from '@/modules/admin/components/GovernanceHandoffChecklistPanel.vue'
+import GovernanceKnowledgeBasePanel from '@/modules/admin/components/GovernanceKnowledgeBasePanel.vue'
+import GovernancePatternLibraryPanel from '@/modules/admin/components/GovernancePatternLibraryPanel.vue'
+import GovernanceRemediationRecipePanel from '@/modules/admin/components/GovernanceRemediationRecipePanel.vue'
+import GovernanceRecipeEffectivenessPanel from '@/modules/admin/components/GovernanceRecipeEffectivenessPanel.vue'
+import GovernancePlaybookAnalyticsPanel from '@/modules/admin/components/GovernancePlaybookAnalyticsPanel.vue'
+import GovernanceOptimizationSuggestionPanel from '@/modules/admin/components/GovernanceOptimizationSuggestionPanel.vue'
+import GovernanceWorkspaceConsole from '@/modules/admin/components/GovernanceWorkspaceConsole.vue'
+import GovernanceGuidedTaskPanel from '@/modules/admin/components/GovernanceGuidedTaskPanel.vue'
+import GovernanceNextStepPanel from '@/modules/admin/components/GovernanceNextStepPanel.vue'
+import GovernanceOperatorMemoryPanel from '@/modules/admin/components/GovernanceOperatorMemoryPanel.vue'
+import GovernanceSessionInsightPanel from '@/modules/admin/components/GovernanceSessionInsightPanel.vue'
+import GovernanceRemediationReusePanel from '@/modules/admin/components/GovernanceRemediationReusePanel.vue'
+import GovernanceOperatorFeedbackPanel from '@/modules/admin/components/GovernanceOperatorFeedbackPanel.vue'
+import GovernanceAdaptiveGuidancePanel from '@/modules/admin/components/GovernanceAdaptiveGuidancePanel.vue'
+import GovernanceCopilotTuningPanel from '@/modules/admin/components/GovernanceCopilotTuningPanel.vue'
+import GovernanceDraftPlanningPanel from '@/modules/admin/components/GovernanceDraftPlanningPanel.vue'
+import GovernanceAssistiveActionPanel from '@/modules/admin/components/GovernanceAssistiveActionPanel.vue'
+import GovernanceRecommendationPackagePanel from '@/modules/admin/components/GovernanceRecommendationPackagePanel.vue'
+import GovernanceDraftOutcomeReviewPanel from '@/modules/admin/components/GovernanceDraftOutcomeReviewPanel.vue'
+import GovernanceAssistiveQualityPanel from '@/modules/admin/components/GovernanceAssistiveQualityPanel.vue'
+import GovernancePackageEvaluationPanel from '@/modules/admin/components/GovernancePackageEvaluationPanel.vue'
+import GovernanceDraftOptimizationPanel from '@/modules/admin/components/GovernanceDraftOptimizationPanel.vue'
+import GovernanceAssistiveOrderingPanel from '@/modules/admin/components/GovernanceAssistiveOrderingPanel.vue'
+import GovernancePackageCompositionPanel from '@/modules/admin/components/GovernancePackageCompositionPanel.vue'
+import GovernancePortfolioBenchmarkPanel from '@/modules/admin/components/GovernancePortfolioBenchmarkPanel.vue'
+import GovernanceBestPracticeAlignmentPanel from '@/modules/admin/components/GovernanceBestPracticeAlignmentPanel.vue'
+import GovernanceMaturityScorecardPanel from '@/modules/admin/components/GovernanceMaturityScorecardPanel.vue'
 import GovernanceSimulationScenarioPanel from '@/modules/admin/components/GovernanceSimulationScenarioPanel.vue'
 import GovernanceSimulationComparisonPanel from '@/modules/admin/components/GovernanceSimulationComparisonPanel.vue'
 import PolicyTuningSuggestionPanel from '@/modules/admin/components/PolicyTuningSuggestionPanel.vue'
@@ -637,6 +667,256 @@ onMounted(() => {
       <div v-if="opsProjectId" style="margin-bottom:20px">
         <TechPanel glow data-testid="tuning-suggestion-section">
           <PolicyTuningSuggestionPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Execution Sections (42A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理执行</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="playbook-template-section">
+            <GovernancePlaybookTemplatePanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="execution-plan-section">
+            <GovernanceExecutionPlanPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="handoff-checklist-section">
+          <GovernanceHandoffChecklistPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Knowledge Sections (42B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">治理知识</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="knowledge-base-section">
+            <GovernanceKnowledgeBasePanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="pattern-library-section">
+            <GovernancePatternLibraryPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="recipe-section">
+          <GovernanceRemediationRecipePanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Effectiveness Sections (42C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">效果分析</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="recipe-effectiveness-section">
+            <GovernanceRecipeEffectivenessPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="playbook-analytics-section">
+            <GovernancePlaybookAnalyticsPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="optimization-section">
+          <GovernanceOptimizationSuggestionPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Workspace Sections (43A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">Copilot 工作台</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="workspace-console-section">
+            <GovernanceWorkspaceConsole />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="guided-task-section">
+            <GovernanceGuidedTaskPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="next-step-section">
+          <GovernanceNextStepPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Learning Sections (43B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">学习回路</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="operator-memory-section">
+            <GovernanceOperatorMemoryPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="session-insight-section">
+            <GovernanceSessionInsightPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="reuse-bundle-section">
+          <GovernanceRemediationReusePanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Copilot Tuning Sections (43C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">Copilot 调优</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="feedback-section">
+            <GovernanceOperatorFeedbackPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="adaptive-guidance-section">
+            <GovernanceAdaptiveGuidancePanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="copilot-tuning-section">
+          <GovernanceCopilotTuningPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Draft Planning Sections (44A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">草稿规划</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="draft-planning-section">
+            <GovernanceDraftPlanningPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="assistive-action-section">
+            <GovernanceAssistiveActionPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="recommendation-package-section">
+          <GovernanceRecommendationPackagePanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Outcome Review Sections (44B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">结果评估</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="draft-outcome-review-section">
+            <GovernanceDraftOutcomeReviewPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="assistive-quality-section">
+            <GovernanceAssistiveQualityPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="package-evaluation-section">
+          <GovernancePackageEvaluationPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Draft Optimization Sections (44C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">起草优化</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="draft-optimization-section">
+            <GovernanceDraftOptimizationPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="assistive-ordering-section">
+            <GovernanceAssistiveOrderingPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="package-composition-section">
+          <GovernancePackageCompositionPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Benchmark Sections (45A) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">组合基准</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="benchmark-section">
+            <GovernancePortfolioBenchmarkPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="alignment-section">
+            <GovernanceBestPracticeAlignmentPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="scorecard-section">
+          <GovernanceMaturityScorecardPanel />
         </TechPanel>
       </div>
 

@@ -2772,3 +2772,485 @@ export function listTuningSuggestions() {
 export function getSimulationDashboard() {
   return client.get<ApiResponse<GovernanceSimulationDashboardItem>>('/api/governance-simulation/dashboard')
 }
+
+// ========== Governance Execution & Playbook (42A) ==========
+
+export interface GovernancePlaybookTemplateItem {
+  id: string; templateKey: string; displayName: string; recommendationCategory: string | null
+  guardrailKey: string | null; priority: string | null; enabled: boolean; templateStepsJson: string
+  successCriteriaJson: string | null; handoffNotes: string | null; createTime: string; updateTime: string
+}
+
+export interface GovernanceExecutionPlanItem {
+  id: string; recommendationId: string; projectId: string; planStatus: string; templateKey: string | null
+  ownerId: string | null; ownerName: string | null; dueAt: string | null; stepsJson: string
+  completionRate: number; summaryText: string; createTime: string; updateTime: string
+}
+
+export interface GovernanceHandoffChecklistItem {
+  id: string; recommendationId: string; executionPlanId: string | null; fromOwnerId: string | null
+  fromOwnerName: string | null; toOwnerId: string | null; toOwnerName: string | null
+  checklistStatus: string; checklistItemsJson: string; handoffNote: string | null
+  handedOffAt: string | null; createTime: string; updateTime: string
+}
+
+export interface GovernanceExecutionDashboardItem {
+  totalPlanCount: number; readyPlanCount: number; inProgressPlanCount: number
+  blockedPlanCount: number; completedPlanCount: number; averageCompletionRate: number
+  handoffOpenCount: number; topBlockedPlans: GovernanceExecutionPlanItem[]
+  topNearDuePlans: GovernanceExecutionPlanItem[]
+}
+
+export interface CreatePlaybookTemplateRequest {
+  templateKey: string; displayName: string; recommendationCategory?: string; guardrailKey?: string
+  priority?: string; templateStepsJson?: string; successCriteriaJson?: string; handoffNotes?: string
+}
+
+// Playbook Template APIs
+export function createPlaybookTemplate(data: CreatePlaybookTemplateRequest) {
+  return client.post<ApiResponse<GovernancePlaybookTemplateItem>>('/api/governance-execution/playbook-templates', data)
+}
+export function listPlaybookTemplates() {
+  return client.get<ApiResponse<GovernancePlaybookTemplateItem[]>>('/api/governance-execution/playbook-templates')
+}
+export function getPlaybookTemplate(templateId: string) {
+  return client.get<ApiResponse<GovernancePlaybookTemplateItem>>(`/api/governance-execution/playbook-templates/${templateId}`)
+}
+export function updatePlaybookTemplate(templateId: string, data: { displayName?: string; templateStepsJson?: string }) {
+  return client.put<ApiResponse<GovernancePlaybookTemplateItem>>(`/api/governance-execution/playbook-templates/${templateId}`, data)
+}
+export function updatePlaybookTemplateStatus(templateId: string, enabled: boolean) {
+  return client.post<ApiResponse<GovernancePlaybookTemplateItem>>(`/api/governance-execution/playbook-templates/${templateId}/status`, {}, { params: { enabled } })
+}
+export function getPlaybookMatchPreview(recommendationId: string) {
+  return client.get<ApiResponse<any>>(`/api/governance-execution/playbook-match-preview/${recommendationId}`)
+}
+
+// Execution Plan APIs
+export function createExecutionPlan(recommendationId: string, templateKey?: string) {
+  const params: Record<string, string> = { recommendationId }
+  if (templateKey) params.templateKey = templateKey
+  return client.post<ApiResponse<GovernanceExecutionPlanItem>>('/api/governance-execution/plans', {}, { params })
+}
+export function listExecutionPlans() {
+  return client.get<ApiResponse<GovernanceExecutionPlanItem[]>>('/api/governance-execution/plans')
+}
+export function getExecutionPlan(planId: string) {
+  return client.get<ApiResponse<GovernanceExecutionPlanItem>>(`/api/governance-execution/plans/${planId}`)
+}
+export function updateExecutionPlan(planId: string, data: { ownerName?: string; summaryText?: string }) {
+  return client.put<ApiResponse<GovernanceExecutionPlanItem>>(`/api/governance-execution/plans/${planId}`, {}, { params: data })
+}
+export function updateExecutionPlanStatus(planId: string, status: string) {
+  return client.post<ApiResponse<GovernanceExecutionPlanItem>>(`/api/governance-execution/plans/${planId}/status`, {}, { params: { status } })
+}
+export function updateExecutionStepStatus(planId: string, stepKey: string, status: string) {
+  return client.post<ApiResponse<GovernanceExecutionPlanItem>>(`/api/governance-execution/plans/${planId}/steps/${stepKey}/status`, {}, { params: { status } })
+}
+export function getExecutionDashboard() {
+  return client.get<ApiResponse<GovernanceExecutionDashboardItem>>('/api/governance-execution/dashboard')
+}
+export function getExecutionReport() {
+  return client.get<ApiResponse<string>>('/api/governance-execution/report')
+}
+
+// Handoff APIs
+export function createHandoffChecklist(recommendationId: string, fromOwnerName?: string, toOwnerName?: string) {
+  const params: Record<string, string> = { recommendationId }
+  if (fromOwnerName) params.fromOwnerName = fromOwnerName
+  if (toOwnerName) params.toOwnerName = toOwnerName
+  return client.post<ApiResponse<GovernanceHandoffChecklistItem>>('/api/governance-execution/handoffs', {}, { params })
+}
+export function listHandoffChecklists() {
+  return client.get<ApiResponse<GovernanceHandoffChecklistItem[]>>('/api/governance-execution/handoffs')
+}
+export function getHandoffChecklist(checklistId: string) {
+  return client.get<ApiResponse<GovernanceHandoffChecklistItem>>(`/api/governance-execution/handoffs/${checklistId}`)
+}
+export function updateHandoffChecklist(checklistId: string, handoffNote?: string) {
+  const params = handoffNote ? { params: { handoffNote } } : {}
+  return client.put<ApiResponse<GovernanceHandoffChecklistItem>>(`/api/governance-execution/handoffs/${checklistId}`, {}, params)
+}
+export function updateHandoffChecklistStatus(checklistId: string, status: string) {
+  return client.post<ApiResponse<GovernanceHandoffChecklistItem>>(`/api/governance-execution/handoffs/${checklistId}/status`, {}, { params: { status } })
+}
+
+// ========== Governance Knowledge & Recipe (42B) ==========
+
+export interface GovernanceKnowledgeEntryItem {
+  id: string; projectId: string | null; sourceType: string; sourceId: string | null; title: string
+  category: string; tagsJson: string | null; summaryText: string | null; detailMarkdown: string | null
+  effectivenessScore: number; reuseCount: number; createTime: string; updateTime: string
+}
+
+export interface GovernanceKnowledgeDashboardItem {
+  entryCount: number; patternCount: number; recipeCount: number
+  topKnowledgeEntries: GovernanceKnowledgeEntryItem[]
+  topRecipes: GovernanceRemediationRecipeItem[]
+  topPatterns: GovernancePatternLibraryItem[]
+  averageEffectivenessScore: number; highReuseCount: number
+}
+
+export interface GovernancePatternLibraryItem {
+  id: string; patternKey: string; displayName: string; recommendationCategory: string | null
+  guardrailKey: string | null; priority: string | null; patternJson: string; notes: string | null
+  enabled: boolean; createTime: string; updateTime: string
+}
+
+export interface GovernanceRemediationRecipeItem {
+  id: string; recipeKey: string; displayName: string; recipeType: string
+  recommendationCategory: string | null; guardrailKey: string | null; stepsJson: string
+  prerequisitesJson: string | null; successCriteriaJson: string | null
+  effectivenessScore: number; usageCount: number; enabled: boolean; createTime: string; updateTime: string
+}
+
+// Knowledge Entry APIs
+export function createKnowledgeEntry(title: string, category: string, sourceType?: string, summaryText?: string, detailMarkdown?: string, tagsJson?: string) {
+  const params: Record<string, string> = { title, category }
+  if (sourceType) params.sourceType = sourceType; if (summaryText) params.summaryText = summaryText
+  if (detailMarkdown) params.detailMarkdown = detailMarkdown; if (tagsJson) params.tagsJson = tagsJson
+  return client.post<ApiResponse<GovernanceKnowledgeEntryItem>>('/api/governance-knowledge/entries', {}, { params })
+}
+export function listKnowledgeEntries() { return client.get<ApiResponse<GovernanceKnowledgeEntryItem[]>>('/api/governance-knowledge/entries') }
+export function getKnowledgeEntry(entryId: string) { return client.get<ApiResponse<GovernanceKnowledgeEntryItem>>(`/api/governance-knowledge/entries/${entryId}`) }
+export function searchKnowledgeEntries(keyword?: string, category?: string) {
+  const params: Record<string, string> = {}
+  if (keyword) params.keyword = keyword; if (category) params.category = category
+  return client.get<ApiResponse<GovernanceKnowledgeEntryItem[]>>('/api/governance-knowledge/search', { params })
+}
+export function getKnowledgeDashboard() { return client.get<ApiResponse<GovernanceKnowledgeDashboardItem>>('/api/governance-knowledge/dashboard') }
+export function getKnowledgeReport() { return client.get<ApiResponse<string>>('/api/governance-knowledge/report') }
+
+// Pattern Library APIs
+export function createPattern(patternKey: string, displayName: string, recommendationCategory?: string, guardrailKey?: string, priority?: string, patternJson?: string) {
+  const params: Record<string, string> = { patternKey, displayName }
+  if (recommendationCategory) params.recommendationCategory = recommendationCategory
+  if (guardrailKey) params.guardrailKey = guardrailKey; if (priority) params.priority = priority
+  if (patternJson) params.patternJson = patternJson
+  return client.post<ApiResponse<GovernancePatternLibraryItem>>('/api/governance-knowledge/patterns', {}, { params })
+}
+export function listPatterns() { return client.get<ApiResponse<GovernancePatternLibraryItem[]>>('/api/governance-knowledge/patterns') }
+export function getPattern(patternId: string) { return client.get<ApiResponse<GovernancePatternLibraryItem>>(`/api/governance-knowledge/patterns/${patternId}`) }
+export function updatePatternStatus(patternId: string, enabled: boolean) { return client.post<ApiResponse<GovernancePatternLibraryItem>>(`/api/governance-knowledge/patterns/${patternId}/status`, {}, { params: { enabled } }) }
+
+// Recipe APIs
+export function createRecipe(recipeKey: string, displayName: string, recipeType?: string, recommendationCategory?: string, guardrailKey?: string, stepsJson?: string) {
+  const params: Record<string, string> = { recipeKey, displayName }
+  if (recipeType) params.recipeType = recipeType; if (recommendationCategory) params.recommendationCategory = recommendationCategory
+  if (guardrailKey) params.guardrailKey = guardrailKey; if (stepsJson) params.stepsJson = stepsJson
+  return client.post<ApiResponse<GovernanceRemediationRecipeItem>>('/api/governance-knowledge/recipes', {}, { params })
+}
+export function listRecipes() { return client.get<ApiResponse<GovernanceRemediationRecipeItem[]>>('/api/governance-knowledge/recipes') }
+export function getRecipe(recipeId: string) { return client.get<ApiResponse<GovernanceRemediationRecipeItem>>(`/api/governance-knowledge/recipes/${recipeId}`) }
+export function updateRecipeStatus(recipeId: string, enabled: boolean) { return client.post<ApiResponse<GovernanceRemediationRecipeItem>>(`/api/governance-knowledge/recipes/${recipeId}/status`, {}, { params: { enabled } }) }
+export function getRecipeRecommendations(recommendationId: string) { return client.get<ApiResponse<GovernanceRemediationRecipeItem[]>>(`/api/governance-knowledge/recipe-recommendations/${recommendationId}`) }
+
+// ========== Governance Effectiveness Analytics (42C) ==========
+
+export interface GovernanceRecipeEffectivenessSnapshotItem {
+  id: string; snapshotDate: string; recipeId: string; recipeKey: string; recipeName: string
+  usageCount: number; completionCount: number; successRate: number; avgCompletionHours: number
+  failureRate: number; effectivenessScore: number; effectivenessLevel: string; summaryText: string
+}
+
+export interface GovernancePlaybookAnalyticsItem {
+  id: string; snapshotDate: string; templateKey: string; templateName: string; planCount: number
+  completedPlanCount: number; blockedPlanCount: number; avgCompletionRate: number
+  avgStepCompletionRate: number; avgResolutionHours: number; relatedRecipeCount: number
+}
+
+export interface GovernanceOptimizationSuggestionItem {
+  id: string; snapshotDate: string; suggestionType: string; priority: string; targetType: string
+  targetKey: string; currentMetricValue: string | null; suggestedAction: string
+  expectedImpactText: string; rationaleText: string | null
+}
+
+// Recipe Effectiveness APIs
+export function refreshRecipeEffectiveness() { return client.post<ApiResponse<string>>('/api/governance-effectiveness/recipes/refresh', {}) }
+export function getRecipeEffectiveness(level?: string) { const params = level ? { params: { level } } : {}; return client.get<ApiResponse<GovernanceRecipeEffectivenessSnapshotItem[]>>('/api/governance-effectiveness/recipes', params) }
+export function getRecipeEffectivenessDashboard() { return client.get<ApiResponse<any>>('/api/governance-effectiveness/recipes/dashboard') }
+export function getRecipeTrend(window?: string) { const params = window ? { params: { window } } : {}; return client.get<ApiResponse<GovernanceRecipeEffectivenessSnapshotItem[]>>('/api/governance-effectiveness/recipes/trend', params) }
+
+// Playbook Analytics APIs
+export function refreshPlaybookAnalytics() { return client.post<ApiResponse<string>>('/api/governance-effectiveness/playbooks/refresh', {}) }
+export function getPlaybookAnalytics() { return client.get<ApiResponse<GovernancePlaybookAnalyticsItem[]>>('/api/governance-effectiveness/playbooks') }
+export function getPlaybookAnalyticsDashboard() { return client.get<ApiResponse<any>>('/api/governance-effectiveness/playbooks/dashboard') }
+
+// Optimization APIs
+export function refreshOptimizations() { return client.post<ApiResponse<string>>('/api/governance-effectiveness/optimizations/refresh', {}) }
+export function getOptimizations() { return client.get<ApiResponse<GovernanceOptimizationSuggestionItem[]>>('/api/governance-effectiveness/optimizations') }
+export function getOptimizationDashboard() { return client.get<ApiResponse<any>>('/api/governance-effectiveness/optimizations/dashboard') }
+export function getEffectivenessReport() { return client.get<ApiResponse<string>>('/api/governance-effectiveness/report') }
+
+// ========== Governance Copilot Workspace (43A) ==========
+
+export interface GovernanceWorkspaceSessionItem {
+  id: string; operatorId: string | null; operatorName: string | null; sessionStatus: string
+  focusMode: string; selectedProjectId: string | null; selectedRecommendationId: string | null
+  selectedOwnerId: string | null; contextSummary: string | null; startedAt: string; endedAt: string | null
+  createTime: string; updateTime: string
+}
+
+export interface GovernanceGuidedTaskItem {
+  id: string; sessionId: string; recommendationId: string | null; taskType: string; priority: string
+  taskStatus: string; title: string; summary: string | null; sourceType: string; sourceId: string | null
+  linkedPlaybookKey: string | null; linkedRecipeKey: string | null; linkedKnowledgeEntryId: string | null
+  dueAt: string | null; createTime: string; updateTime: string
+}
+
+export interface GovernanceNextStepItem {
+  id: string; sessionId: string; guidedTaskId: string | null; recommendationId: string | null
+  suggestionRank: number; suggestionType: string; title: string; summaryText: string | null
+  rationaleText: string | null; expectedOutcomeText: string | null; actionPayloadJson: string | null
+}
+
+// Workspace APIs
+export function createWorkspaceSession(focusMode?: string) { const params = focusMode ? { params: { focusMode } } : {}; return client.post<ApiResponse<GovernanceWorkspaceSessionItem>>('/api/governance-workspace/sessions', {}, params) }
+export function listWorkspaceSessions() { return client.get<ApiResponse<GovernanceWorkspaceSessionItem[]>>('/api/governance-workspace/sessions') }
+export function getWorkspaceSession(sessionId: string) { return client.get<ApiResponse<GovernanceWorkspaceSessionItem>>(`/api/governance-workspace/sessions/${sessionId}`) }
+export function updateWorkspaceSessionStatus(sessionId: string, status: string) { return client.post<ApiResponse<GovernanceWorkspaceSessionItem>>(`/api/governance-workspace/sessions/${sessionId}/status`, {}, { params: { status } }) }
+export function refreshWorkspace(sessionId: string) { return client.post<ApiResponse<any>>(`/api/governance-workspace/sessions/${sessionId}/refresh`, {}) }
+export function getWorkspaceNextSteps(sessionId: string) { return client.get<ApiResponse<GovernanceNextStepItem[]>>(`/api/governance-workspace/sessions/${sessionId}/next-steps`) }
+export function getWorkspaceDashboard() { return client.get<ApiResponse<any>>('/api/governance-workspace/dashboard') }
+export function getWorkspaceReport() { return client.get<ApiResponse<string>>('/api/governance-workspace/report') }
+
+// Guided Task APIs
+export function getWorkspaceTasks(sessionId: string) { return client.get<ApiResponse<GovernanceGuidedTaskItem[]>>(`/api/governance-workspace/sessions/${sessionId}/tasks`) }
+export function updateWorkspaceTaskStatus(taskId: string, status: string) { return client.post<ApiResponse<GovernanceGuidedTaskItem>>(`/api/governance-workspace/tasks/${taskId}/status`, {}, { params: { status } }) }
+
+// ========== Governance Operator Learning (43B) ==========
+
+export interface GovernanceOperatorActionItem {
+  id: string; sessionId: string; guidedTaskId: string | null; recommendationId: string | null
+  operatorId: string | null; operatorName: string | null; actionType: string; actionTargetType: string
+  actionTargetId: string | null; acceptedFlag: boolean; successFlag: boolean; durationSeconds: number | null
+  noteText: string | null; occurredAt: string; createTime: string
+}
+
+export interface GovernanceSessionInsightItem {
+  id: string; sessionId: string; operatorId: string | null; operatorName: string | null
+  insightWindow: string; totalActions: number; acceptedRecommendationCount: number
+  dismissedRecommendationCount: number; completedGuidedTaskCount: number
+  blockedGuidedTaskCount: number; avgActionDurationSeconds: number | null
+  productivityScore: number; dominantActionPattern: string | null; summaryMarkdown: string | null
+}
+
+export interface GovernanceRemediationReuseBundleItem {
+  id: string; bundleKey: string; title: string; category: string; guardrailKey: string | null
+  priority: string | null; effectivenessLevel: string; reuseCount: number; successRate: number
+  actionSequenceJson: string; sourceSessionId: string | null; sourceOperatorId: string | null
+  sourceOperatorName: string | null; enabled: boolean; summaryText: string | null
+}
+
+// Operator Action APIs
+export function recordOperatorAction(sessionId: string, actionType: string, actionTargetType: string, operatorName?: string, acceptedFlag?: boolean, successFlag?: boolean, durationSeconds?: number) {
+  const params: Record<string, any> = { sessionId, actionType, actionTargetType }
+  if (operatorName) params.operatorName = operatorName; if (acceptedFlag !== undefined) params.acceptedFlag = acceptedFlag
+  if (successFlag !== undefined) params.successFlag = successFlag; if (durationSeconds !== undefined) params.durationSeconds = durationSeconds
+  return client.post<ApiResponse<GovernanceOperatorActionItem>>('/api/governance-operator-memory/actions', {}, { params })
+}
+export function listOperatorActions(sessionId?: string) { const params = sessionId ? { params: { sessionId } } : {}; return client.get<ApiResponse<GovernanceOperatorActionItem[]>>('/api/governance-operator-memory/actions', params) }
+
+// Insight APIs
+export function refreshSessionInsight(sessionId: string) { return client.post<ApiResponse<string>>('/api/governance-operator-memory/insights/refresh', {}, { params: { sessionId } }) }
+export function listSessionInsights() { return client.get<ApiResponse<GovernanceSessionInsightItem[]>>('/api/governance-operator-memory/insights') }
+export function getOperatorLearningDashboard() { return client.get<ApiResponse<any>>('/api/governance-operator-memory/dashboard') }
+export function getOperatorLearningReport() { return client.get<ApiResponse<string>>('/api/governance-operator-memory/report') }
+
+// Reuse Bundle APIs
+export function createReuseBundle(bundleKey: string, title: string, category: string, guardrailKey?: string, priority?: string, actionSequenceJson?: string) {
+  const params: Record<string, string> = { bundleKey, title, category }
+  if (guardrailKey) params.guardrailKey = guardrailKey; if (priority) params.priority = priority; if (actionSequenceJson) params.actionSequenceJson = actionSequenceJson
+  return client.post<ApiResponse<GovernanceRemediationReuseBundleItem>>('/api/governance-operator-memory/reuse-bundles', {}, { params })
+}
+export function listReuseBundles() { return client.get<ApiResponse<GovernanceRemediationReuseBundleItem[]>>('/api/governance-operator-memory/reuse-bundles') }
+export function updateReuseBundleStatus(bundleId: string, enabled: boolean) { return client.post<ApiResponse<GovernanceRemediationReuseBundleItem>>(`/api/governance-operator-memory/reuse-bundles/${bundleId}/status`, {}, { params: { enabled } }) }
+export function refreshReuseBundles() { return client.post<ApiResponse<string>>('/api/governance-operator-memory/reuse-bundles/refresh', {}) }
+
+// ========== Governance Copilot Tuning (43C) ==========
+
+export interface GovernanceOperatorFeedbackItem {
+  id: string; sessionId: string; operatorId: string | null; operatorName: string | null
+  suggestionType: string | null; suggestionId: string | null; guidedTaskId: string | null
+  reuseBundleId: string | null; feedbackTargetType: string; feedbackRating: number
+  helpfulFlag: boolean; acceptedFlag: boolean; reasonCode: string | null; noteText: string | null
+  createTime: string
+}
+
+export interface GovernanceAdaptiveGuidanceSignalItem {
+  id: string; signalType: string; focusMode: string | null; category: string | null
+  suggestionType: string | null; recommendationPriority: string | null
+  acceptanceRate: number; completionRate: number; avgFeedbackRating: number
+  weightScore: number; signalLevel: string; rationaleText: string | null
+}
+
+export interface GovernanceCopilotTuningSnapshotItem {
+  id: string; snapshotWindow: string; totalFeedbackCount: number; acceptanceRate: number
+  dismissalRate: number; avgFeedbackRating: number; topSuggestionType: string | null
+  weakestSuggestionType: string | null; topFocusMode: string | null; weakestFocusMode: string | null
+  tuningConfidenceScore: number; summaryMarkdown: string | null
+}
+
+// Feedback APIs
+export function recordFeedback(sessionId: string, feedbackTargetType: string, feedbackRating: number, helpfulFlag?: boolean, acceptedFlag?: boolean, reasonCode?: string) {
+  const params: Record<string, any> = { sessionId, feedbackTargetType, feedbackRating }
+  if (helpfulFlag !== undefined) params.helpfulFlag = helpfulFlag; if (acceptedFlag !== undefined) params.acceptedFlag = acceptedFlag
+  if (reasonCode) params.reasonCode = reasonCode
+  return client.post<ApiResponse<GovernanceOperatorFeedbackItem>>('/api/governance-copilot/feedback', {}, { params })
+}
+export function listFeedback(sessionId?: string) { const params = sessionId ? { params: { sessionId } } : {}; return client.get<ApiResponse<GovernanceOperatorFeedbackItem[]>>('/api/governance-copilot/feedback', params) }
+
+// Adaptive Signal APIs
+export function refreshAdaptiveSignals() { return client.post<ApiResponse<string>>('/api/governance-copilot/signals/refresh', {}) }
+export function listAdaptiveSignals() { return client.get<ApiResponse<GovernanceAdaptiveGuidanceSignalItem[]>>('/api/governance-copilot/signals') }
+export function getAdaptiveSignalDashboard() { return client.get<ApiResponse<any>>('/api/governance-copilot/signals/dashboard') }
+
+// Tuning APIs
+export function refreshCopilotTuning() { return client.post<ApiResponse<string>>('/api/governance-copilot/tuning/refresh', {}) }
+export function listCopilotTuningSnapshots() { return client.get<ApiResponse<GovernanceCopilotTuningSnapshotItem[]>>('/api/governance-copilot/tuning/snapshots') }
+export function getCopilotTuningDashboard() { return client.get<ApiResponse<any>>('/api/governance-copilot/tuning/dashboard') }
+export function getCopilotTuningReport() { return client.get<ApiResponse<string>>('/api/governance-copilot/tuning/report') }
+
+// ========== Governance Draft Planning (44A) ==========
+
+export interface GovernanceDraftPlanItem {
+  id: string; recommendationId: string | null; sessionId: string | null; operatorId: string | null
+  operatorName: string | null; planStatus: string; planTitle: string; scopeType: string
+  summaryText: string | null; goalText: string | null; proposedStepsJson: string
+  linkedBundleId: string | null; linkedPlaybookKey: string | null; linkedRecipeKey: string | null
+  riskLevel: string; humanConfirmationRequired: boolean; createTime: string; updateTime: string
+}
+
+export interface GovernanceAssistiveActionItem {
+  id: string; draftPlanId: string; actionType: string; actionStatus: string; actionTitle: string
+  actionSummary: string | null; safetyLevel: string; confirmationRequired: boolean
+  checklistJson: string; prefillPayloadJson: string | null; actionOrder: number
+  createTime: string; updateTime: string
+}
+
+export interface GovernanceRecommendationPackageItem {
+  id: string; recommendationId: string | null; draftPlanId: string | null; packageStatus: string
+  packageTitle: string; packageSummary: string | null; recommendationContextJson: string
+  attachmentsJson: string | null; reviewNotesText: string | null
+  submitReadyFlag: boolean; submittedFlag: boolean; createTime: string; updateTime: string
+}
+
+// Draft Plan APIs
+export function createDraftPlan(planTitle: string, scopeType?: string) {
+  const params: Record<string, string> = { planTitle }; if (scopeType) params.scopeType = scopeType
+  return client.post<ApiResponse<GovernanceDraftPlanItem>>('/api/governance-draft-plans', {}, { params })
+}
+export function listDraftPlans() { return client.get<ApiResponse<GovernanceDraftPlanItem[]>>('/api/governance-draft-plans') }
+export function updateDraftPlanStatus(planId: string, status: string) { return client.post<ApiResponse<GovernanceDraftPlanItem>>(`/api/governance-draft-plans/${planId}/status`, {}, { params: { status } }) }
+export function refreshDraftPlan(planId: string) { return client.post<ApiResponse<GovernanceDraftPlanItem>>(`/api/governance-draft-plans/${planId}/refresh`, {}) }
+export function generateAssistiveActions(planId: string) { return client.post<ApiResponse<GovernanceAssistiveActionItem[]>>(`/api/governance-draft-plans/${planId}/assistive-actions/generate`, {}) }
+export function listAssistiveActions(planId: string) { return client.get<ApiResponse<GovernanceAssistiveActionItem[]>>(`/api/governance-draft-plans/${planId}/assistive-actions`) }
+export function updateAssistiveActionStatus(actionId: string, status: string) { return client.post<ApiResponse<GovernanceAssistiveActionItem>>(`/api/governance-assistive-actions/${actionId}/status`, {}, { params: { status } }) }
+export function listRecommendationPackages() { return client.get<ApiResponse<GovernanceRecommendationPackageItem[]>>('/api/governance-recommendation-packages') }
+export function updatePackageStatus(packageId: string, status: string) { return client.post<ApiResponse<GovernanceRecommendationPackageItem>>(`/api/governance-recommendation-packages/${packageId}/status`, {}, { params: { status } }) }
+export function getDraftPlanningDashboard() { return client.get<ApiResponse<any>>('/api/governance-draft-planning/dashboard') }
+export function getDraftPlanningReport() { return client.get<ApiResponse<string>>('/api/governance-draft-planning/report') }
+
+// ========== Governance Outcome Review (44B) ==========
+
+export interface GovernanceDraftAdoptionReviewItem {
+  id: string; draftPlanId: string; recommendationId: string | null; operatorId: string | null
+  operatorName: string | null; adoptionResult: string; modificationLevel: string; usefulnessRating: number
+  reasonCode: string | null; outcomeNoteText: string | null; reviewedAt: string; createTime: string; updateTime: string
+}
+
+export interface GovernanceAssistiveQualityReviewItem {
+  id: string; assistiveActionId: string; draftPlanId: string | null; operatorId: string | null
+  operatorName: string | null; outcomeResult: string; usefulnessRating: number; reasonCode: string | null
+  feedbackText: string | null; reviewedAt: string; createTime: string; updateTime: string
+}
+
+export interface GovernancePackageEvaluationItem {
+  id: string; packageId: string; draftPlanId: string | null; operatorId: string | null
+  operatorName: string | null; evaluationResult: string; completenessScore: number; accuracyScore: number
+  overallScore: number; reasonCode: string | null; reviewNotesText: string | null; reviewedAt: string
+  createTime: string; updateTime: string
+}
+
+// Draft Adoption APIs
+export function recordDraftAdoptionReview(draftPlanId: string, adoptionResult: string, usefulnessRating: number, modificationLevel?: string, reasonCode?: string, outcomeNoteText?: string) {
+  const p: Record<string, any> = { draftPlanId, adoptionResult, usefulnessRating }; if (modificationLevel) p.modificationLevel = modificationLevel; if (reasonCode) p.reasonCode = reasonCode; if (outcomeNoteText) p.outcomeNoteText = outcomeNoteText
+  return client.post<ApiResponse<GovernanceDraftAdoptionReviewItem>>('/api/governance-outcome-review/draft-adoption', {}, { params: p })
+}
+export function listDraftAdoptionReviews() { return client.get<ApiResponse<GovernanceDraftAdoptionReviewItem[]>>('/api/governance-outcome-review/draft-adoption') }
+
+// Assistive Quality APIs
+export function recordAssistiveQualityReview(assistiveActionId: string, outcomeResult: string, usefulnessRating: number, draftPlanId?: string, reasonCode?: string) {
+  const p: Record<string, any> = { assistiveActionId, outcomeResult, usefulnessRating }; if (draftPlanId) p.draftPlanId = draftPlanId; if (reasonCode) p.reasonCode = reasonCode
+  return client.post<ApiResponse<GovernanceAssistiveQualityReviewItem>>('/api/governance-outcome-review/assistive-quality', {}, { params: p })
+}
+export function listAssistiveQualityReviews() { return client.get<ApiResponse<GovernanceAssistiveQualityReviewItem[]>>('/api/governance-outcome-review/assistive-quality') }
+
+// Package Evaluation APIs
+export function recordPackageEvaluation(packageId: string, evaluationResult: string, completenessScore: number, accuracyScore: number, reasonCode?: string) {
+  const p: Record<string, any> = { packageId, evaluationResult, completenessScore, accuracyScore }; if (reasonCode) p.reasonCode = reasonCode
+  return client.post<ApiResponse<GovernancePackageEvaluationItem>>('/api/governance-outcome-review/package-evaluation', {}, { params: p })
+}
+export function listPackageEvaluations() { return client.get<ApiResponse<GovernancePackageEvaluationItem[]>>('/api/governance-outcome-review/package-evaluation') }
+
+// Dashboard
+export function getOutcomeReviewDashboard() { return client.get<ApiResponse<any>>('/api/governance-outcome-review/dashboard') }
+export function getOutcomeReviewReport() { return client.get<ApiResponse<string>>('/api/governance-outcome-review/report') }
+
+// ========== Governance Draft Optimization (44C) ==========
+
+export interface GovernanceDraftOptimizationSignalItem {
+  id: string; signalType: string; scopeType: string; scopeKey: string | null
+  adoptionRate: number; rejectionRate: number; avgUsefulnessRating: number; sampleCount: number
+  signalLevel: string; suggestionText: string | null
+}
+
+export interface GovernanceAssistiveOrderingItem {
+  id: string; actionType: string; avgUsefulnessRating: number; avgActionOrder: number
+  usefulnessCount: number; notUsefulCount: number; optimizationLevel: string
+  suggestedNewOrder: number; rationaleText: string | null
+}
+
+export interface GovernancePackageCompositionItem {
+  id: string; scoreRange: string; avgCompleteness: number; avgAccuracy: number
+  avgOverall: number; sampleCount: number; tuningLevel: string; suggestionText: string | null
+}
+
+export function refreshDraftOptimizationSignals() { return client.post<ApiResponse<string>>('/api/governance-draft-optimization/signals/refresh', {}) }
+export function listDraftOptimizationSignals() { return client.get<ApiResponse<GovernanceDraftOptimizationSignalItem[]>>('/api/governance-draft-optimization/signals') }
+export function refreshAssistiveOrdering() { return client.post<ApiResponse<string>>('/api/governance-draft-optimization/assistive-ordering/refresh', {}) }
+export function listAssistiveOrdering() { return client.get<ApiResponse<GovernanceAssistiveOrderingItem[]>>('/api/governance-draft-optimization/assistive-ordering') }
+export function refreshPackageComposition() { return client.post<ApiResponse<string>>('/api/governance-draft-optimization/package-composition/refresh', {}) }
+export function listPackageComposition() { return client.get<ApiResponse<GovernancePackageCompositionItem[]>>('/api/governance-draft-optimization/package-composition') }
+export function getDraftOptimizationDashboard() { return client.get<ApiResponse<any>>('/api/governance-draft-optimization/dashboard') }
+export function getDraftOptimizationReport() { return client.get<ApiResponse<string>>('/api/governance-draft-optimization/report') }
+
+// ========== Governance Portfolio Benchmark (45A) ==========
+
+export interface GovernanceBenchmarkItem {
+  id: string; snapshotDate: string; benchmarkWindow: string; metricKey: string; metricValue: number
+  percentileRank: number; peerAvg: number; peerP90: number; sampleCount: number
+  signalLevel: string; summaryText: string
+}
+
+export interface GovernanceAlignmentItem {
+  id: string; snapshotDate: string; projectId: string; projectName: string; practiceType: string
+  alignmentLevel: string; currentScore: number; targetScore: number; gap: number; suggestionText: string | null
+}
+
+export interface GovernanceMaturityScorecardItem {
+  id: string; snapshotDate: string; projectId: string; projectName: string; maturityLevel: string
+  totalScore: number; draftAdoptionScore: number; assistiveQualityScore: number; packageQualityScore: number
+  outcomeReviewScore: number; operatorProductivityScore: number; summaryText: string
+}
+
+// Benchmark APIs
+export function refreshBenchmarks() { return client.post<ApiResponse<string>>('/api/governance-benchmark/benchmarks/refresh', {}) }
+export function listBenchmarks() { return client.get<ApiResponse<GovernanceBenchmarkItem[]>>('/api/governance-benchmark/benchmarks') }
+export function refreshAlignments() { return client.post<ApiResponse<string>>('/api/governance-benchmark/alignments/refresh', {}) }
+export function listAlignments() { return client.get<ApiResponse<GovernanceAlignmentItem[]>>('/api/governance-benchmark/alignments') }
+export function refreshScorecards() { return client.post<ApiResponse<string>>('/api/governance-benchmark/scorecards/refresh', {}) }
+export function listScorecards() { return client.get<ApiResponse<GovernanceMaturityScorecardItem[]>>('/api/governance-benchmark/scorecards') }
+export function getBenchmarkDashboard() { return client.get<ApiResponse<any>>('/api/governance-benchmark/dashboard') }
+export function getBenchmarkReport() { return client.get<ApiResponse<string>>('/api/governance-benchmark/report') }
+

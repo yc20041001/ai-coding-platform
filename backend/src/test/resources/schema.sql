@@ -1426,3 +1426,350 @@ CREATE TABLE IF NOT EXISTS policy_tuning_suggestion (
     KEY idx_policy_tuning_suggestion_date(snapshot_date, priority),
     KEY idx_policy_tuning_suggestion_type(suggestion_type, target_scope)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Policy tuning suggestion';
+
+-- V50: Governance execution and playbook tables (42A)
+CREATE TABLE IF NOT EXISTS governance_recommendation_playbook_template (
+    id BIGINT PRIMARY KEY, template_key VARCHAR(64) NOT NULL, display_name VARCHAR(255) NOT NULL,
+    recommendation_category VARCHAR(64) NULL, guardrail_key VARCHAR(64) NULL, priority VARCHAR(32) NULL,
+    enabled TINYINT NOT NULL DEFAULT 1, template_steps_json JSON NOT NULL,
+    success_criteria_json JSON NULL, handoff_notes TEXT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_governance_playbook_template(template_key),
+    KEY idx_governance_playbook_template_match(recommendation_category, guardrail_key, priority, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance recommendation playbook template';
+
+CREATE TABLE IF NOT EXISTS governance_recommendation_execution_plan (
+    id BIGINT PRIMARY KEY, recommendation_id BIGINT NOT NULL, project_id BIGINT NOT NULL,
+    plan_status VARCHAR(32) NOT NULL, template_key VARCHAR(64) NULL,
+    owner_id BIGINT NULL, owner_name VARCHAR(128) NULL, due_at DATETIME NULL,
+    steps_json JSON NOT NULL, completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_execution_plan_recommendation(recommendation_id),
+    KEY idx_gov_execution_plan_project(project_id, plan_status),
+    KEY idx_gov_execution_plan_due(due_at, plan_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance recommendation execution plan';
+
+CREATE TABLE IF NOT EXISTS governance_handoff_checklist (
+    id BIGINT PRIMARY KEY, recommendation_id BIGINT NOT NULL, execution_plan_id BIGINT NULL,
+    from_owner_id BIGINT NULL, from_owner_name VARCHAR(128) NULL,
+    to_owner_id BIGINT NULL, to_owner_name VARCHAR(128) NULL,
+    checklist_status VARCHAR(32) NOT NULL, checklist_items_json JSON NOT NULL,
+    handoff_note TEXT NULL, handed_off_at DATETIME NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_handoff_recommendation(recommendation_id),
+    KEY idx_gov_handoff_plan(execution_plan_id),
+    KEY idx_gov_handoff_status(checklist_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance handoff checklist';
+
+-- V51: Governance knowledge and recipe tables (42B)
+CREATE TABLE IF NOT EXISTS governance_knowledge_entry (
+    id BIGINT PRIMARY KEY, project_id BIGINT NULL, source_type VARCHAR(32) NOT NULL,
+    source_id BIGINT NULL, title VARCHAR(255) NOT NULL, category VARCHAR(64) NOT NULL,
+    tags_json JSON NULL, summary_text TEXT NULL, detail_markdown MEDIUMTEXT NULL,
+    effectiveness_score DECIMAL(8,2) NOT NULL DEFAULT 0, reuse_count INT NOT NULL DEFAULT 0,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_knowledge_entry_category(category),
+    KEY idx_gov_knowledge_entry_project(project_id, create_time),
+    KEY idx_gov_knowledge_entry_score(effectiveness_score, reuse_count)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance knowledge entry';
+
+CREATE TABLE IF NOT EXISTS governance_pattern_library_item (
+    id BIGINT PRIMARY KEY, pattern_key VARCHAR(64) NOT NULL, display_name VARCHAR(255) NOT NULL,
+    recommendation_category VARCHAR(64) NULL, guardrail_key VARCHAR(64) NULL,
+    priority VARCHAR(32) NULL, pattern_json JSON NOT NULL, notes TEXT NULL,
+    enabled TINYINT NOT NULL DEFAULT 1, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_governance_pattern_library(pattern_key),
+    KEY idx_governance_pattern_library_match(recommendation_category, guardrail_key, priority, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance pattern library item';
+
+CREATE TABLE IF NOT EXISTS governance_remediation_recipe (
+    id BIGINT PRIMARY KEY, recipe_key VARCHAR(64) NOT NULL, display_name VARCHAR(255) NOT NULL,
+    recipe_type VARCHAR(64) NOT NULL, recommendation_category VARCHAR(64) NULL,
+    guardrail_key VARCHAR(64) NULL, steps_json JSON NOT NULL, prerequisites_json JSON NULL,
+    success_criteria_json JSON NULL, effectiveness_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    usage_count INT NOT NULL DEFAULT 0, enabled TINYINT NOT NULL DEFAULT 1,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_governance_remediation_recipe(recipe_key),
+    KEY idx_governance_remediation_recipe_match(recipe_type, recommendation_category, guardrail_key, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance remediation recipe';
+
+-- V52: Governance effectiveness analytics tables (42C)
+CREATE TABLE IF NOT EXISTS governance_recipe_effectiveness_snapshot (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, recipe_id BIGINT NOT NULL,
+    recipe_key VARCHAR(64) NOT NULL, recipe_name VARCHAR(255) NOT NULL,
+    usage_count INT NOT NULL DEFAULT 0, completion_count INT NOT NULL DEFAULT 0,
+    success_rate DECIMAL(8,2) NOT NULL DEFAULT 0, avg_completion_hours DECIMAL(10,2) NOT NULL DEFAULT 0,
+    failure_rate DECIMAL(8,2) NOT NULL DEFAULT 0, effectiveness_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    effectiveness_level VARCHAR(32) NOT NULL, summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_recipe_effectiveness_date(snapshot_date, effectiveness_score),
+    KEY idx_gov_recipe_effectiveness_recipe(recipe_id, snapshot_date),
+    KEY idx_gov_recipe_effectiveness_level(snapshot_date, effectiveness_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance recipe effectiveness snapshot';
+
+CREATE TABLE IF NOT EXISTS governance_playbook_analytics_record (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, template_key VARCHAR(64) NOT NULL,
+    template_name VARCHAR(255) NOT NULL, plan_count INT NOT NULL DEFAULT 0,
+    completed_plan_count INT NOT NULL DEFAULT 0, blocked_plan_count INT NOT NULL DEFAULT 0,
+    avg_completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    avg_step_completion_rate DECIMAL(8,2) NOT NULL DEFAULT 0,
+    avg_resolution_hours DECIMAL(10,2) NOT NULL DEFAULT 0,
+    related_recipe_count INT NOT NULL DEFAULT 0, create_time DATETIME NOT NULL,
+    KEY idx_gov_playbook_analytics_date(snapshot_date, avg_completion_rate),
+    KEY idx_gov_playbook_analytics_template(template_key, snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance playbook analytics record';
+
+CREATE TABLE IF NOT EXISTS governance_optimization_suggestion (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, suggestion_type VARCHAR(64) NOT NULL,
+    priority VARCHAR(32) NOT NULL, target_type VARCHAR(32) NOT NULL,
+    target_key VARCHAR(128) NOT NULL, current_metric_value VARCHAR(255) NULL,
+    suggested_action TEXT NOT NULL, expected_impact_text VARCHAR(255) NOT NULL,
+    rationale_text TEXT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_optimization_suggestion_date(snapshot_date, priority),
+    KEY idx_gov_optimization_suggestion_target(target_type, target_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance optimization suggestion';
+
+-- V53: Governance copilot workspace tables (43A)
+CREATE TABLE IF NOT EXISTS governance_workspace_session (
+    id BIGINT PRIMARY KEY, operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    session_status VARCHAR(32) NOT NULL, focus_mode VARCHAR(32) NOT NULL,
+    selected_project_id BIGINT NULL, selected_recommendation_id BIGINT NULL,
+    selected_owner_id BIGINT NULL, context_summary TEXT NULL,
+    started_at DATETIME NOT NULL, ended_at DATETIME NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_workspace_session_operator(operator_id, session_status),
+    KEY idx_gov_workspace_session_project(selected_project_id, session_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance workspace session';
+
+CREATE TABLE IF NOT EXISTS governance_guided_task (
+    id BIGINT PRIMARY KEY, session_id BIGINT NOT NULL, recommendation_id BIGINT NULL,
+    task_type VARCHAR(64) NOT NULL, priority VARCHAR(32) NOT NULL, task_status VARCHAR(32) NOT NULL,
+    title VARCHAR(255) NOT NULL, summary TEXT NULL, source_type VARCHAR(32) NOT NULL,
+    source_id BIGINT NULL, linked_playbook_key VARCHAR(64) NULL,
+    linked_recipe_key VARCHAR(64) NULL, linked_knowledge_entry_id BIGINT NULL,
+    due_at DATETIME NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_guided_task_session(session_id, task_status),
+    KEY idx_gov_guided_task_priority(priority, task_status),
+    KEY idx_gov_guided_task_recommendation(recommendation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance guided task';
+
+CREATE TABLE IF NOT EXISTS governance_next_step_recommendation (
+    id BIGINT PRIMARY KEY, session_id BIGINT NOT NULL, guided_task_id BIGINT NULL,
+    recommendation_id BIGINT NULL, suggestion_rank INT NOT NULL DEFAULT 0,
+    suggestion_type VARCHAR(64) NOT NULL, title VARCHAR(255) NOT NULL,
+    summary_text TEXT NULL, rationale_text TEXT NULL, expected_outcome_text TEXT NULL,
+    action_payload_json JSON NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_next_step_session(session_id, suggestion_rank),
+    KEY idx_gov_next_step_task(guided_task_id),
+    KEY idx_gov_next_step_recommendation(recommendation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance next step recommendation';
+
+-- V54: Governance operator learning tables (43B)
+CREATE TABLE IF NOT EXISTS governance_operator_action_memory (
+    id BIGINT PRIMARY KEY, session_id BIGINT NOT NULL, guided_task_id BIGINT NULL,
+    recommendation_id BIGINT NULL, operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    action_type VARCHAR(64) NOT NULL, action_target_type VARCHAR(64) NOT NULL,
+    action_target_id BIGINT NULL, accepted_flag TINYINT NOT NULL DEFAULT 0,
+    success_flag TINYINT NOT NULL DEFAULT 0, duration_seconds INT NULL,
+    note_text TEXT NULL, action_payload_json JSON NULL, occurred_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL,
+    KEY idx_gov_operator_action_session(session_id, occurred_at),
+    KEY idx_gov_operator_action_operator(operator_id, occurred_at),
+    KEY idx_gov_operator_action_guided_task(guided_task_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance operator action memory';
+
+CREATE TABLE IF NOT EXISTS governance_workspace_session_insight (
+    id BIGINT PRIMARY KEY, session_id BIGINT NOT NULL, operator_id BIGINT NULL,
+    operator_name VARCHAR(128) NULL, insight_window VARCHAR(32) NOT NULL,
+    total_actions INT NOT NULL DEFAULT 0, accepted_recommendation_count INT NOT NULL DEFAULT 0,
+    dismissed_recommendation_count INT NOT NULL DEFAULT 0,
+    completed_guided_task_count INT NOT NULL DEFAULT 0,
+    blocked_guided_task_count INT NOT NULL DEFAULT 0, avg_action_duration_seconds INT NULL,
+    productivity_score DECIMAL(10,2) NOT NULL DEFAULT 0,
+    dominant_action_pattern VARCHAR(128) NULL, summary_markdown TEXT NULL,
+    captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_gov_workspace_session_insight_session(session_id, insight_window),
+    KEY idx_gov_workspace_session_insight_operator(operator_id, captured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance workspace session insight';
+
+CREATE TABLE IF NOT EXISTS governance_remediation_reuse_bundle (
+    id BIGINT PRIMARY KEY, bundle_key VARCHAR(64) NOT NULL, title VARCHAR(255) NOT NULL,
+    category VARCHAR(64) NOT NULL, guardrail_key VARCHAR(64) NULL, priority VARCHAR(32) NULL,
+    effectiveness_level VARCHAR(32) NOT NULL, reuse_count INT NOT NULL DEFAULT 0,
+    success_rate DECIMAL(10,2) NOT NULL DEFAULT 0, action_sequence_json JSON NOT NULL,
+    source_session_id BIGINT NULL, source_operator_id BIGINT NULL,
+    source_operator_name VARCHAR(128) NULL, enabled TINYINT NOT NULL DEFAULT 1,
+    summary_text TEXT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_gov_remediation_reuse_bundle_key(bundle_key),
+    KEY idx_gov_remediation_reuse_bundle_category(category, enabled),
+    KEY idx_gov_remediation_reuse_bundle_guardrail(guardrail_key, enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance remediation reuse bundle';
+
+-- V55: Governance copilot tuning tables (43C)
+CREATE TABLE IF NOT EXISTS governance_operator_feedback (
+    id BIGINT PRIMARY KEY, session_id BIGINT NOT NULL, operator_id BIGINT NULL,
+    operator_name VARCHAR(128) NULL, suggestion_type VARCHAR(64) NULL, suggestion_id BIGINT NULL,
+    guided_task_id BIGINT NULL, reuse_bundle_id BIGINT NULL,
+    feedback_target_type VARCHAR(64) NOT NULL, feedback_rating INT NOT NULL,
+    helpful_flag TINYINT NOT NULL DEFAULT 0, accepted_flag TINYINT NOT NULL DEFAULT 0,
+    reason_code VARCHAR(64) NULL, note_text TEXT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_feedback_session(session_id, create_time),
+    KEY idx_gov_feedback_operator(operator_id, create_time),
+    KEY idx_gov_feedback_target(feedback_target_type, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance operator feedback';
+
+CREATE TABLE IF NOT EXISTS governance_adaptive_guidance_signal (
+    id BIGINT PRIMARY KEY, signal_type VARCHAR(64) NOT NULL, focus_mode VARCHAR(32) NULL,
+    category VARCHAR(64) NULL, suggestion_type VARCHAR(64) NULL,
+    recommendation_priority VARCHAR(32) NULL, acceptance_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
+    completion_rate DECIMAL(10,2) NOT NULL DEFAULT 0, avg_feedback_rating DECIMAL(10,2) NOT NULL DEFAULT 0,
+    weight_score DECIMAL(10,2) NOT NULL DEFAULT 0, signal_level VARCHAR(32) NOT NULL,
+    rationale_text TEXT NULL, captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_adaptive_signal_type(signal_type, captured_at),
+    KEY idx_gov_adaptive_signal_focus(focus_mode, captured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance adaptive guidance signal';
+
+CREATE TABLE IF NOT EXISTS governance_copilot_tuning_snapshot (
+    id BIGINT PRIMARY KEY, snapshot_window VARCHAR(32) NOT NULL,
+    total_feedback_count INT NOT NULL DEFAULT 0, acceptance_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
+    dismissal_rate DECIMAL(10,2) NOT NULL DEFAULT 0, avg_feedback_rating DECIMAL(10,2) NOT NULL DEFAULT 0,
+    top_suggestion_type VARCHAR(64) NULL, weakest_suggestion_type VARCHAR(64) NULL,
+    top_focus_mode VARCHAR(32) NULL, weakest_focus_mode VARCHAR(32) NULL,
+    tuning_confidence_score DECIMAL(10,2) NOT NULL DEFAULT 0, summary_markdown TEXT NULL,
+    captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_gov_tuning_snapshot_window(snapshot_window, captured_at),
+    KEY idx_gov_tuning_snapshot_captured(captured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance copilot tuning snapshot';
+
+-- V56: Governance draft planning tables (44A)
+CREATE TABLE IF NOT EXISTS governance_draft_remediation_plan (
+    id BIGINT PRIMARY KEY, recommendation_id BIGINT NULL, session_id BIGINT NULL,
+    operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    plan_status VARCHAR(32) NOT NULL, plan_title VARCHAR(255) NOT NULL,
+    scope_type VARCHAR(64) NOT NULL, summary_text TEXT NULL, goal_text TEXT NULL,
+    proposed_steps_json JSON NOT NULL, linked_bundle_id BIGINT NULL,
+    linked_playbook_key VARCHAR(64) NULL, linked_recipe_key VARCHAR(64) NULL,
+    risk_level VARCHAR(32) NOT NULL, human_confirmation_required TINYINT NOT NULL DEFAULT 1,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_draft_plan_recommendation(recommendation_id, plan_status),
+    KEY idx_gov_draft_plan_session(session_id, plan_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance draft remediation plan';
+
+CREATE TABLE IF NOT EXISTS governance_safe_assistive_action (
+    id BIGINT PRIMARY KEY, draft_plan_id BIGINT NOT NULL,
+    action_type VARCHAR(64) NOT NULL, action_status VARCHAR(32) NOT NULL,
+    action_title VARCHAR(255) NOT NULL, action_summary TEXT NULL,
+    safety_level VARCHAR(32) NOT NULL, confirmation_required TINYINT NOT NULL DEFAULT 1,
+    checklist_json JSON NOT NULL, prefill_payload_json JSON NULL,
+    action_order INT NOT NULL DEFAULT 0,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_safe_assistive_action_plan(draft_plan_id, action_order),
+    KEY idx_gov_safe_assistive_action_status(action_status, safety_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance safe assistive action';
+
+CREATE TABLE IF NOT EXISTS governance_recommendation_package (
+    id BIGINT PRIMARY KEY, recommendation_id BIGINT NULL, draft_plan_id BIGINT NULL,
+    package_status VARCHAR(32) NOT NULL, package_title VARCHAR(255) NOT NULL,
+    package_summary TEXT NULL, recommendation_context_json JSON NOT NULL,
+    attachments_json JSON NULL, review_notes_text TEXT NULL,
+    submit_ready_flag TINYINT NOT NULL DEFAULT 0, submitted_flag TINYINT NOT NULL DEFAULT 0,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_recommendation_package_recommendation(recommendation_id, package_status),
+    KEY idx_gov_recommendation_package_plan(draft_plan_id, package_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance recommendation package';
+
+-- V57: Governance outcome review tables (44B)
+CREATE TABLE IF NOT EXISTS governance_draft_adoption_review (
+    id BIGINT PRIMARY KEY, draft_plan_id BIGINT NOT NULL, recommendation_id BIGINT NULL,
+    operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    adoption_result VARCHAR(32) NOT NULL, modification_level VARCHAR(32) NOT NULL,
+    usefulness_rating INT NOT NULL, reason_code VARCHAR(64) NULL,
+    outcome_note_text TEXT NULL, reviewed_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    UNIQUE KEY uk_gov_draft_adoption_review_plan(draft_plan_id),
+    KEY idx_gov_draft_adoption_review_result(adoption_result, reviewed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance draft adoption review';
+
+CREATE TABLE IF NOT EXISTS governance_assistive_action_quality_review (
+    id BIGINT PRIMARY KEY, assistive_action_id BIGINT NOT NULL, draft_plan_id BIGINT NOT NULL,
+    operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    outcome_result VARCHAR(32) NOT NULL, usefulness_rating INT NOT NULL,
+    reason_code VARCHAR(64) NULL, feedback_text TEXT NULL, reviewed_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_assistive_quality_review_action(assistive_action_id),
+    KEY idx_gov_assistive_quality_review_plan(draft_plan_id),
+    KEY idx_gov_assistive_quality_review_result(outcome_result, reviewed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance assistive action quality review';
+
+CREATE TABLE IF NOT EXISTS governance_package_review_evaluation (
+    id BIGINT PRIMARY KEY, package_id BIGINT NOT NULL, draft_plan_id BIGINT NULL,
+    operator_id BIGINT NULL, operator_name VARCHAR(128) NULL,
+    evaluation_result VARCHAR(32) NOT NULL, completeness_score INT NOT NULL,
+    accuracy_score INT NOT NULL, overall_score INT NOT NULL,
+    reason_code VARCHAR(64) NULL, review_notes_text TEXT NULL, reviewed_at DATETIME NOT NULL,
+    create_time DATETIME NOT NULL, update_time DATETIME NOT NULL,
+    KEY idx_gov_package_review_evaluation_package(package_id),
+    KEY idx_gov_package_review_evaluation_result(evaluation_result, reviewed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance package review evaluation';
+
+-- V58: Governance draft optimization tables (44C)
+CREATE TABLE IF NOT EXISTS governance_draft_optimization_signal (
+    id BIGINT PRIMARY KEY, signal_type VARCHAR(64) NOT NULL, scope_type VARCHAR(64) NOT NULL,
+    scope_key VARCHAR(128) NULL, adoption_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
+    rejection_rate DECIMAL(10,2) NOT NULL DEFAULT 0, avg_usefulness_rating DECIMAL(10,2) NOT NULL DEFAULT 0,
+    sample_count INT NOT NULL DEFAULT 0, signal_level VARCHAR(32) NOT NULL,
+    suggestion_text TEXT NULL, captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_draft_optimization_signal_type(signal_type, captured_at),
+    KEY idx_gov_draft_optimization_scope(scope_type, scope_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance draft optimization signal';
+
+CREATE TABLE IF NOT EXISTS governance_assistive_ordering_optimization (
+    id BIGINT PRIMARY KEY, action_type VARCHAR(64) NOT NULL, avg_usefulness_rating DECIMAL(10,2) NOT NULL DEFAULT 0,
+    avg_action_order DECIMAL(10,2) NOT NULL DEFAULT 0, usefulness_count INT NOT NULL DEFAULT 0,
+    not_useful_count INT NOT NULL DEFAULT 0, optimization_level VARCHAR(32) NOT NULL,
+    suggested_new_order INT NOT NULL DEFAULT 0, rationale_text TEXT NULL,
+    captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_assistive_ordering_optimization_type(action_type, captured_at),
+    KEY idx_gov_assistive_ordering_optimization_level(optimization_level, captured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance assistive ordering optimization';
+
+CREATE TABLE IF NOT EXISTS governance_package_composition_tuning (
+    id BIGINT PRIMARY KEY, score_range VARCHAR(32) NOT NULL, avg_completeness DECIMAL(10,2) NOT NULL DEFAULT 0,
+    avg_accuracy DECIMAL(10,2) NOT NULL DEFAULT 0, avg_overall DECIMAL(10,2) NOT NULL DEFAULT 0,
+    sample_count INT NOT NULL DEFAULT 0, tuning_level VARCHAR(32) NOT NULL,
+    suggestion_text TEXT NULL, captured_at DATETIME NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_package_composition_tuning_range(score_range, captured_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance package composition tuning';
+
+-- V59: Governance portfolio benchmark tables (45A)
+CREATE TABLE IF NOT EXISTS governance_portfolio_benchmark_snapshot (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, benchmark_window VARCHAR(32) NOT NULL,
+    metric_key VARCHAR(64) NOT NULL, metric_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+    percentile_rank DECIMAL(8,2) NOT NULL DEFAULT 0, peer_avg DECIMAL(10,2) NOT NULL DEFAULT 0,
+    peer_p90 DECIMAL(10,2) NOT NULL DEFAULT 0, sample_count INT NOT NULL DEFAULT 0,
+    signal_level VARCHAR(32) NOT NULL, summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_benchmark_snapshot_date(snapshot_date, metric_key),
+    KEY idx_gov_benchmark_snapshot_window(benchmark_window, metric_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance portfolio benchmark snapshot';
+
+CREATE TABLE IF NOT EXISTS governance_best_practice_alignment_item (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL, practice_type VARCHAR(64) NOT NULL,
+    alignment_level VARCHAR(32) NOT NULL, current_score DECIMAL(10,2) NOT NULL DEFAULT 0,
+    target_score DECIMAL(10,2) NOT NULL DEFAULT 0, gap DECIMAL(10,2) NOT NULL DEFAULT 0,
+    suggestion_text TEXT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_best_practice_alignment_project(project_id, snapshot_date),
+    KEY idx_gov_best_practice_alignment_practice(practice_type, alignment_level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance best practice alignment item';
+
+CREATE TABLE IF NOT EXISTS governance_maturity_scorecard (
+    id BIGINT PRIMARY KEY, snapshot_date DATE NOT NULL, project_id BIGINT NOT NULL,
+    project_name VARCHAR(255) NOT NULL, maturity_level VARCHAR(32) NOT NULL,
+    total_score DECIMAL(8,2) NOT NULL DEFAULT 0, draft_adoption_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    assistive_quality_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    package_quality_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    outcome_review_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    operator_productivity_score DECIMAL(8,2) NOT NULL DEFAULT 0,
+    summary_text VARCHAR(255) NOT NULL, create_time DATETIME NOT NULL,
+    KEY idx_gov_maturity_scorecard_date(snapshot_date, maturity_level),
+    KEY idx_gov_maturity_scorecard_project(project_id, snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Governance maturity scorecard';

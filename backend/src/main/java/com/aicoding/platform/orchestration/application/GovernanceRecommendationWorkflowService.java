@@ -208,9 +208,15 @@ public class GovernanceRecommendationWorkflowService {
         return resp;
     }
 
+    public GovernanceRecommendationItemEntity getItemEntity(Long itemId) {
+        GovernanceRecommendationItemEntity entity = governanceRecommendationItemMapper.selectById(itemId);
+        if (entity == null) throw new BizException(ErrorCode.NOT_FOUND, "Recommendation item 不存在");
+        return entity;
+    }
+
     private static Long parseLong(String value, String fieldName) {
         try {
-            return Long.parseLong(value);
+            return Long.valueOf(value);
         } catch (NumberFormatException e) {
             throw new BizException(ErrorCode.BAD_REQUEST, fieldName + " 格式无效");
         }
