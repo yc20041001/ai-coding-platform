@@ -70,6 +70,9 @@ import GovernancePackageCompositionPanel from '@/modules/admin/components/Govern
 import GovernancePortfolioBenchmarkPanel from '@/modules/admin/components/GovernancePortfolioBenchmarkPanel.vue'
 import GovernanceBestPracticeAlignmentPanel from '@/modules/admin/components/GovernanceBestPracticeAlignmentPanel.vue'
 import GovernanceMaturityScorecardPanel from '@/modules/admin/components/GovernanceMaturityScorecardPanel.vue'
+import GovernanceBenchmarkEvolutionPanel from '@/modules/admin/components/GovernanceBenchmarkEvolutionPanel.vue'
+import GovernanceCampaignRankingPanel from '@/modules/admin/components/GovernanceCampaignRankingPanel.vue'
+import GovernanceProgressMapPanel from '@/modules/admin/components/GovernanceProgressMapPanel.vue'
 import GovernanceSimulationScenarioPanel from '@/modules/admin/components/GovernanceSimulationScenarioPanel.vue'
 import GovernanceSimulationComparisonPanel from '@/modules/admin/components/GovernanceSimulationComparisonPanel.vue'
 import PolicyTuningSuggestionPanel from '@/modules/admin/components/PolicyTuningSuggestionPanel.vue'
@@ -917,6 +920,56 @@ onMounted(() => {
       <div v-if="opsProjectId" style="margin-bottom:20px">
         <TechPanel glow data-testid="scorecard-section">
           <GovernanceMaturityScorecardPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Benchmark Adoption Sections (45B) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">基准推广</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="adoption-section">
+            <GovernanceBenchmarkAdoptionPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="campaign-section">
+            <GovernanceImprovementCampaignPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="uplift-section">
+          <GovernanceUpliftMeasurementPanel />
+        </TechPanel>
+      </div>
+
+      <!-- Governance Uplift Optimization Sections (45C) -->
+      <NeonDivider v-if="opsProjectId" tone="accent" style="margin-bottom:20px" />
+      <div v-if="opsProjectId" class="beta-section-header" style="margin-bottom:12px">
+        <span class="beta-section-title">提升优化</span>
+      </div>
+
+      <div v-if="opsProjectId" class="beta-panels-row">
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="evolution-section">
+            <GovernanceBenchmarkEvolutionPanel />
+          </TechPanel>
+        </div>
+        <div class="beta-panel-col">
+          <TechPanel glow style="margin-bottom:20px" data-testid="campaign-ranking-section">
+            <GovernanceCampaignRankingPanel />
+          </TechPanel>
+        </div>
+      </div>
+
+      <div v-if="opsProjectId" style="margin-bottom:20px">
+        <TechPanel glow data-testid="progress-map-section">
+          <GovernanceProgressMapPanel />
         </TechPanel>
       </div>
 

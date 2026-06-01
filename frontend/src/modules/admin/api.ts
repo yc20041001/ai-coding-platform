@@ -3254,3 +3254,77 @@ export function listScorecards() { return client.get<ApiResponse<GovernanceMatur
 export function getBenchmarkDashboard() { return client.get<ApiResponse<any>>('/api/governance-benchmark/dashboard') }
 export function getBenchmarkReport() { return client.get<ApiResponse<string>>('/api/governance-benchmark/report') }
 
+// ========== Governance Benchmark Adoption (45B) ==========
+
+export interface GovernanceAdoptionRecordItem {
+  id: string; projectId: string; projectName: string; metricKey: string; adoptionStatus: string
+  currentScore: number; targetScore: number; blockerType: string | null; blockerNote: string | null
+  ownerId: string | null; ownerName: string | null; adoptedAt: string | null; createTime: string; updateTime: string
+}
+
+export interface GovernanceImprovementCampaignItem {
+  id: string; campaignKey: string; campaignName: string; campaignStatus: string
+  targetProjectIdsJson: string; sourceProjectId: string | null; sourcePracticeType: string | null
+  improvementWindow: string; goalText: string | null; notesText: string | null; createTime: string; updateTime: string
+}
+
+export interface GovernanceUpliftMeasurementItem {
+  id: string; snapshotDate: string; projectId: string; projectName: string; campaignKey: string
+  metricKey: string; beforeScore: number; afterScore: number; uplift: number; upliftLevel: string; summaryText: string
+}
+
+// Adoption Records
+export function createAdoptionRecord(projectId: string, projectName: string, metricKey: string, adoptionStatus?: string, blockerType?: string) {
+  const p: Record<string, any> = { projectId, projectName, metricKey }; if (adoptionStatus) p.adoptionStatus = adoptionStatus; if (blockerType) p.blockerType = blockerType
+  return client.post<ApiResponse<GovernanceAdoptionRecordItem>>('/api/governance-benchmark-adoption/records', {}, { params: p })
+}
+export function listAdoptionRecords() { return client.get<ApiResponse<GovernanceAdoptionRecordItem[]>>('/api/governance-benchmark-adoption/records') }
+export function updateAdoptionRecordStatus(recordId: string, status: string) { return client.post<ApiResponse<GovernanceAdoptionRecordItem>>(`/api/governance-benchmark-adoption/records/${recordId}/status`, {}, { params: { status } }) }
+
+// Campaigns
+export function createImprovementCampaign(campaignKey: string, campaignName: string, improvementWindow?: string) {
+  const p: Record<string, any> = { campaignKey, campaignName }; if (improvementWindow) p.improvementWindow = improvementWindow
+  return client.post<ApiResponse<GovernanceImprovementCampaignItem>>('/api/governance-benchmark-adoption/campaigns', {}, { params: p })
+}
+export function listImprovementCampaigns() { return client.get<ApiResponse<GovernanceImprovementCampaignItem[]>>('/api/governance-benchmark-adoption/campaigns') }
+export function updateCampaignStatus(campaignId: string, status: string) { return client.post<ApiResponse<GovernanceImprovementCampaignItem>>(`/api/governance-benchmark-adoption/campaigns/${campaignId}/status`, {}, { params: { status } }) }
+
+// Uplift
+export function refreshUpliftMeasurements() { return client.post<ApiResponse<string>>('/api/governance-benchmark-adoption/uplift/refresh', {}) }
+export function listUpliftMeasurements() { return client.get<ApiResponse<GovernanceUpliftMeasurementItem[]>>('/api/governance-benchmark-adoption/uplift') }
+export function getBenchmarkAdoptionDashboard() { return client.get<ApiResponse<any>>('/api/governance-benchmark-adoption/dashboard') }
+export function getBenchmarkAdoptionReport() { return client.get<ApiResponse<string>>('/api/governance-benchmark-adoption/report') }
+
+// ========== Governance Uplift Optimization (45C) ==========
+
+export interface GovernanceEvolutionItem {
+  id: string; snapshotDate: string; benchmarkType: string; metricKey: string; currentValue: number
+  previousValue: number; delta: number; deltaPercentage: number; signalLevel: string; sampleCount: number; summaryText: string
+}
+
+export interface GovernanceCampaignRankItem {
+  id: string; snapshotDate: string; campaignKey: string; campaignName: string; rankingWindow: string
+  avgUplift: number; projectCount: number; effectivenessLevel: string; rankPosition: number; summaryText: string
+}
+
+export interface GovernanceProgressMapItem {
+  id: string; snapshotDate: string; projectId: string; projectName: string; metricKey: string
+  baselineScore: number; currentScore: number; targetScore: number; progressPercentage: number; signalLevel: string; summaryText: string
+}
+
+// Evolution APIs
+export function refreshBenchmarkEvolution() { return client.post<ApiResponse<string>>('/api/governance-uplift-optimization/evolution/refresh', {}) }
+export function listBenchmarkEvolution() { return client.get<ApiResponse<GovernanceEvolutionItem[]>>('/api/governance-uplift-optimization/evolution') }
+
+// Campaign Ranking APIs
+export function refreshCampaignRanking() { return client.post<ApiResponse<string>>('/api/governance-uplift-optimization/campaign-ranking/refresh', {}) }
+export function listCampaignRanking() { return client.get<ApiResponse<GovernanceCampaignRankItem[]>>('/api/governance-uplift-optimization/campaign-ranking') }
+
+// Progress Map APIs
+export function refreshProgressMap() { return client.post<ApiResponse<string>>('/api/governance-uplift-optimization/progress-map/refresh', {}) }
+export function listProgressMap() { return client.get<ApiResponse<GovernanceProgressMapItem[]>>('/api/governance-uplift-optimization/progress-map') }
+
+// Dashboard & Report
+export function getUpliftOptimizationDashboard() { return client.get<ApiResponse<any>>('/api/governance-uplift-optimization/dashboard') }
+export function getUpliftOptimizationReport() { return client.get<ApiResponse<string>>('/api/governance-uplift-optimization/report') }
+
